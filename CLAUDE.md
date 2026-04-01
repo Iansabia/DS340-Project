@@ -13,7 +13,21 @@ Cross-platform prediction market arbitrage using ML/RL. We detect price discrepa
 
 ## Workflow: GSD + Superpowers Integration
 
-This project uses **GSD** for macro project management (phases, roadmaps, execution tracking) and **Superpowers** for code quality within each phase (brainstorming, TDD, subagent-driven development, code review).
+This project uses **GSD** for macro project management (phases, roadmaps, execution tracking) and **Superpowers** for code quality enforcement (brainstorming, TDD, subagent-driven development, code review).
+
+### Two-Tier Quality System
+
+**Main session (full Superpowers via plugin):**
+- Brainstorming skill invoked before design decisions
+- Subagent-driven development for complex implementations
+- Full code review ceremony after completing work
+- All Superpowers skills available via the Skill tool
+
+**GSD sub-agents (Superpowers discipline via AGENTS.md):**
+- `AGENTS.md` is loaded automatically into every sub-agent
+- Contains the core Superpowers rules: TDD Iron Law, verification-before-completion, self-review, report format
+- Sub-agents don't have the Skill tool, but they follow the same behavioral discipline
+- This ensures GSD executor agents write tested, verified, self-reviewed code
 
 ### When to Use Each
 
@@ -26,28 +40,27 @@ This project uses **GSD** for macro project management (phases, roadmaps, execut
 - `/gsd:quick` for small ad-hoc tasks
 
 **Superpowers owns code quality within GSD phases:**
-- **Brainstorming skill** — invoke before any design decision (model architecture, reward shaping, matching pipeline strategy). Do not write code until design is approved.
-- **TDD skill** — enforce RED-GREEN-REFACTOR for the matching pipeline, data ingestion, feature engineering, and evaluation harness. These are foundational and bugs here propagate everywhere.
-- **Subagent-driven development** — use when implementing models (GRU, LSTM, TFT, PPO, autoencoder). Each model gets a fresh subagent with isolated context, plus two reviewer subagents (spec compliance + code quality).
-- **Code review skills** — use after completing any data pipeline or model implementation before merging.
+- **Brainstorming skill** — invoke in main session before any design decision (model architecture, reward shaping, matching pipeline strategy). Do not write code until design is approved.
+- **TDD skill** — enforced in both main session (via Skill tool) and sub-agents (via AGENTS.md). RED-GREEN-REFACTOR for data pipeline, matching, feature engineering, evaluation, and model code.
+- **Subagent-driven development** — for high-risk phases (matching pipeline, PPO + autoencoder), consider executing interactively in main session using this skill instead of `/gsd:execute-phase`, to get the full two-stage review (spec compliance + code quality).
+- **Code review skills** — invoke in main session after completing any phase.
 
 ### When to Skip Superpowers Ceremony
-- Quick data exploration scripts
+- Quick data exploration scripts in `notebooks/`
 - One-off plotting/visualization
 - Running existing models with different hyperparameters
 - Writing the paper or slides
-- Simple config changes
+- Configuration files and simple config changes
 
 ### Phase Execution Pattern
 
 When executing a GSD phase that involves writing code:
 
 1. **GSD creates the plan** (`/gsd:plan-phase N`)
-2. **Before coding, invoke Superpowers brainstorming** if the task involves design decisions
-3. **Write tests first** (Superpowers TDD) for data pipeline and core logic
-4. **Implement via subagent-driven development** for model code
-5. **Run Superpowers code review** on completed work
-6. **GSD marks the phase complete** and updates STATE.md
+2. **Before coding, invoke Superpowers brainstorming** in main session if the task involves design decisions
+3. **Execute the phase** — either via `/gsd:execute-phase N` (sub-agents follow AGENTS.md discipline) or interactively in main session with full Superpowers for high-risk phases
+4. **Run Superpowers code review** in main session on completed work
+5. **GSD marks the phase complete** and updates STATE.md
 
 ## Technical Context
 
