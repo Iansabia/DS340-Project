@@ -109,14 +109,14 @@
 | MOD-02 | Phase 4 | Pending |
 | MOD-03 | Phase 4 | Pending |
 | MOD-04 | Phase 4 | Pending |
+| EVAL-01 | Phase 4 | Pending |
+| EVAL-02 | Phase 4 | Pending |
 | MOD-05 | Phase 5 | Pending |
 | MOD-06 | Phase 5 | Pending |
 | MOD-07 | Phase 5 | Pending |
 | MOD-08 | Phase 6 | Pending |
 | MOD-09 | Phase 6 | Pending |
 | MOD-10 | Phase 6 | Pending |
-| EVAL-01 | Phase 7 | Pending |
-| EVAL-02 | Phase 7 | Pending |
 | EVAL-03 | Phase 7 | Pending |
 | EVAL-04 | Phase 7 | Pending |
 | EXP-01 | Phase 7 | Pending |
@@ -129,8 +129,8 @@
 **Coverage:**
 - v1 requirements: 36 total
 - Mapped to phases: 36
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-01*
-*Last updated: 2026-04-01 after initial definition*
+*Last updated: 2026-04-01 after roadmap creation (EVAL-01/02 moved to Phase 4)*
