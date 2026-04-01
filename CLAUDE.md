@@ -5,7 +5,19 @@
 - Alvin Jang (U64760665)
 
 ## Project Overview
-Cross-platform prediction market arbitrage using ML/RL. We detect price discrepancies between Kalshi and Polymarket on matched contracts, then learn optimal trading policies. Leading architecture: PPO agent with autoencoder anomaly detector as signal filter, benchmarked against linear regression, XGBoost, GRU, LSTM, and TFT baselines.
+Cross-platform prediction market arbitrage using ML/RL. We detect price discrepancies between Kalshi and Polymarket on matched contracts, then predict spread convergence and learn trading policies.
+
+**Central research question:** Does increasing model complexity (RL, anomaly detection) improve arbitrage detection over simpler regression approaches, and if so, when is that complexity justified?
+
+**Architecture tiers (simplest to most complex):**
+1. **Regression baselines** (Linear Regression, XGBoost) — the backbone
+2. **Time series models** (GRU, LSTM, TFT) — primary models for spread prediction
+3. **RL without signal filter** (PPO acting directly on features) — tests whether RL adds value over regression
+4. **RL with signal filter** (PPO + autoencoder) — tests whether anomaly pre-filtering helps RL
+
+The project is structured as a **complexity-vs-performance tradeoff analysis**. We expect simpler models may outperform RL given the small dataset, and that's a valid finding that answers the research question empirically.
+
+**Professor feedback (KG):** Questioned whether all moving parts are needed. Could RL act directly on features? Could this just be regression? Response: we now test all three framings (regression-only, RL-only, RL+autoencoder) and let the data answer. Simpler baselines are first-class, not afterthoughts.
 
 ## Deadline
 - **TA Check-in:** April 4, 2026
@@ -75,12 +87,26 @@ When executing a GSD phase that involves writing code:
 - Filter out low-liquidity markets (some Kalshi hourly contracts have <10 trades).
 - Kalshi candlestick OHLC fields can be null when no trades occurred in a period.
 
-### Models & Architecture
-- **Baselines:** Linear Regression, XGBoost
-- **Time Series:** GRU (preferred recurrent), LSTM, TFT (via PyTorch Forecasting)
-- **RL:** PPO with autoencoder anomaly detector as signal filter
-- **Anomaly Detection:** Autoencoder trained on normal spread behavior, flags high reconstruction error
-- All models trained from scratch on matched-pairs dataset. No pretrained models.
+### Models & Architecture (ordered by complexity)
+
+**Tier 1 — Regression baselines (must be strong):**
+- Linear Regression: predicts future spread value
+- XGBoost: strong tabular baseline, also used for spread-based trading signal
+
+**Tier 2 — Time series models (primary contribution):**
+- GRU (preferred recurrent): simpler, faster, works well on short sequences
+- LSTM: captures longer-range dependencies
+- TFT (via PyTorch Forecasting): transformer-based, handles mixed static/temporal features
+
+**Tier 3 — RL models (exploratory, answers "is complexity needed?"):**
+- PPO on raw features: RL agent acts directly on spread/volume/bid-ask features without preprocessing
+- PPO + autoencoder: autoencoder flags anomalous spreads, PPO learns trading policy on flagged signals
+
+**Naive baselines (lower bound):**
+- Naive: spread always closes fully by resolution
+- Volume: higher-volume platform is always correct
+
+All models trained from scratch on matched-pairs dataset. No pretrained models.
 
 ### Stack
 - Python 3.12 with venv at `.venv/`
@@ -89,7 +115,7 @@ When executing a GSD phase that involves writing code:
 - SHAP (interpretability), requests/pandas/numpy (data)
 
 ### Experiments
-1. **Architecture Comparison:** All models on same dataset, same eval protocol
+1. **Complexity-vs-Performance (centerpiece):** All model tiers on same dataset, same eval protocol. Answers: does adding RL/anomaly detection beat regression? Does PPO+autoencoder beat PPO-only?
 2. **Historical Window Length:** 6h, 24h, 72h, 7d lookback windows
 3. **Minimum Spread Threshold:** No min, >2pp, >5pp, >10pp
 
@@ -110,7 +136,9 @@ When executing a GSD phase that involves writing code:
 - Raw data in `data/raw/`, processed in `data/processed/`
 
 ## Important Notes
-- PPO will likely underperform baselines due to small dataset size. This is expected and should be framed as a finding, not a failure.
+- **Regression models are first-class, not afterthoughts.** The profit simulation for regression-only trading (predict spread, trade when prediction exceeds threshold) should be as polished as the RL evaluation. This is the strongest baseline and likely the best performer.
+- PPO will likely underperform baselines due to small dataset size. This is expected and directly answers the research question: "the added complexity was not justified at this dataset scale."
+- PPO-without-autoencoder is a new variant (per KG feedback) that isolates whether RL itself adds value, separate from the anomaly detection layer.
 - Transaction costs (Kalshi fees, Polymarket gas) should be acknowledged in evaluation even if not modeled.
-- The novelty is in the **application domain** (cross-platform prediction market arbitrage), not the architecture (PPO + autoencoder has been published for equities).
+- The novelty is in the **application domain** (cross-platform prediction market arbitrage) and the **systematic complexity analysis**, not the architecture itself.
 - Settlement divergence between platforms is a real risk — document it.
