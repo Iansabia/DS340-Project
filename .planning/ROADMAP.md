@@ -32,11 +32,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Running the Polymarket ingestion script produces parquet files in `data/raw/` containing reconstructed price histories from trade records, with metadata from Gamma API
   3. Re-running either script skips already-cached data and respects rate limits without manual intervention
   4. Both adapters recover from transient API failures via automated retry with backoff
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md -- Project setup, shared infrastructure (ResilientClient, MarketDataAdapter ABC, schemas, test fixtures)
+- [ ] 01-02-PLAN.md -- Kalshi adapter (market discovery, candlestick fetching with chunking, null OHLC handling)
+- [ ] 01-03-PLAN.md -- Polymarket adapter (Gamma discovery, CLOB price history, Data API trade fallback)
 
 ### Phase 2: Market Matching
 **Goal**: A verified registry of matched contract pairs across Kalshi and Polymarket with confidence scores and settlement documentation
@@ -163,7 +164,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Ingestion | 0/0 | Not started | - |
+| 1. Data Ingestion | 0/3 | Planning complete | - |
 | 2. Market Matching | 0/0 | Not started | - |
 | 3. Feature Engineering | 0/0 | Not started | - |
 | 4. Regression Baselines and Evaluation Framework | 0/0 | Not started | - |
