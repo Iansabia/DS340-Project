@@ -16,10 +16,10 @@
 
 ### Market Matching
 
-- [ ] **MATCH-01**: Keyword-based first-pass candidate matching across platforms
-- [ ] **MATCH-02**: Sentence-transformer semantic similarity scoring for fuzzy matching
+- [x] **MATCH-01**: Keyword-based first-pass candidate matching across platforms
+- [x] **MATCH-02**: Sentence-transformer semantic similarity scoring for fuzzy matching
 - [ ] **MATCH-03**: Manual curation interface for reviewing and accepting/rejecting matched pairs
-- [ ] **MATCH-04**: Match confidence scoring per pair
+- [x] **MATCH-04**: Match confidence scoring per pair
 - [ ] **MATCH-05**: Settlement criteria comparison documentation for each matched pair
 
 ### Feature Engineering
@@ -95,10 +95,10 @@
 | DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Complete |
 | DATA-06 | Phase 1 | Complete |
-| MATCH-01 | Phase 2 | Pending |
-| MATCH-02 | Phase 2 | Pending |
+| MATCH-01 | Phase 2 | Complete |
+| MATCH-02 | Phase 2 | Complete |
 | MATCH-03 | Phase 2 | Pending |
-| MATCH-04 | Phase 2 | Pending |
+| MATCH-04 | Phase 2 | Complete |
 | MATCH-05 | Phase 2 | Pending |
 | FEAT-01 | Phase 3 | Pending |
 | FEAT-02 | Phase 3 | Pending |
