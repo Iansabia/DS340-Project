@@ -10,9 +10,9 @@
 - [ ] **DATA-01**: Kalshi API adapter that handles live/historical endpoint split via `/historical/cutoff`
 - [ ] **DATA-02**: Polymarket API adapter that queries Gamma for metadata, CLOB for prices, Data API for trade records
 - [ ] **DATA-03**: Polymarket price history reconstruction from trade records for resolved markets
-- [ ] **DATA-04**: Rate limiting and local caching for both platform APIs
-- [ ] **DATA-05**: Automated retry with exponential backoff for transient API failures
-- [ ] **DATA-06**: Raw data storage with timestamps in `data/raw/`
+- [x] **DATA-04**: Rate limiting and local caching for both platform APIs
+- [x] **DATA-05**: Automated retry with exponential backoff for transient API failures
+- [x] **DATA-06**: Raw data storage with timestamps in `data/raw/`
 
 ### Market Matching
 
@@ -92,9 +92,9 @@
 | DATA-01 | Phase 1 | Pending |
 | DATA-02 | Phase 1 | Pending |
 | DATA-03 | Phase 1 | Pending |
-| DATA-04 | Phase 1 | Pending |
-| DATA-05 | Phase 1 | Pending |
-| DATA-06 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Complete |
+| DATA-05 | Phase 1 | Complete |
+| DATA-06 | Phase 1 | Complete |
 | MATCH-01 | Phase 2 | Pending |
 | MATCH-02 | Phase 2 | Pending |
 | MATCH-03 | Phase 2 | Pending |
