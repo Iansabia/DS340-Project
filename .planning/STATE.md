@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-04-02T17:06:25.403Z"
-last_activity: 2026-04-02 -- Completed 01-01-PLAN.md (foundation layer)
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-04-02T18:43:30.713Z"
+last_activity: 2026-04-02 -- Completed 01-02-PLAN.md (Kalshi adapter) and 01-03-PLAN.md
 progress:
   total_phases: 8
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 3
   percent: 33
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 ## Current Position
 
 Phase: 1 of 8 (Data Ingestion)
-Plan: 1 of 3 in current phase
+Plan: 3 of 3 in current phase
 Status: Executing
-Last activity: 2026-04-02 -- Completed 01-01-PLAN.md (foundation layer)
+Last activity: 2026-04-02 -- Completed 01-02-PLAN.md (Kalshi adapter) and 01-03-PLAN.md
 
 Progress: [███░░░░░░░] 33%
 
@@ -51,6 +51,8 @@ Progress: [███░░░░░░░] 33%
 
 *Updated after each plan completion*
 | Phase 01 P01 | 5min | 2 tasks | 14 files |
+| Phase 01 P02 | 27min | 2 tasks | 3 files |
+| Phase 01 P03 | 21min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -64,6 +66,10 @@ Recent decisions affecting current work:
 - [Roadmap]: Phases 5 and 6 designed for parallel execution (team split: one person per phase)
 - [Phase 01]: Used urllib3 Retry with HTTPAdapter for retry logic rather than custom retry loop
 - [Phase 01]: File-based parquet caching in get_or_fetch_candlesticks to avoid redundant API calls
+- [Phase 01]: Keyword matching on event title+description instead of Gamma tag_id filtering (tags too sparse)
+- [Phase 01]: CLOB prices-history with startTs/endTs as primary source, Data API trades as fallback only
+- [Phase 01]: Rate limit 18 req/s for Kalshi (buffer below 20 req/s Basic tier limit)
+- [Phase 01]: Lexicographic ISO8601 comparison for historical cutoff routing
 
 ### Pending Todos
 
@@ -77,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T17:06:25.401Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-04-02T18:43:09.808Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
