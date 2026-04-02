@@ -2,6 +2,13 @@
 import pytest
 
 
+@pytest.fixture(scope="module")
+def semantic_matcher():
+    """Load SemanticMatcher once per test module (model loading is expensive)."""
+    from src.matching.semantic_matcher import SemanticMatcher
+    return SemanticMatcher()
+
+
 @pytest.fixture()
 def sample_kalshi_markets():
     """Sample Kalshi market metadata dicts for testing."""
