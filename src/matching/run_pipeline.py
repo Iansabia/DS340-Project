@@ -14,6 +14,7 @@ from pathlib import Path
 from src.matching.keyword_matcher import generate_candidates
 from src.matching.semantic_matcher import SemanticMatcher, score_candidates
 from src.matching.scorer import compute_confidence, score_and_rank_candidates
+from src.matching.quality_filter import filter_candidates
 from src.matching.metadata_enricher import enrich_settlement_criteria
 from src.matching.curator import review_candidates
 from src.matching.registry import save_registry, load_registry, deduplicate_pairs
@@ -29,17 +30,28 @@ SCOPE_GATE_THRESHOLD = 30
 
 
 def load_metadata(path: Path) -> list[dict]:
-    """Load _metadata.json from a platform data directory."""
+    """Load metadata from a platform data directory.
+
+    Prefers _metadata_filtered.json if it exists (pre-filtered for matching).
+    Falls back to _metadata.json.
+    """
+    filtered_path = path / "_metadata_filtered.json"
     metadata_path = path / "_metadata.json"
-    if not metadata_path.exists():
+
+    if filtered_path.exists():
+        target = filtered_path
+    elif metadata_path.exists():
+        target = metadata_path
+    else:
         logger.error(
-            f"Metadata file not found: {metadata_path}. "
+            f"No metadata file found in {path}. "
             "Run Phase 1 ingestion first."
         )
         sys.exit(1)
-    with open(metadata_path) as f:
+
+    with open(target) as f:
         data = json.load(f)
-    logger.info(f"Loaded {len(data)} markets from {metadata_path}")
+    logger.info(f"Loaded {len(data)} markets from {target}")
     return data
 
 
@@ -144,6 +156,18 @@ def main():
     logger.info("Step 3: Deduplicating one-to-many matches...")
     scored = deduplicate_pairs(scored)
     logger.info(f"After dedup: {len(scored)} unique candidates")
+
+    # Step 3.5: Quality filter (temporal, direction, threshold)
+    logger.info("Step 3.5: Applying quality filters...")
+    scored = filter_candidates(scored)
+    logger.info(f"After quality filter: {len(scored)} candidates")
+
+    if not scored:
+        logger.error(
+            "No candidates survived quality filtering. "
+            "Check resolution date proximity and contract compatibility."
+        )
+        sys.exit(1)
 
     # Step 4: Enrich with settlement criteria
     if not args.skip_enrichment:

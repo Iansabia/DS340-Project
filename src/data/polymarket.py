@@ -31,7 +31,7 @@ class PolymarketAdapter(MarketDataAdapter):
     DATA_BASE = "https://data-api.polymarket.com"
 
     CHUNK_DAYS = 14
-    MAX_TRADE_OFFSET = 3000
+    MAX_TRADE_OFFSET = 15000
 
     CRYPTO_KEYWORDS = [
         "btc", "bitcoin", "eth", "ethereum", "solana", "sol ",

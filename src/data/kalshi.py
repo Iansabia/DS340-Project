@@ -31,7 +31,7 @@ class KalshiAdapter(MarketDataAdapter):
     BASE_URL = "https://api.elections.kalshi.com/trade-api/v2"
     CATEGORIES = ["Economics", "Crypto", "Financials"]
     MAX_CANDLES_PER_REQUEST = 4500
-    PERIOD_INTERVAL = 1  # minute-level
+    PERIOD_INTERVAL = 60  # hourly candlesticks
 
     def __init__(self, client: ResilientClient | None = None):
         if client is None:
