@@ -80,11 +80,11 @@ Plans:
   3. All four models are evaluated with RMSE, MAE, and directional accuracy, with results in a comparison table
   4. Profit simulation runs for all four models, reporting P&L, win rate, and Sharpe ratio
   5. The evaluation framework accepts any model implementing the common prediction interface, ready for Tier 2 and Tier 3 models
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md -- Prediction interface, evaluation framework (metrics + profit sim), naive and volume baselines
+- [ ] 04-02-PLAN.md -- Linear Regression, XGBoost, results storage, baseline comparison experiment script
 
 ### Phase 5: Time Series Models
 **Goal**: Recurrent and attention-based models are trained and evaluated, testing whether temporal structure improves spread prediction
@@ -167,7 +167,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 | 1. Data Ingestion | 0/3 | Planning complete | - |
 | 2. Market Matching | 0/0 | Not started | - |
 | 3. Feature Engineering | 0/0 | Not started | - |
-| 4. Regression Baselines and Evaluation Framework | 0/0 | Not started | - |
+| 4. Regression Baselines and Evaluation Framework | 0/2 | Planning complete | - |
 | 5. Time Series Models | 0/0 | Not started | - |
 | 6. RL and Autoencoder | 0/0 | Not started | - |
 | 7. Experiments and Interpretability | 0/0 | Not started | - |
@@ -175,4 +175,4 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 
 ---
 *Roadmap created: 2026-04-01*
-*Last updated: 2026-04-01*
+*Last updated: 2026-04-03*
