@@ -64,11 +64,11 @@ Plans:
   3. Temporal train/test split is enforced with an assertion that no training timestamp exceeds the earliest test timestamp
   4. The dataset includes `time_idx` and `group_ids` columns compatible with PyTorch Forecasting TimeSeriesDataSet format
   5. Both flat (for regression) and windowed (for time series) dataset views are available from the same underlying data
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md -- Core feature pipeline (pair loader, hourly alignment, spread/microstructure features, liquidity filter, build CLI)
+- [ ] 03-02-PLAN.md -- Temporal train/test split, flat and windowed dataset views, PyTorch Forecasting TimeSeriesDataSet format
 
 ### Phase 4: Regression Baselines and Evaluation Framework
 **Goal**: Tier 1 models are trained and evaluated, the evaluation framework exists for all future models, and the TA check-in deliverable is ready
@@ -166,7 +166,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 |-------|----------------|--------|-----------|
 | 1. Data Ingestion | 0/3 | Planning complete | - |
 | 2. Market Matching | 0/0 | Not started | - |
-| 3. Feature Engineering | 0/0 | Not started | - |
+| 3. Feature Engineering | 0/2 | Planning complete | - |
 | 4. Regression Baselines and Evaluation Framework | 0/2 | Planning complete | - |
 | 5. Time Series Models | 0/0 | Not started | - |
 | 6. RL and Autoencoder | 0/0 | Not started | - |
