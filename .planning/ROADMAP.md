@@ -54,6 +54,16 @@ Plans:
 - [ ] 02-01: TBD
 - [ ] 02-02: TBD
 
+### Phase 02.1: Trade-Based Data Reconstruction (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 2
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 02.1 to break down)
+
 ### Phase 3: Feature Engineering
 **Goal**: A processed, time-aligned dataset of hourly microstructure features ready for consumption by all model tiers
 **Depends on**: Phase 2

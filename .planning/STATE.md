@@ -79,6 +79,10 @@ Recent decisions affecting current work:
 - [Phase 03]: Forward-fill limited to 6-hour gap to prevent stale price propagation
 - [Phase 03]: Only 1/77 matched pairs produces usable features (Kalshi data quality issue)
 
+### Roadmap Evolution
+
+- Phase 2.1 inserted after Phase 2: Trade-Based Data Reconstruction (URGENT) — Kalshi candlestick API returns null prices for 76/77 economics markets. Rebuilding both adapters to use raw trade records with 4-hour VWAP candles, forward-fill alignment, and microstructure features.
+
 ### Pending Todos
 
 None yet.
