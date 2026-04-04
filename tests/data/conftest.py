@@ -162,3 +162,94 @@ def mock_polymarket_trades_response():
         {"id": "3", "price": "0.68", "size": "200", "timestamp": "1704070900", "side": "BUY"},
         {"id": "4", "price": "0.62", "size": "75", "timestamp": "1704074500", "side": "SELL"},
     ]
+
+
+# -------------------------------------------------------------------------
+# Trade fetcher / reconstructor fixtures (Phase 2.1)
+# -------------------------------------------------------------------------
+
+@pytest.fixture
+def kalshi_raw_trades_api_response():
+    """Raw Kalshi /markets/trades API response (before normalization).
+
+    Simulates two pages of cursor-paginated results.
+    """
+    page1 = {
+        "trades": [
+            {
+                "created_time": "2024-01-01T00:00:00Z",
+                "yes_price_dollars": "0.55",
+                "count_fp": "100",
+                "taker_side": "yes",
+            },
+            {
+                "created_time": "2024-01-01T01:00:00Z",
+                "yes_price_dollars": "0.60",
+                "count_fp": "50",
+                "taker_side": "no",
+            },
+        ],
+        "cursor": "page2_cursor",
+    }
+    page2 = {
+        "trades": [
+            {
+                "created_time": "2024-01-01T04:00:00Z",
+                "yes_price_dollars": "0.58",
+                "count_fp": "75",
+                "taker_side": "yes",
+            },
+        ],
+        "cursor": "",
+    }
+    return [page1, page2]
+
+
+@pytest.fixture
+def polymarket_raw_trades_api_response():
+    """Raw Polymarket Data API /trades response (before normalization).
+
+    Simulates two pages of offset-paginated results.
+    """
+    page1 = [
+        {"timestamp": "1704067200", "price": "0.65", "size": "100", "side": "BUY"},
+        {"timestamp": "1704067500", "price": "0.66", "size": "50", "side": "SELL"},
+    ]
+    page2 = [
+        {"timestamp": "1704070900", "price": "0.68", "size": "200", "side": "BUY"},
+    ]
+    return [page1, page2]
+
+
+@pytest.fixture
+def normalized_trades():
+    """Normalized trades (output of fetch_*_trades) for reconstructor tests.
+
+    Spans two 4-hour bars:
+    - Bar 1 (ts 1704067200..1704081599): 3 trades
+    - Bar 2 (ts 1704081600..1704095999): 2 trades
+    """
+    return [
+        {"timestamp": 1704067200, "price": 0.50, "volume": 100.0, "side": "buy"},
+        {"timestamp": 1704070000, "price": 0.60, "volume": 200.0, "side": "sell"},
+        {"timestamp": 1704075000, "price": 0.55, "volume": 50.0, "side": "buy"},
+        {"timestamp": 1704082000, "price": 0.62, "volume": 150.0, "side": "buy"},
+        {"timestamp": 1704090000, "price": 0.58, "volume": 80.0, "side": "sell"},
+    ]
+
+
+@pytest.fixture
+def sample_accepted_pairs():
+    """Minimal accepted pairs for fetch_and_save_trades testing."""
+    return [
+        {
+            "kalshi_market_id": "KXU3-26FEB-T4.3",
+            "polymarket_market_id": "0xabc123",
+            "pair_id": "kxu3-0xabc123",
+        },
+        {
+            "kalshi_market_id": "KXUE-JPN26FEB-2.1",
+            "polymarket_market_id": "0xdef456",
+            "pair_id": "kxue-0xdef456",
+        },
+    ]

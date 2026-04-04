@@ -33,6 +33,32 @@ OPTIONAL_COLUMNS = [
     "has_trades",      # bool: whether any trades occurred in this period
 ]
 
+# Columns for raw trade parquet files (normalized across platforms)
+TRADE_COLUMNS = [
+    "timestamp",   # int: Unix seconds UTC
+    "price",       # float: trade price
+    "volume",      # float: trade size (contracts)
+    "side",        # str: "buy", "sell", or "unknown"
+]
+
+# Columns for 4-hour reconstructed candles with microstructure features
+CANDLE_COLUMNS = [
+    "timestamp",        # int: Unix seconds UTC, start of 4-hour bar
+    "vwap",             # float: volume-weighted average price
+    "open",             # float: first trade price in bar
+    "high",             # float: highest trade price
+    "low",              # float: lowest trade price
+    "close",            # float: last trade price
+    "volume",           # float: total contracts traded
+    "trade_count",      # int: number of trades
+    "dollar_volume",    # float: sum(price * size)
+    "buy_volume",       # float: volume from buy-side takers
+    "sell_volume",      # float: volume from sell-side takers
+    "realized_spread",  # float: mean(ask_hits) - mean(bid_hits)
+    "max_trade_size",   # float: largest single trade
+    "has_trade",        # bool: True (always True for reconstructed bars)
+]
+
 METADATA_COLUMNS = [
     "market_id",       # str: platform-specific identifier
     "question",        # str: human-readable market question
