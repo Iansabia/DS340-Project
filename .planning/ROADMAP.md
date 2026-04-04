@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Data Ingestion** - Build platform API adapters and ingest historical market data from Kalshi and Polymarket
 - [ ] **Phase 2: Market Matching** - Match equivalent contracts across platforms using NLP and manual curation
-- [ ] **Phase 3: Feature Engineering** - Construct time-aligned hourly feature vectors and the matched-pairs dataset
+- [ ] **Phase 3: Feature Engineering** - Compute derived features from aligned 4-hour microstructure data, temporal split, PyTorch Forecasting format
 - [ ] **Phase 4: Regression Baselines and Evaluation Framework** - Train Tier 1 models, build evaluation/simulation infrastructure, deliver TA check-in
 - [ ] **Phase 5: Time Series Models** - Train GRU, LSTM, and TFT on spread prediction with hourly sequences
 - [ ] **Phase 6: RL and Autoencoder** - Build trading environment, train autoencoder anomaly detector, train PPO variants
@@ -66,20 +66,19 @@ Plans:
 - [ ] 02.1-02-PLAN.md -- Cross-platform aligner (forward-fill, staleness decay, quality filters) and rebuild_data.py CLI pipeline
 
 ### Phase 3: Feature Engineering
-**Goal**: A processed, time-aligned dataset of hourly microstructure features ready for consumption by all model tiers
-**Depends on**: Phase 2
+**Goal**: A processed, model-ready dataset with derived microstructure features computed from 4-hour aligned data, temporally split into train/test sets with PyTorch Forecasting compatibility
+**Depends on**: Phase 2.1
 **Requirements**: FEAT-01, FEAT-02, FEAT-03, FEAT-04, FEAT-05
 **Success Criteria** (what must be TRUE):
-  1. `data/processed/` contains feature matrices with per-hour vectors (spread, volume, bid-ask spread, price velocity) aligned across both platforms for each matched pair
-  2. Low-liquidity markets (< 10 trades) are filtered out and documented
-  3. Temporal train/test split is enforced with an assertion that no training timestamp exceeds the earliest test timestamp
-  4. The dataset includes `time_idx` and `group_ids` columns compatible with PyTorch Forecasting TimeSeriesDataSet format
-  5. Both flat (for regression) and windowed (for time series) dataset views are available from the same underlying data
-**Plans**: 2 plans
+  1. `data/processed/` contains train.parquet and test.parquet with 39 columns (31 aligned + 6 derived + time_idx + group_id) for each matched pair
+  2. Low-liquidity markets (<20 trades) are filtered upstream by aligner and documented
+  3. Temporal train/test split is enforced per pair with an assertion that no training timestamp exceeds the earliest test timestamp
+  4. The dataset includes `time_idx` and `group_id` columns compatible with PyTorch Forecasting TimeSeriesDataSet format
+  5. A `build_timeseries_dataset()` function creates a TimeSeriesDataSet from the feature matrix
+**Plans**: 1 plan
 
 Plans:
-- [ ] 03-01-PLAN.md -- Core feature pipeline (pair loader, hourly alignment, spread/microstructure features, liquidity filter, build CLI)
-- [ ] 03-02-PLAN.md -- Temporal train/test split, flat and windowed dataset views, PyTorch Forecasting TimeSeriesDataSet format
+- [ ] 03-01-PLAN.md -- Derived features (velocity, volume ratio, spread momentum/volatility, order flow imbalance), temporal split, PyTorch Forecasting format, CLI pipeline
 
 ### Phase 4: Regression Baselines and Evaluation Framework
 **Goal**: Tier 1 models are trained and evaluated, the evaluation framework exists for all future models, and the TA check-in deliverable is ready
@@ -178,7 +177,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 | 1. Data Ingestion | 0/3 | Planning complete | - |
 | 2. Market Matching | 0/0 | Not started | - |
 | 2.1. Trade-Based Data Reconstruction | 1/2 | Executing | - |
-| 3. Feature Engineering | 0/2 | Planning complete | - |
+| 3. Feature Engineering | 0/1 | Planning complete | - |
 | 4. Regression Baselines and Evaluation Framework | 0/2 | Planning complete | - |
 | 5. Time Series Models | 0/0 | Not started | - |
 | 6. RL and Autoencoder | 0/0 | Not started | - |
@@ -187,4 +186,4 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 
 ---
 *Roadmap created: 2026-04-01*
-*Last updated: 2026-04-04*
+*Last updated: 2026-04-05*
