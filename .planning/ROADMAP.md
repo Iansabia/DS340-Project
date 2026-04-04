@@ -62,7 +62,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 02.1-01-PLAN.md -- Trade fetcher (Kalshi + Polymarket pagination) and candle reconstructor (4-hour OHLCV+VWAP+microstructure)
+- [x] 02.1-01-PLAN.md -- Trade fetcher (Kalshi + Polymarket pagination) and candle reconstructor (4-hour OHLCV+VWAP+microstructure)
 - [ ] 02.1-02-PLAN.md -- Cross-platform aligner (forward-fill, staleness decay, quality filters) and rebuild_data.py CLI pipeline
 
 ### Phase 3: Feature Engineering
@@ -177,7 +177,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 |-------|----------------|--------|-----------|
 | 1. Data Ingestion | 0/3 | Planning complete | - |
 | 2. Market Matching | 0/0 | Not started | - |
-| 2.1. Trade-Based Data Reconstruction | 0/2 | Planning complete | - |
+| 2.1. Trade-Based Data Reconstruction | 1/2 | Executing | - |
 | 3. Feature Engineering | 0/2 | Planning complete | - |
 | 4. Regression Baselines and Evaluation Framework | 0/2 | Planning complete | - |
 | 5. Time Series Models | 0/0 | Not started | - |

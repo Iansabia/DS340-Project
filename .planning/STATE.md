@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-04-04T00:44:58.562Z"
-last_activity: 2026-04-04 -- Completed 03-01-PLAN.md (Feature engineering pipeline)
+stopped_at: Completed 02.1-01-PLAN.md
+last_updated: "2026-04-04T21:43:35Z"
+last_activity: 2026-04-04 -- Completed 02.1-01-PLAN.md (Trade fetcher and candle reconstructor)
 progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 9
-  completed_plans: 5
-  percent: 56
+  completed_plans: 6
+  percent: 67
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 3 - Feature Engineering
+**Current focus:** Phase 2.1 - Trade-Based Data Reconstruction
 
 ## Current Position
 
-Phase: 3 of 8 (Feature Engineering)
-Plan: 1 of 2 in current phase
+Phase: 2.1 of 8 (Trade-Based Data Reconstruction)
+Plan: 2 of 2 in current phase
 Status: Executing
-Last activity: 2026-04-04 -- Completed 03-01-PLAN.md (Feature engineering pipeline)
+Last activity: 2026-04-04 -- Completed 02.1-01-PLAN.md (Trade fetcher and candle reconstructor)
 
-Progress: [██████░░░░] 56%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [██████░░░░] 56%
 | Phase 01 P03 | 21min | 2 tasks | 3 files |
 | Phase 02 P01 | 4min | 2 tasks | 9 files |
 | Phase 03 P01 | 5min | 2 tasks | 11 files |
+| Phase 02.1 P01 | 4min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,9 @@ Recent decisions affecting current work:
 - [Phase 03]: String None to NaN conversion needed for Kalshi parquet files (object dtype, not NaN)
 - [Phase 03]: Forward-fill limited to 6-hour gap to prevent stale price propagation
 - [Phase 03]: Only 1/77 matched pairs produces usable features (Kalshi data quality issue)
+- [Phase 02.1]: Standalone trade_fetcher and trade_reconstructor modules (no dependency on adapter classes)
+- [Phase 02.1]: Polymarket MAX_TRADE_OFFSET=15000 (matching plan spec, higher than existing adapter's 3000)
+- [Phase 02.1]: time_since_last_trade deferred to aligner (requires cross-bar context on unified grid)
 
 ### Roadmap Evolution
 
@@ -95,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T00:44:58.559Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-04-04T21:43:35Z
+Stopped at: Completed 02.1-01-PLAN.md
 Resume file: None
