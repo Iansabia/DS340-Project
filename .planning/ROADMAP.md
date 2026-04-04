@@ -56,13 +56,14 @@ Plans:
 
 ### Phase 02.1: Trade-Based Data Reconstruction (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Raw trades pulled from both platforms, reconstructed into 4-hour OHLCV+VWAP candles with microstructure features, and aligned cross-platform with forward-fill and staleness decay. Output: data/processed/aligned_pairs.parquet with 50-70 usable pairs.
+**Requirements**: TRADE-FETCH, TRADE-RECONSTRUCT, TRADE-ALIGN, TRADE-VALIDATE, TRADE-PIPELINE (defined by design spec)
 **Depends on:** Phase 2
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 02.1 to break down)
+- [ ] 02.1-01-PLAN.md -- Trade fetcher (Kalshi + Polymarket pagination) and candle reconstructor (4-hour OHLCV+VWAP+microstructure)
+- [ ] 02.1-02-PLAN.md -- Cross-platform aligner (forward-fill, staleness decay, quality filters) and rebuild_data.py CLI pipeline
 
 ### Phase 3: Feature Engineering
 **Goal**: A processed, time-aligned dataset of hourly microstructure features ready for consumption by all model tiers
@@ -164,8 +165,8 @@ Plans:
 Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be parallelized. Phase 7 depends on both 5 and 6. Phase 8 depends on 7.
 
 ```
-1 -> 2 -> 3 -> 4 -> 5 ─┐
-                    └─> 6 ─┤-> 7 -> 8
+1 -> 2 -> 2.1 -> 3 -> 4 -> 5 ─┐
+                           └─> 6 ─┤-> 7 -> 8
 ```
 
 **Milestone Deadlines:**
@@ -176,6 +177,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 |-------|----------------|--------|-----------|
 | 1. Data Ingestion | 0/3 | Planning complete | - |
 | 2. Market Matching | 0/0 | Not started | - |
+| 2.1. Trade-Based Data Reconstruction | 0/2 | Planning complete | - |
 | 3. Feature Engineering | 0/2 | Planning complete | - |
 | 4. Regression Baselines and Evaluation Framework | 0/2 | Planning complete | - |
 | 5. Time Series Models | 0/0 | Not started | - |
@@ -185,4 +187,4 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 
 ---
 *Roadmap created: 2026-04-01*
-*Last updated: 2026-04-03*
+*Last updated: 2026-04-04*
