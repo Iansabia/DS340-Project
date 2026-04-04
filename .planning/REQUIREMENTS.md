@@ -24,11 +24,11 @@
 
 ### Feature Engineering
 
-- [ ] **FEAT-01**: Time-aligned hourly feature vectors (spread, volume, bid-ask spread, price velocity)
+- [x] **FEAT-01**: Time-aligned hourly feature vectors (spread, volume, bid-ask spread, price velocity)
 - [ ] **FEAT-02**: Temporal train/test split enforced (no look-ahead bias)
-- [ ] **FEAT-03**: Low-liquidity market filtering (remove markets with <10 trades)
+- [x] **FEAT-03**: Low-liquidity market filtering (remove markets with <10 trades)
 - [ ] **FEAT-04**: Output format compatible with PyTorch Forecasting TimeSeriesDataSet
-- [ ] **FEAT-05**: Processed dataset saved to `data/processed/`
+- [x] **FEAT-05**: Processed dataset saved to `data/processed/`
 
 ### Models — Tier 1 (Regression Baselines)
 
@@ -100,11 +100,11 @@
 | MATCH-03 | Phase 2 | Pending |
 | MATCH-04 | Phase 2 | Complete |
 | MATCH-05 | Phase 2 | Pending |
-| FEAT-01 | Phase 3 | Pending |
+| FEAT-01 | Phase 3 | Complete |
 | FEAT-02 | Phase 3 | Pending |
-| FEAT-03 | Phase 3 | Pending |
+| FEAT-03 | Phase 3 | Complete |
 | FEAT-04 | Phase 3 | Pending |
-| FEAT-05 | Phase 3 | Pending |
+| FEAT-05 | Phase 3 | Complete |
 | MOD-01 | Phase 4 | Pending |
 | MOD-02 | Phase 4 | Pending |
 | MOD-03 | Phase 4 | Pending |
