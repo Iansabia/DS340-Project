@@ -42,13 +42,16 @@ status: Ready for planning
 - `time_idx` and `group_id` already present and reset per split
 
 ### Features and target
-- **Target:** `spread_change = spread.shift(-1) - spread` computed per pair_id (identical to Phase 4)
-- **Usable features:** 33 (all numeric columns MINUS `timestamp`, `pair_id`, `time_idx`, `group_id`, `spread`, `kalshi_order_flow_imbalance`)
-- **Drop `kalshi_order_flow_imbalance`** — 100% NaN (all 6946+1817 rows). Upstream bug, out of scope.
-- **Forward-fill within pair (then 0.0)** for `price_velocity` and `spread_volatility` first-row NaN (1 per pair)
+- **Target:** `spread_change_target = spread.shift(-1) - spread` computed per pair_id (identical to Phase 4)
+- **Non-feature columns:** `timestamp`, `pair_id`, `time_idx`, `group_id`, `spread_change_target`, `kalshi_order_flow_imbalance` (dropped at harness level)
+- **`spread` IS a feature** (current-bar spread value — same as Tier 1)
+- **Usable features: 34** — 32 floats + 2 bools. Tier 1 currently uses 35 (includes the all-zero `kalshi_order_flow_imbalance`). Plan 05-04 adds `kalshi_order_flow_imbalance` to `NON_FEATURE_COLUMNS` in `experiments/run_baselines.py` for **BOTH tiers** and re-runs Tier 1 so comparison is apples-to-apples at 34 features (roadmap success criterion #4).
+- **`kalshi_order_flow_imbalance` is 100% NaN** (upstream Phase 3 bug: buy+sell=0 → NaN). Drop it; don't impute. Out of scope to fix upstream.
+- Existing `_build_split()` already handles `fillna(0.0)` for remaining NaN (first-row `price_velocity` / `spread_volatility`) — matches Tier 1 behavior, no change needed.
 - **Bool → float {0.0, 1.0}** for `kalshi_has_trade` and `polymarket_has_trade` BEFORE scaling
 - **StandardScaler** fit on train features ONLY; apply to val + test
 - **Do NOT scale the target** (P&L sim needs raw spread units)
+- **Zero-variance safety:** `fit_feature_scaler` asserts no column has std=0 and raises a clear error if one slips through
 
 ### Sequence construction
 - **Lookback: 6 bars (24 hours)** — captures full day-cycle, keeps 140/144 train pairs, 6,085 training windows
@@ -94,6 +97,8 @@ status: Ready for planning
 - Inherit `evaluate()` from base (no override needed)
 - Windowing is **INTERNAL** to the model class (cache train during fit; build windows during predict)
 - `predict(X)` MUST return one prediction per input row (shape `(len(X),)`) — use warm-up stitching to satisfy this
+- **Group-ID passing:** Tier 2 models need `group_id` to respect pair boundaries during windowing. `run_baselines.py` currently strips `group_id` from X (it's in `NON_FEATURE_COLUMNS`). Solution: for Tier 2, harness passes `X_train_seq = df[feature_cols + ["group_id"]]` — extends the DataFrame with `group_id` as a column. GRU/LSTM `.fit(X, y)` and `.predict(X)` detect the `group_id` column, use it to segment windows, and drop it before feeding features to the scaler/model. Tier 1 models remain untouched.
+- **Padded warm-up:** if a pair has fewer than `lookback` total rows across train+test combined, pad the front of the stitched sequence by repeating the first available row. Log which pair_ids triggered padding so results are auditable.
 
 ### TFT
 - **DEFERRED** per roadmap success criterion #3's explicit deferral clause
@@ -106,6 +111,7 @@ status: Ready for planning
 - Extend `experiments/run_baselines.py` with `--tier {1,2,both}` CLI flag
 - `format_comparison_table()` auto-assembles Tier 1 + Tier 2 into the single comparison table (roadmap success criterion #4)
 - Report seed mean ± std in the comparison table for Tier 2 models (add `seed` and `mean_rmse`/`std_rmse` to the `extra` field)
+- **`NON_FEATURE_COLUMNS` update**: Plan 05-04 adds `"kalshi_order_flow_imbalance"` to the set in `run_baselines.py`, then re-runs Tier 1 as part of the `--tier 1` / `--tier both` flow so existing `tier1/*.json` files are regenerated with 34 features. This is a one-shot baseline re-run — expected change: ≤0.001 RMSE delta (dropped column was all-zero, contributed no signal).
 
 ### Testing (TDD Iron Law enforced)
 - Write tests FIRST (red), implement (green), refactor
