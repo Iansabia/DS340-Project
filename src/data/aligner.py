@@ -24,13 +24,13 @@ logger = logging.getLogger(__name__)
 FFILL_LIMIT = 6
 
 # Quality thresholds
-MIN_TRADES_PER_PLATFORM = 20
-MAX_STALENESS_RATIO = 0.80
-MAX_MEAN_ABS_SPREAD = 0.30
+MIN_TRADES_PER_PLATFORM = 10  # Loosened from 20 — real arbs care about any active market
+MAX_STALENESS_RATIO = 0.90  # Loosened from 0.80
+MAX_MEAN_ABS_SPREAD = 0.60  # Loosened from 0.30 — persistent spreads can still be arb-able
 # Minimum fraction of bars with valid (non-NaN) spread (both platforms have price)
-MIN_VALID_SPREAD_RATIO = 0.20
-# Minimum temporal overlap in seconds between platforms (48 hours)
-MIN_OVERLAP_SECONDS = 48 * 3600
+MIN_VALID_SPREAD_RATIO = 0.15  # Loosened from 0.20
+# Minimum temporal overlap in seconds between platforms (24 hours)
+MIN_OVERLAP_SECONDS = 24 * 3600  # Loosened from 48h
 
 # Default bar size in seconds (4 hours)
 DEFAULT_BAR_SECONDS = 14400
