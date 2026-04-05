@@ -100,18 +100,19 @@ def main():
             continue
 
         try:
-            df = kalshi.get_candlesticks(
+            df = kalshi.get_candlesticks_with_fallback(
                 market_id,
                 close_time=close_time,
                 start_ts=JAN_2024,
                 end_ts=int(time.time()),
             )
-            if df is not None and len(df) > 0:
+            if df is not None and len(df) > 0 and df["close"].notna().any():
                 df.to_parquet(cache_path)
                 kalshi_success += 1
                 logger.info(f"  Kalshi {market_id}: {len(df)} rows")
             else:
                 kalshi_empty += 1
+                logger.warning(f"  Kalshi {market_id}: no usable data")
         except Exception as e:
             logger.warning(f"  Kalshi {market_id}: {e}")
             kalshi_empty += 1
