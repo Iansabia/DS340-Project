@@ -131,14 +131,17 @@ def format_comparison_table(results: list[dict]) -> str:
     header = (
         f"{'Model':<{model_width}} | {'RMSE':>7} | {'MAE':>7} "
         f"| {'Dir Acc':>7} | {'P&L':>8} | {'Trades':>6} "
-        f"| {'Win Rate':>8} | {'Sharpe':>7}"
+        f"| {'Win Rate':>8} | {'Sharpe':>7} | {'Raw SR':>7}"
     )
     separator = (
         f"{'-' * model_width}-+-{'-' * 7}-+-{'-' * 7}-+-{'-' * 7}-+-"
-        f"{'-' * 8}-+-{'-' * 6}-+-{'-' * 8}-+-{'-' * 7}"
+        f"{'-' * 8}-+-{'-' * 6}-+-{'-' * 8}-+-{'-' * 7}-+-{'-' * 7}"
     )
     lines = [
         "====== Tier 1 Baseline Results ======",
+        "",
+        "  Sharpe: annualized time-series Sharpe (4h bars, 24/7, sqrt(2190))",
+        "  Raw SR: unannualized per-trade mean/std (raw trade quality)",
         "",
         header,
         separator,
@@ -153,7 +156,8 @@ def format_comparison_table(results: list[dict]) -> str:
             f"{m['total_pnl']:>8.4f} | "
             f"{m['num_trades']:>6d} | "
             f"{m['win_rate']:>8.4f} | "
-            f"{m['sharpe_ratio']:>7.4f}"
+            f"{m['sharpe_ratio']:>7.4f} | "
+            f"{m.get('sharpe_per_trade', 0.0):>7.4f}"
         )
     return "\n".join(lines)
 

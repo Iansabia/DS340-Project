@@ -15,6 +15,7 @@ class TestSimulateProfit:
             "num_trades",
             "win_rate",
             "sharpe_ratio",
+            "sharpe_per_trade",
             "pnl_series",
         }
 
@@ -99,22 +100,24 @@ class TestSimulateProfit:
         assert result["sharpe_ratio"] == 0.0
 
     def test_sharpe_ratio_positive_with_winning_varied_trades(self):
-        # Trade returns: [0.02, 0.04]
-        # mean = 0.03, std (population) = 0.01
-        # sharpe = 0.03 / 0.01 * sqrt(252)
+        # Bar returns: [0.02, 0.04] (both bars trade)
+        # Time-series Sharpe: mean/std * sqrt(2190) (4-hour bars, 24/7 markets)
         predictions = np.array([0.05, 0.05])
         actuals = np.array([0.02, 0.04])
         result = simulate_profit(predictions, actuals, threshold=0.02)
         # Computed value
         returns = np.array([0.02, 0.04])
-        expected = returns.mean() / returns.std() * math.sqrt(252)
+        expected = returns.mean() / returns.std() * math.sqrt(2190)
         assert result["sharpe_ratio"] == pytest.approx(expected)
+        # sharpe_per_trade is unannualized
+        expected_per_trade = returns.mean() / returns.std()
+        assert result["sharpe_per_trade"] == pytest.approx(expected_per_trade)
 
     def test_pnl_series_is_cumulative(self):
         predictions = np.array([0.05, -0.05, 0.05])
         actuals = np.array([0.01, 0.01, 0.02])
-        # pnls per trade: 0.01*+1=0.01, 0.01*-1=-0.01, 0.02*+1=0.02
-        # cumulative: [0.01, 0.00, 0.02]
+        # pnls per bar: 0.01*+1=0.01, 0.01*-1=-0.01, 0.02*+1=0.02
+        # cumulative across all bars: [0.01, 0.00, 0.02]
         result = simulate_profit(predictions, actuals, threshold=0.02)
         assert result["pnl_series"] == pytest.approx([0.01, 0.00, 0.02])
 
