@@ -1,0 +1,76 @@
+"""BasePredictor ABC: the contract every model in this project implements.
+
+Every spread-prediction model -- naive baselines, regression, recurrent
+networks, RL policies -- inherits from ``BasePredictor`` and therefore
+plugs into the shared evaluation pipeline (regression metrics + profit
+simulation) via ``BasePredictor.evaluate``.
+"""
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+
+import numpy as np
+import pandas as pd
+
+from src.evaluation.metrics import compute_regression_metrics
+from src.evaluation.profit_sim import simulate_profit
+
+
+class BasePredictor(ABC):
+    """Abstract base class for all spread-change predictors."""
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Human-readable model name used in results tables."""
+        ...
+
+    @abstractmethod
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """Return predicted spread change values, one per row of ``X``.
+
+        Args:
+            X: Feature DataFrame. Concrete models document required columns.
+
+        Returns:
+            1-D ndarray of predicted spread changes, length ``len(X)``.
+        """
+        ...
+
+    def fit(
+        self, X_train: pd.DataFrame, y_train: np.ndarray
+    ) -> "BasePredictor":
+        """Train the model. Default implementation is a no-op.
+
+        Baseline predictors override nothing. Trainable models override
+        this method. Returns ``self`` for chaining.
+        """
+        return self
+
+    def evaluate(
+        self,
+        X_test: pd.DataFrame,
+        y_test: np.ndarray,
+        threshold: float = 0.02,
+    ) -> dict:
+        """Predict on ``X_test`` and compute full evaluation results.
+
+        Combines ``compute_regression_metrics`` and ``simulate_profit`` so
+        every model is compared on the same set of numbers.
+
+        Args:
+            X_test: Test feature DataFrame.
+            y_test: Ground-truth spread change array.
+            threshold: Trading threshold for profit simulation.
+
+        Returns:
+            Dict containing both regression metrics
+            (``rmse``, ``mae``, ``directional_accuracy``) and trading
+            metrics (``total_pnl``, ``num_trades``, ``win_rate``,
+            ``sharpe_ratio``, ``pnl_series``).
+        """
+        predictions = self.predict(X_test)
+        y_test = np.asarray(y_test, dtype=float)
+        metrics = compute_regression_metrics(y_test, predictions)
+        profit = simulate_profit(predictions, y_test, threshold=threshold)
+        return {**metrics, **profit}
