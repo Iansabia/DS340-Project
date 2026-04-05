@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02.1-01-PLAN.md
-last_updated: "2026-04-04T22:16:14.337Z"
-last_activity: 2026-04-04 -- Completed 02.1-01-PLAN.md (Trade fetcher and candle reconstructor)
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-04-05T00:05:13Z"
+last_activity: 2026-04-04 -- Completed 03-01-PLAN.md (Derived features, temporal split, PyTorch Forecasting format)
 progress:
   total_phases: 9
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
-  completed_plans: 7
-  percent: 67
+  completed_plans: 8
+  percent: 73
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 2.1 - Trade-Based Data Reconstruction
+**Current focus:** Phase 3 - Feature Engineering
 
 ## Current Position
 
-Phase: 2.1 of 8 (Trade-Based Data Reconstruction)
-Plan: 2 of 2 in current phase
+Phase: 3 of 8 (Feature Engineering)
+Plan: 1 of 1 in current phase
 Status: Executing
-Last activity: 2026-04-04 -- Completed 02.1-01-PLAN.md (Trade fetcher and candle reconstructor)
+Last activity: 2026-04-04 -- Completed 03-01-PLAN.md (Derived features, temporal split, PyTorch Forecasting format)
 
-Progress: [███████░░░] 67%
+Progress: [████████░░] 73%
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [███████░░░] 67%
 | Phase 02 P01 | 4min | 2 tasks | 9 files |
 | Phase 03 P01 | 5min | 2 tasks | 11 files |
 | Phase 02.1 P01 | 4min | 2 tasks | 6 files |
+| Phase 03 P01 (redo) | 6min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Recent decisions affecting current work:
 - [Phase 02.1]: Standalone trade_fetcher and trade_reconstructor modules (no dependency on adapter classes)
 - [Phase 02.1]: Polymarket MAX_TRADE_OFFSET=15000 (matching plan spec, higher than existing adapter's 3000)
 - [Phase 02.1]: time_since_last_trade deferred to aligner (requires cross-bar context on unified grid)
+- [Phase 03-redo]: Per-pair chronological split (not global cutoff) because pairs have different time ranges
+- [Phase 03-redo]: NaN fill with 0 for TimeSeriesDataSet compatibility (pytorch_forecasting requires no NaN in feature cols)
+- [Phase 03-redo]: group_id mapping fitted on train set and applied to test for consistent encoding
 
 ### Roadmap Evolution
 
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T21:43:35Z
-Stopped at: Completed 02.1-01-PLAN.md
+Last session: 2026-04-05T00:05:13Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
