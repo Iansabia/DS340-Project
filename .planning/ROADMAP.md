@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Data Ingestion** - Build platform API adapters and ingest historical market data from Kalshi and Polymarket
 - [ ] **Phase 2: Market Matching** - Match equivalent contracts across platforms using NLP and manual curation
 - [ ] **Phase 3: Feature Engineering** - Compute derived features from aligned 4-hour microstructure data, temporal split, PyTorch Forecasting format
-- [ ] **Phase 4: Regression Baselines and Evaluation Framework** - Train Tier 1 models, build evaluation/simulation infrastructure, deliver TA check-in
+- [x] **Phase 4: Regression Baselines and Evaluation Framework** - Train Tier 1 models, build evaluation/simulation infrastructure, deliver TA check-in
 - [ ] **Phase 5: Time Series Models** - Train GRU, LSTM, and TFT on spread prediction with hourly sequences
 - [ ] **Phase 6: RL and Autoencoder** - Build trading environment, train autoencoder anomaly detector, train PPO variants
 - [ ] **Phase 7: Experiments and Interpretability** - Run cross-tier comparison, ablation experiments, SHAP analysis, bootstrap CIs

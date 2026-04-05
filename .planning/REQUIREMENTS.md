@@ -32,8 +32,8 @@
 
 ### Models — Tier 1 (Regression Baselines)
 
-- [ ] **MOD-01**: Linear Regression trained on spread prediction
-- [ ] **MOD-02**: XGBoost trained on spread prediction
+- [x] **MOD-01**: Linear Regression trained on spread prediction
+- [x] **MOD-02**: XGBoost trained on spread prediction
 - [x] **MOD-03**: Naive baseline (spread always closes fully)
 - [x] **MOD-04**: Volume baseline (higher-volume platform is always correct)
 
@@ -105,8 +105,8 @@
 | FEAT-03 | Phase 3 | Complete |
 | FEAT-04 | Phase 3 | Complete |
 | FEAT-05 | Phase 3 | Complete |
-| MOD-01 | Phase 4 | Pending |
-| MOD-02 | Phase 4 | Pending |
+| MOD-01 | Phase 4 | Complete |
+| MOD-02 | Phase 4 | Complete |
 | MOD-03 | Phase 4 | Complete |
 | MOD-04 | Phase 4 | Complete |
 | EVAL-01 | Phase 4 | Complete |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-04-05T14:10:50.947Z"
-last_activity: 2026-04-05 -- Completed 04-01-PLAN.md (BasePredictor ABC, evaluation framework, naive and volume baselines)
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-04-05T14:18:53.056Z"
+last_activity: 2026-04-05 -- Completed 04-02-PLAN.md (Linear Regression, XGBoost, results store, baseline comparison script)
 progress:
   total_phases: 9
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 4 of 9 (Regression Baselines)
-Plan: 2 of 2 in current phase
+Phase: 4 of 9 (Regression Baselines) - COMPLETE
+Plan: Phase 4 complete, ready for Phase 5 (Time Series Models)
 Status: Executing
-Last activity: 2026-04-05 -- Completed 04-01-PLAN.md (BasePredictor ABC, evaluation framework, naive and volume baselines)
+Last activity: 2026-04-05 -- Completed 04-02-PLAN.md (Linear Regression, XGBoost, results store, baseline comparison script)
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [████████░░] 80%
 | Phase 02.1 P01 | 4min | 2 tasks | 6 files |
 | Phase 03 P01 (redo) | 6min | 2 tasks | 10 files |
 | Phase 04 P01 | 4min | 2 tasks | 11 files |
+| Phase 04 P02 | 4min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,9 @@ Recent decisions affecting current work:
 - [Phase 04]: VolumePredictor uses volume_ratio = max_vol/total_vol in [0.5,1.0]; equal volumes give half reversion, dominance approaches full reversion
 - [Phase 04]: Sharpe uses 252 annualization; returns 0.0 if num_trades<2 or return std==0
 - [Phase 04]: Models use polymarket_volume column (not poly_volume) to match Phase 3 matched-pairs schema
+- [Phase 04]: Linear Regression nearly matches XGBoost on RMSE (0.1759 vs 0.1729) — raises bar for Tier 2/3 complexity justification
+- [Phase 04]: run_baselines.py computes spread-change target inline (groupby pair_id shift -1) — Phase 3 has no precomputed target column
+- [Phase 04]: XGBoost hyperparameters n_estimators=200 max_depth=4 lr=0.05 — shallower trees reduce overfit on 978-row train set
 
 ### Roadmap Evolution
 
@@ -109,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-05T14:10:50.945Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-04-05T14:18:45.019Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
