@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-04-05T00:07:35.432Z"
-last_activity: 2026-04-04 -- Completed 03-01-PLAN.md (Derived features, temporal split, PyTorch Forecasting format)
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-04-05T14:10:50.947Z"
+last_activity: 2026-04-05 -- Completed 04-01-PLAN.md (BasePredictor ABC, evaluation framework, naive and volume baselines)
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 10
-  completed_plans: 7
-  percent: 73
+  completed_plans: 8
+  percent: 80
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 3 - Feature Engineering
+**Current focus:** Phase 4 - Regression Baselines
 
 ## Current Position
 
-Phase: 3 of 8 (Feature Engineering)
-Plan: 1 of 1 in current phase
+Phase: 4 of 9 (Regression Baselines)
+Plan: 2 of 2 in current phase
 Status: Executing
-Last activity: 2026-04-04 -- Completed 03-01-PLAN.md (Derived features, temporal split, PyTorch Forecasting format)
+Last activity: 2026-04-05 -- Completed 04-01-PLAN.md (BasePredictor ABC, evaluation framework, naive and volume baselines)
 
-Progress: [████████░░] 73%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [████████░░] 73%
 | Phase 03 P01 | 5min | 2 tasks | 11 files |
 | Phase 02.1 P01 | 4min | 2 tasks | 6 files |
 | Phase 03 P01 (redo) | 6min | 2 tasks | 10 files |
+| Phase 04 P01 | 4min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,11 @@ Recent decisions affecting current work:
 - [Phase 03-redo]: Per-pair chronological split (not global cutoff) because pairs have different time ranges
 - [Phase 03-redo]: NaN fill with 0 for TimeSeriesDataSet compatibility (pytorch_forecasting requires no NaN in feature cols)
 - [Phase 03-redo]: group_id mapping fitted on train set and applied to test for consistent encoding
+- [Phase 04]: BasePredictor.evaluate returns merged regression+trading metrics dict for one-line model comparison tables
+- [Phase 04]: Directional accuracy excludes y_true==0 samples (no direction to predict)
+- [Phase 04]: VolumePredictor uses volume_ratio = max_vol/total_vol in [0.5,1.0]; equal volumes give half reversion, dominance approaches full reversion
+- [Phase 04]: Sharpe uses 252 annualization; returns 0.0 if num_trades<2 or return std==0
+- [Phase 04]: Models use polymarket_volume column (not poly_volume) to match Phase 3 matched-pairs schema
 
 ### Roadmap Evolution
 
@@ -103,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-05T00:05:13Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-04-05T14:10:50.945Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None

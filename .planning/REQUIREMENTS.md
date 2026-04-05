@@ -34,8 +34,8 @@
 
 - [ ] **MOD-01**: Linear Regression trained on spread prediction
 - [ ] **MOD-02**: XGBoost trained on spread prediction
-- [ ] **MOD-03**: Naive baseline (spread always closes fully)
-- [ ] **MOD-04**: Volume baseline (higher-volume platform is always correct)
+- [x] **MOD-03**: Naive baseline (spread always closes fully)
+- [x] **MOD-04**: Volume baseline (higher-volume platform is always correct)
 
 ### Models — Tier 2 (Time Series)
 
@@ -51,8 +51,8 @@
 
 ### Evaluation
 
-- [ ] **EVAL-01**: Regression metrics computed for all models (RMSE, MAE, directional accuracy)
-- [ ] **EVAL-02**: Profit simulation for all models (P&L, win rate, Sharpe ratio)
+- [x] **EVAL-01**: Regression metrics computed for all models (RMSE, MAE, directional accuracy)
+- [x] **EVAL-02**: Profit simulation for all models (P&L, win rate, Sharpe ratio)
 - [ ] **EVAL-03**: SHAP interpretability analysis on best-performing models
 - [ ] **EVAL-04**: Bootstrap confidence intervals on key metrics
 
@@ -107,10 +107,10 @@
 | FEAT-05 | Phase 3 | Complete |
 | MOD-01 | Phase 4 | Pending |
 | MOD-02 | Phase 4 | Pending |
-| MOD-03 | Phase 4 | Pending |
-| MOD-04 | Phase 4 | Pending |
-| EVAL-01 | Phase 4 | Pending |
-| EVAL-02 | Phase 4 | Pending |
+| MOD-03 | Phase 4 | Complete |
+| MOD-04 | Phase 4 | Complete |
+| EVAL-01 | Phase 4 | Complete |
+| EVAL-02 | Phase 4 | Complete |
 | MOD-05 | Phase 5 | Pending |
 | MOD-06 | Phase 5 | Pending |
 | MOD-07 | Phase 5 | Pending |

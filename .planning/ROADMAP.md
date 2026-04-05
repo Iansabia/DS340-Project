@@ -178,7 +178,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 | 2. Market Matching | 0/0 | Not started | - |
 | 2.1. Trade-Based Data Reconstruction | 1/2 | Executing | - |
 | 3. Feature Engineering | 0/1 | Planning complete | - |
-| 4. Regression Baselines and Evaluation Framework | 0/2 | Planning complete | - |
+| 4. Regression Baselines and Evaluation Framework | 1/2 | In Progress | - |
 | 5. Time Series Models | 0/0 | Not started | - |
 | 6. RL and Autoencoder | 0/0 | Not started | - |
 | 7. Experiments and Interpretability | 0/0 | Not started | - |
