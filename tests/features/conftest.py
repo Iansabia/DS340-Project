@@ -1,145 +1,108 @@
-"""Shared test fixtures for feature engineering tests."""
-import json
+"""Shared test fixtures for feature engineering tests.
+
+Creates aligned_pairs-shaped DataFrames matching the Phase 2.1 output format:
+31 columns, 4-hour bars, microstructure features.
+"""
 import numpy as np
 import pandas as pd
 import pytest
-from pathlib import Path
 
 
 # Fixed epoch for reproducible test data: 2024-01-01 00:00:00 UTC
 BASE_TIMESTAMP = 1704067200
-HOUR = 3600
+BAR_SECONDS = 14400  # 4 hours
 
 
 @pytest.fixture
-def sample_pairs():
-    """Three sample pair dicts mimicking accepted_pairs.json structure."""
-    return [
-        {
-            "kalshi_market_id": "KXUE-JPN26FEB-2.1",
-            "polymarket_market_id": "0x4f0e5c99cb52770413a218edf0219d8a20ad128ff3804a2582191d58ab5f882a",
-            "kalshi_question": "Japan unemployment rate in Feb 2026?",
-            "polymarket_question": "Will Japan's February 2026 unemployment rate be >=3.0%?",
-            "category": "Economics",
-            "kalshi_resolution_date": "2026-03-30T23:33:33Z",
-            "polymarket_resolution_date": "2026-03-31T00:00:00Z",
-            "confidence_score": 0.83,
-            "pair_id": "kxuejpn26feb2.1-0x4f0e5c99",
-            "status": "accepted",
-        },
-        {
-            "kalshi_market_id": "KXU3-26FEB-T4.3",
-            "polymarket_market_id": "0x89655f46c06c6a7e50610771a7917477fd36ceae3eba8b32f32a2606c9100473",
-            "kalshi_question": "Will the unemployment rate (U-3) be above 4.3% in February?",
-            "polymarket_question": "Will the February 2026 unemployment rate be 4.3%?",
-            "category": "Economics",
-            "kalshi_resolution_date": "2026-03-07T18:11:11Z",
-            "polymarket_resolution_date": "2026-03-07T18:00:00Z",
-            "confidence_score": 0.79,
-            "pair_id": "kxu326febt4.3-0x89655f46",
-            "status": "accepted",
-        },
-        {
-            "kalshi_market_id": "KXCPI-26FEB-T0.1",
-            "polymarket_market_id": "0x0e5014c8f329a364111a1f60bf8adc728f1570412e3624da96ef233cc9e76b01",
-            "kalshi_question": "Will CPI month-over-month be above 0.1% in February?",
-            "polymarket_question": "February 2026 CPI MoM >= 0.1%?",
-            "category": "Economics",
-            "kalshi_resolution_date": "2026-03-12T12:30:00Z",
-            "polymarket_resolution_date": "2026-03-12T13:00:00Z",
-            "confidence_score": 0.85,
-            "pair_id": "kxcpi26febt0.1-0x0e5014c8",
-            "status": "accepted",
-        },
-    ]
+def aligned_pairs_df():
+    """Small aligned_pairs-shaped DataFrame: 10 rows, 2 pair_ids, all 31 columns.
 
+    pair_id "pair-A": rows 0-4 (5 bars)
+    pair_id "pair-B": rows 5-9 (5 bars)
 
-@pytest.fixture
-def tmp_feature_dir(tmp_path):
-    """Temporary directory with data/raw/kalshi/ and data/raw/polymarket/ subdirs."""
-    kalshi_dir = tmp_path / "raw" / "kalshi"
-    kalshi_dir.mkdir(parents=True)
-    poly_dir = tmp_path / "raw" / "polymarket"
-    poly_dir.mkdir(parents=True)
-    processed_dir = tmp_path / "processed"
-    processed_dir.mkdir(parents=True)
-    return tmp_path
-
-
-@pytest.fixture
-def sample_kalshi_df():
-    """Kalshi DataFrame: 48 hourly rows, some with trades, some with null OHLC + bid/ask.
-
-    Mimics real data where Kalshi stores None as string 'None' in object columns.
-    First 24 rows: have trades (numeric close, bid, ask).
-    Last 24 rows: no trades (all None).
+    Includes some NaN spread rows (where one platform has no data) to test
+    NaN propagation in derived features.
     """
-    timestamps = [BASE_TIMESTAMP + i * HOUR for i in range(48)]
+    n = 10
+    pair_ids = ["pair-A"] * 5 + ["pair-B"] * 5
+    # Each pair has its own time range
+    timestamps_a = [BASE_TIMESTAMP + i * BAR_SECONDS for i in range(5)]
+    timestamps_b = [BASE_TIMESTAMP + (i + 10) * BAR_SECONDS for i in range(5)]
+    timestamps = timestamps_a + timestamps_b
 
-    # First 24 hours: have trades with numeric data
-    close_vals = [0.55 + 0.01 * (i % 5) for i in range(24)]
-    bid_vals = [c - 0.02 for c in close_vals]
-    ask_vals = [c + 0.02 for c in close_vals]
-    volumes = [100.0 + i * 10 for i in range(24)]
-    has_trades_first = [True] * 24
+    # Kalshi VWAP: pair-A has values, pair-B has some NaN
+    kalshi_vwap = [0.50, 0.52, 0.55, 0.53, 0.54,
+                   0.60, np.nan, 0.62, 0.61, 0.63]
+    # Polymarket VWAP
+    polymarket_vwap = [0.48, 0.50, 0.51, 0.50, 0.52,
+                       0.58, 0.59, np.nan, 0.60, 0.61]
 
-    # Last 24 hours: no trades (all None as strings, matching real data format)
-    close_none = [None] * 24
-    bid_none = [None] * 24
-    ask_none = [None] * 24
-    volumes_none = [0.0] * 24
-    has_trades_last = [False] * 24
+    # Spread: kalshi_vwap - polymarket_vwap (NaN where either is NaN)
+    spread = []
+    for kv, pv in zip(kalshi_vwap, polymarket_vwap):
+        if np.isnan(kv) or np.isnan(pv):
+            spread.append(np.nan)
+        else:
+            spread.append(kv - pv)
 
-    return pd.DataFrame({
+    # Volumes
+    kalshi_volume = [100.0, 200.0, 150.0, 0.0, 300.0,
+                     50.0, 0.0, 100.0, 200.0, 150.0]
+    polymarket_volume = [80.0, 0.0, 120.0, 90.0, 200.0,
+                         60.0, 70.0, 0.0, 150.0, 100.0]
+
+    # Buy/sell volumes for order flow imbalance
+    kalshi_buy_volume = [60.0, 120.0, 80.0, 0.0, 180.0,
+                         30.0, 0.0, 60.0, 120.0, 90.0]
+    kalshi_sell_volume = [40.0, 80.0, 70.0, 0.0, 120.0,
+                          20.0, 0.0, 40.0, 80.0, 60.0]
+    polymarket_buy_volume = [50.0, 0.0, 70.0, 50.0, 120.0,
+                              35.0, 40.0, 0.0, 90.0, 60.0]
+    polymarket_sell_volume = [30.0, 0.0, 50.0, 40.0, 80.0,
+                               25.0, 30.0, 0.0, 60.0, 40.0]
+
+    df = pd.DataFrame({
         "timestamp": timestamps,
-        "open": [str(c) if c is not None else None for c in close_vals] + close_none,
-        "high": [str(c + 0.01) if c is not None else None for c in close_vals] + close_none,
-        "low": [str(c - 0.01) if c is not None else None for c in close_vals] + close_none,
-        "close": [str(c) if c is not None else None for c in close_vals] + close_none,
-        "volume": volumes + volumes_none,
-        "open_interest": [500.0] * 48,
-        "yes_bid_close": [str(b) if b is not None else None for b in bid_vals] + bid_none,
-        "yes_ask_close": [str(a) if a is not None else None for a in ask_vals] + ask_none,
-        "has_trades": has_trades_first + has_trades_last,
+        "kalshi_vwap": kalshi_vwap,
+        "kalshi_open": [v - 0.01 if not np.isnan(v) else np.nan for v in kalshi_vwap],
+        "kalshi_high": [v + 0.02 if not np.isnan(v) else np.nan for v in kalshi_vwap],
+        "kalshi_low": [v - 0.02 if not np.isnan(v) else np.nan for v in kalshi_vwap],
+        "kalshi_close": [v + 0.01 if not np.isnan(v) else np.nan for v in kalshi_vwap],
+        "kalshi_volume": kalshi_volume,
+        "kalshi_trade_count": [10.0, 20.0, 15.0, 0.0, 30.0,
+                                5.0, 0.0, 10.0, 20.0, 15.0],
+        "kalshi_dollar_volume": [v * 0.5 for v in kalshi_volume],
+        "kalshi_buy_volume": kalshi_buy_volume,
+        "kalshi_sell_volume": kalshi_sell_volume,
+        "kalshi_realized_spread": [0.02, 0.03, 0.01, np.nan, 0.02,
+                                    0.01, np.nan, 0.02, 0.03, 0.01],
+        "kalshi_max_trade_size": [20.0, 30.0, 25.0, 0.0, 40.0,
+                                   10.0, 0.0, 20.0, 30.0, 25.0],
+        "kalshi_has_trade": [True, True, True, False, True,
+                              True, False, True, True, True],
+        "kalshi_hours_since_last_trade": [0.0, 0.0, 0.0, 4.0, 0.0,
+                                           0.0, 4.0, 0.0, 0.0, 0.0],
+        "polymarket_vwap": polymarket_vwap,
+        "polymarket_open": [v - 0.01 if not np.isnan(v) else np.nan for v in polymarket_vwap],
+        "polymarket_high": [v + 0.02 if not np.isnan(v) else np.nan for v in polymarket_vwap],
+        "polymarket_low": [v - 0.02 if not np.isnan(v) else np.nan for v in polymarket_vwap],
+        "polymarket_close": [v + 0.01 if not np.isnan(v) else np.nan for v in polymarket_vwap],
+        "polymarket_volume": polymarket_volume,
+        "polymarket_trade_count": [8.0, 0.0, 12.0, 9.0, 20.0,
+                                    6.0, 7.0, 0.0, 15.0, 10.0],
+        "polymarket_dollar_volume": [v * 0.48 for v in polymarket_volume],
+        "polymarket_buy_volume": polymarket_buy_volume,
+        "polymarket_sell_volume": polymarket_sell_volume,
+        "polymarket_realized_spread": [0.01, np.nan, 0.02, 0.01, 0.02,
+                                        0.01, 0.01, np.nan, 0.02, 0.01],
+        "polymarket_max_trade_size": [15.0, 0.0, 20.0, 15.0, 30.0,
+                                       10.0, 12.0, 0.0, 25.0, 18.0],
+        "polymarket_has_trade": [True, False, True, True, True,
+                                  True, True, False, True, True],
+        "polymarket_hours_since_last_trade": [0.0, 4.0, 0.0, 0.0, 0.0,
+                                               0.0, 0.0, 4.0, 0.0, 0.0],
+        "spread": spread,
+        "pair_id": pair_ids,
     })
 
-
-@pytest.fixture
-def sample_kalshi_all_null_df():
-    """Kalshi DataFrame where ALL rows have null OHLC and bid/ask (common for paired markets).
-
-    This matches the real data where 76/77 paired Kalshi markets have zero trades.
-    """
-    timestamps = [BASE_TIMESTAMP + i * HOUR for i in range(48)]
-
-    return pd.DataFrame({
-        "timestamp": timestamps,
-        "open": [None] * 48,
-        "high": [None] * 48,
-        "low": [None] * 48,
-        "close": [None] * 48,
-        "volume": [0.0] * 48,
-        "open_interest": [500.0] * 48,
-        "yes_bid_close": [None] * 48,
-        "yes_ask_close": [None] * 48,
-        "has_trades": [False] * 48,
-    })
-
-
-@pytest.fixture
-def sample_polymarket_df():
-    """Polymarket DataFrame: 48 hourly rows, all with close prices, volume=0.
-
-    Uses same hourly timestamp grid as sample_kalshi_df for alignment testing.
-    """
-    timestamps = [BASE_TIMESTAMP + i * HOUR for i in range(48)]
-    close_vals = [0.60 + 0.005 * (i % 8) for i in range(48)]
-
-    return pd.DataFrame({
-        "timestamp": timestamps,
-        "open": close_vals,
-        "high": [c + 0.005 for c in close_vals],
-        "low": [c - 0.005 for c in close_vals],
-        "close": close_vals,
-        "volume": [0] * 48,
-    })
+    return df

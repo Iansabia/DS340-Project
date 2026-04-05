@@ -1,24 +1,53 @@
-"""Feature engineering schemas and constants.
+"""Feature engineering schemas and column contracts.
 
-Defines the output contract for the feature engineering pipeline:
-column names, data types, and filtering thresholds.
+Defines the column contract between the aligned_pairs.parquet input
+(from Phase 2.1 aligner) and the feature engineering output.
 """
 
-# Minimum number of hours with non-null close price required on EACH platform
-# for a pair to pass the low-liquidity filter.
-MIN_HOURS_THRESHOLD = 10
-
-# Output columns for the feature matrix parquet file.
-# Each row represents one pair at one hourly timestamp.
-FEATURE_COLUMNS = [
-    "timestamp",              # int: Unix seconds UTC, floored to hour
-    "pair_id",                # str: unique matched-pair identifier
-    "kalshi_close",           # float: Kalshi close price (trade or bid-ask midpoint)
-    "polymarket_close",       # float: Polymarket close price
-    "spread",                 # float: kalshi_close - polymarket_close
-    "kalshi_volume",          # float: Kalshi trade volume (0 if no trades)
-    "polymarket_volume",      # float: Polymarket trade volume (0 if no trades)
-    "bid_ask_spread",         # float: Kalshi yes_ask_close - yes_bid_close (NaN if unavailable)
-    "kalshi_velocity",        # float: kalshi_close[t] - kalshi_close[t-1] (NaN for first row)
-    "polymarket_velocity",    # float: polymarket_close[t] - polymarket_close[t-1] (NaN for first row)
+# Columns inherited from aligned_pairs.parquet (31 columns from Phase 2.1)
+ALIGNED_COLUMNS = [
+    "timestamp",
+    "kalshi_vwap",
+    "kalshi_open",
+    "kalshi_high",
+    "kalshi_low",
+    "kalshi_close",
+    "kalshi_volume",
+    "kalshi_trade_count",
+    "kalshi_dollar_volume",
+    "kalshi_buy_volume",
+    "kalshi_sell_volume",
+    "kalshi_realized_spread",
+    "kalshi_max_trade_size",
+    "kalshi_has_trade",
+    "kalshi_hours_since_last_trade",
+    "polymarket_vwap",
+    "polymarket_open",
+    "polymarket_high",
+    "polymarket_low",
+    "polymarket_close",
+    "polymarket_volume",
+    "polymarket_trade_count",
+    "polymarket_dollar_volume",
+    "polymarket_buy_volume",
+    "polymarket_sell_volume",
+    "polymarket_realized_spread",
+    "polymarket_max_trade_size",
+    "polymarket_has_trade",
+    "polymarket_hours_since_last_trade",
+    "spread",
+    "pair_id",
 ]
+
+# New derived feature columns computed by engineering.py
+DERIVED_FEATURE_COLUMNS = [
+    "price_velocity",                    # spread[t] - spread[t-1] per pair
+    "volume_ratio",                      # kalshi_volume / polymarket_volume
+    "spread_momentum",                   # spread.rolling(3).mean() per pair
+    "spread_volatility",                 # spread.rolling(3).std() per pair
+    "kalshi_order_flow_imbalance",       # (buy_vol - sell_vol) / (buy_vol + sell_vol)
+    "polymarket_order_flow_imbalance",   # same for polymarket
+]
+
+# Full output columns = ALIGNED_COLUMNS + DERIVED_FEATURE_COLUMNS
+OUTPUT_COLUMNS = ALIGNED_COLUMNS + DERIVED_FEATURE_COLUMNS
