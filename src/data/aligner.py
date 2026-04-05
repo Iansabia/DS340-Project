@@ -27,6 +27,10 @@ FFILL_LIMIT = 6
 MIN_TRADES_PER_PLATFORM = 20
 MAX_STALENESS_RATIO = 0.80
 MAX_MEAN_ABS_SPREAD = 0.30
+# Minimum fraction of bars with valid (non-NaN) spread (both platforms have price)
+MIN_VALID_SPREAD_RATIO = 0.20
+# Minimum temporal overlap in seconds between platforms (48 hours)
+MIN_OVERLAP_SECONDS = 48 * 3600
 
 # Default bar size in seconds (4 hours)
 DEFAULT_BAR_SECONDS = 14400
@@ -168,7 +172,9 @@ def align_all_pairs(
     exclusion_reasons = {
         "missing_candles": 0,
         "insufficient_trades": 0,
+        "no_temporal_overlap": 0,
         "too_stale": 0,
+        "insufficient_valid_spread": 0,
         "spread_not_mean_reverting": 0,
         "alignment_failed": 0,
     }
@@ -234,6 +240,23 @@ def align_all_pairs(
             )
             continue
 
+        # Check temporal overlap — both platforms must have traded during the same period
+        k_min, k_max = int(k_candles["timestamp"].min()), int(k_candles["timestamp"].max())
+        p_min, p_max = int(p_candles["timestamp"].min()), int(p_candles["timestamp"].max())
+        overlap_start = max(k_min, p_min)
+        overlap_end = min(k_max, p_max)
+        overlap_seconds = overlap_end - overlap_start
+
+        if overlap_seconds < MIN_OVERLAP_SECONDS:
+            entry["reason"] = "no_temporal_overlap"
+            exclusion_reasons["no_temporal_overlap"] += 1
+            per_pair.append(entry)
+            logger.info(
+                f"Pair {pair_id}: excluded (temporal overlap {overlap_seconds/3600:.1f}h "
+                f"< {MIN_OVERLAP_SECONDS/3600:.0f}h minimum)"
+            )
+            continue
+
         # Align
         aligned = align_pair(k_candles, p_candles, pair_id, bar_seconds)
         if aligned is None:
@@ -262,8 +285,22 @@ def align_all_pairs(
             )
             continue
 
-        # Compute mean absolute spread
+        # Compute valid spread ratio (fraction of bars with non-NaN spread)
         spread_valid = aligned["spread"].dropna()
+        valid_spread_ratio = len(spread_valid) / len(aligned) if len(aligned) > 0 else 0.0
+        entry["valid_spread_ratio"] = float(valid_spread_ratio)
+
+        if valid_spread_ratio < MIN_VALID_SPREAD_RATIO:
+            entry["reason"] = "insufficient_valid_spread"
+            exclusion_reasons["insufficient_valid_spread"] += 1
+            per_pair.append(entry)
+            logger.info(
+                f"Pair {pair_id}: excluded (valid spread ratio {valid_spread_ratio:.2f} "
+                f"< {MIN_VALID_SPREAD_RATIO:.2f} minimum)"
+            )
+            continue
+
+        # Compute mean absolute spread
         mean_abs_spread = float(spread_valid.abs().mean()) if len(spread_valid) > 0 else float("nan")
         entry["mean_abs_spread"] = mean_abs_spread
 

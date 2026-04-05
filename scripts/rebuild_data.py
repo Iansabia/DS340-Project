@@ -228,6 +228,15 @@ def main() -> None:
         bar_seconds=args.bar_seconds,
     )
 
+    # Drop rows with NaN spreads (no valid prediction target)
+    if len(aligned_df) > 0:
+        before_drop = len(aligned_df)
+        aligned_df = aligned_df.dropna(subset=["spread"]).reset_index(drop=True)
+        logger.info(
+            f"Dropped {before_drop - len(aligned_df)} rows with NaN spread; "
+            f"{len(aligned_df)} rows remain"
+        )
+
     # Save aligned dataset
     aligned_path = args.output_dir / "processed" / "aligned_pairs.parquet"
     aligned_path.parent.mkdir(parents=True, exist_ok=True)
