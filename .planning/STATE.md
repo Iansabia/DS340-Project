@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-04-06T13:48:58.235Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-04-06T13:49:35.633Z"
 last_activity: 2026-04-06 -- Completed 06-02-PLAN.md (Autoencoder anomaly detector)
 progress:
   total_phases: 9
@@ -64,6 +64,7 @@ Progress: [████████░░] 85%
 | Phase 05 P03 | 3min | 2 tasks | 2 files |
 | Phase 05 P04 | 40min | 3 tasks | 15 files |
 | Phase 05 P05 | 3min | 2 tasks | 4 files |
+| Phase 06 P01 | 2min | 2 tasks | 2 files |
 | Phase 06 P02 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
@@ -113,6 +114,8 @@ Recent decisions affecting current work:
 - [Phase 05]: torch.set_num_threads(1) workaround for PyTorch 2.10.0 Apple Silicon segfault in multi-threaded GRU/LSTM forward pass
 - [Phase 05]: GRU RMSE=0.2896+/-0.0024 and LSTM RMSE=0.2910+/-0.0004 over 3 seeds; both competitive with but do not beat XGBoost (0.2857)
 - [Phase 05]: MOD-07 (TFT) deferred with documented rationale: param-to-sample ratio ~1.9 (200x above 0.01 threshold), 22-day timeline, GRU/LSTM provide alternative Tier 2 coverage
+- [Phase 06]: SpreadTradingEnv reward uses current_position (before update) times spread_change; pairs pre-grouped and pre-scaled at construction for O(1) resets
+- [Phase 06]: Episode cycling via modular pair_idx wraps around for multi-epoch SB3 training
 - [Phase 06]: AnomalyDetectorAutoencoder is NOT a BasePredictor (signal filter utility); 90/10 chrono val split; threshold_ set automatically at end of fit()
 
 ### Roadmap Evolution
@@ -131,6 +134,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T13:48:58.232Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-04-06T13:49:35.631Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
