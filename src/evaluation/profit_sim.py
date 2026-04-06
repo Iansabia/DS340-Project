@@ -31,6 +31,7 @@ def simulate_profit(
     predictions: np.ndarray,
     actuals: np.ndarray,
     threshold: float = 0.02,
+    timestamps: np.ndarray | None = None,
 ) -> dict:
     """Simulate threshold-based directional trading.
 
@@ -45,6 +46,11 @@ def simulate_profit(
         predictions: Predicted spread changes, shape (n,).
         actuals: Realized spread changes, shape (n,).
         threshold: Minimum absolute predicted spread required to trade.
+        timestamps: Per-row timestamps, shape (n,). When provided,
+            bar_returns are aggregated by timestamp into a portfolio
+            time series before computing Sharpe. This correctly handles
+            panel data (multiple pairs at the same timestamp) instead
+            of treating cross-pair observations as sequential bars.
 
     Returns:
         Dict with keys:
@@ -98,13 +104,48 @@ def simulate_profit(
     # Cumulative P&L series across all bars (including zeros)
     pnl_series = np.cumsum(bar_returns).tolist()
 
-    # Time-series Sharpe (CORRECT): computed over ALL bars
-    bar_std = float(bar_returns.std())
-    if bar_std == 0.0 or n < 2:
-        sharpe_ratio = 0.0
+    # Time-series Sharpe: panel-aware when timestamps are provided.
+    #
+    # For panel data (multiple pairs at the same timestamp), aggregate
+    # bar_returns into DAILY portfolio returns (sum across all pairs and
+    # intra-day bars), then compute annualized Sharpe on the daily series.
+    # This matches standard practice in pairs-trading / statistical
+    # arbitrage literature.
+    #
+    # Why daily (not per-4h-bar)?  The 4h bar Sharpe annualized by
+    # sqrt(2190) assumes 2190 independent observations/year.  With 144
+    # correlated pairs the effective sample size is much smaller.  Daily
+    # aggregation is the standard granularity for reporting and comparison.
+    TRADING_DAYS_PER_YEAR = 365  # prediction markets trade 24/7
+    if timestamps is not None:
+        timestamps = np.asarray(timestamps)
+        # Convert epoch seconds → calendar day (integer day ordinal)
+        days = (timestamps // 86400).astype(np.int64)
+        unique_days = np.unique(days)
+        if len(unique_days) < 2:
+            sharpe_ratio = 0.0
+        else:
+            # Daily portfolio return = sum of bar_returns across all
+            # pairs and intra-day bars for that calendar day.
+            daily_returns = np.array(
+                [bar_returns[days == d].sum() for d in unique_days]
+            )
+            day_mean = float(daily_returns.mean())
+            day_std = float(daily_returns.std(ddof=1))
+            if day_std == 0.0:
+                sharpe_ratio = 0.0
+            else:
+                sharpe_ratio = (
+                    day_mean / day_std * math.sqrt(TRADING_DAYS_PER_YEAR)
+                )
     else:
-        bar_mean = float(bar_returns.mean())
-        sharpe_ratio = bar_mean / bar_std * math.sqrt(BARS_PER_YEAR)
+        # Fallback for single-asset or when timestamps unavailable
+        bar_std = float(bar_returns.std())
+        if bar_std == 0.0 or n < 2:
+            sharpe_ratio = 0.0
+        else:
+            bar_mean = float(bar_returns.mean())
+            sharpe_ratio = bar_mean / bar_std * math.sqrt(BARS_PER_YEAR)
 
     # Per-trade Sharpe (unannualized, for reference)
     if num_trades < 2:

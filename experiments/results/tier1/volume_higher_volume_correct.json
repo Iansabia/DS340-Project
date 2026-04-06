@@ -7,10 +7,10 @@
     "total_pnl": 59.81199635862164,
     "num_trades": 1440,
     "win_rate": 0.48055555555555557,
-    "sharpe_ratio": 5.662006096970554,
+    "sharpe_ratio": 12.760871692900421,
     "sharpe_per_trade": 0.13056595290080408
   },
-  "timestamp": "2026-04-06T00:54:04.870362+00:00",
+  "timestamp": "2026-04-06T01:33:05.158696+00:00",
   "threshold": 0.02,
   "n_train_rows": 6802,
   "n_test_rows": 1673,

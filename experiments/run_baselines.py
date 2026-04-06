@@ -194,6 +194,7 @@ def run_tier2_with_seeds(
     n_test: int,
     n_features: int,
     seeds: list[int] | None = None,
+    test_timestamps: np.ndarray | None = None,
 ) -> None:
     """Train each Tier 2 model with multiple seeds and save aggregated results.
 
@@ -220,7 +221,10 @@ def run_tier2_with_seeds(
             print(f"{'='*60}")
             model = cls(random_state=seed)  # type: ignore[call-arg]
             model.fit(X_train_seq, y_train)
-            metrics = model.evaluate(X_test_seq, y_test, threshold=threshold)
+            metrics = model.evaluate(
+                X_test_seq, y_test, threshold=threshold,
+                timestamps=test_timestamps,
+            )
 
             seed_rmses.append(metrics["rmse"])
             last_pnl_series = metrics.pop("pnl_series")
@@ -414,6 +418,10 @@ def main(argv: list[str] | None = None) -> int:
         f"{n_features} features."
     )
 
+    # Timestamps for panel-aware Sharpe (aggregate cross-pair returns
+    # by timestamp before annualizing to avoid inflated Sharpe).
+    test_timestamps = test["timestamp"].to_numpy()
+
     # ---- Tier 1 ----
     if tier in ("1", "both"):
         print(f"\nResults will be saved to: {tier1_results_dir}")
@@ -424,7 +432,10 @@ def main(argv: list[str] | None = None) -> int:
         models = build_models(tier="1")
         for model in models:
             model.fit(X_train, y_train)
-            metrics = model.evaluate(X_test, y_test, threshold=args.threshold)
+            metrics = model.evaluate(
+                X_test, y_test, threshold=args.threshold,
+                timestamps=test_timestamps,
+            )
             pnl_series = metrics.pop("pnl_series")
             extra = {
                 "threshold": args.threshold,
@@ -447,6 +458,7 @@ def main(argv: list[str] | None = None) -> int:
             n_train=n_train,
             n_test=n_test,
             n_features=n_features,
+            test_timestamps=test_timestamps,
         )
 
     # ---- Print comparison table ----

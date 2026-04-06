@@ -52,6 +52,7 @@ class BasePredictor(ABC):
         X_test: pd.DataFrame,
         y_test: np.ndarray,
         threshold: float = 0.02,
+        timestamps: np.ndarray | None = None,
     ) -> dict:
         """Predict on ``X_test`` and compute full evaluation results.
 
@@ -62,6 +63,9 @@ class BasePredictor(ABC):
             X_test: Test feature DataFrame.
             y_test: Ground-truth spread change array.
             threshold: Trading threshold for profit simulation.
+            timestamps: Per-row timestamps for panel-aware Sharpe.
+                When provided, returns are aggregated by timestamp
+                before computing the annualized Sharpe ratio.
 
         Returns:
             Dict containing both regression metrics
@@ -72,5 +76,7 @@ class BasePredictor(ABC):
         predictions = self.predict(X_test)
         y_test = np.asarray(y_test, dtype=float)
         metrics = compute_regression_metrics(y_test, predictions)
-        profit = simulate_profit(predictions, y_test, threshold=threshold)
+        profit = simulate_profit(
+            predictions, y_test, threshold=threshold, timestamps=timestamps
+        )
         return {**metrics, **profit}
