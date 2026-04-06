@@ -217,7 +217,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 | 6. RL and Autoencoder | 3/5 | In Progress|  |
 | 7. Experiments and Interpretability | 5/5 | Complete   | 2026-04-06 |
 | 7.1. Walk-Forward Backtesting | 2/2 | Complete   | 2026-04-06 |
-| 7.2. Live Paper Trading | 0/3 | Planning complete | - |
+| 7.2. Live Paper Trading | 2/3 | In Progress|  |
 | 8. Paper and Presentation | 0/0 | Not started | - |
 
 ---
