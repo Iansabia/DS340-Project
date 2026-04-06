@@ -124,11 +124,14 @@ Plans:
   3. PPO on raw features produces a trading policy (even if it learns "don't trade," which is a valid finding)
   4. PPO with autoencoder signal filter produces a trading policy that only acts on flagged opportunities
   5. All RL models are evaluated through the existing evaluation framework with results in the comparison table
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md -- SpreadTradingEnv (Gymnasium Env): state (198,), Discrete(3) actions, dense reward with tx cost, TDD
+- [ ] 06-02-PLAN.md -- AnomalyDetectorAutoencoder: 31->16->8->4->8->16->31 with 95th percentile threshold, TDD
+- [ ] 06-03-PLAN.md -- PPORawPredictor (BasePredictor): SB3 PPO on raw features, action-to-prediction mapping, TDD
+- [ ] 06-04-PLAN.md -- PPOFilteredPredictor (BasePredictor): PPO with autoencoder reward masking, TDD
+- [ ] 06-05-PLAN.md -- Tier 3 harness (--tier 3, --tier all), __init__.py exports, train + produce tier3 JSONs
 
 ### Phase 7: Experiments and Interpretability
 **Goal**: The three planned experiments are executed, SHAP analysis reveals feature importance, and all results have statistical rigor via confidence intervals
@@ -182,11 +185,11 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 | 2.1. Trade-Based Data Reconstruction | 1/2 | Executing | - |
 | 3. Feature Engineering | 0/1 | Planning complete | - |
 | 4. Regression Baselines and Evaluation Framework | 1/2 | In Progress | - |
-| 5. Time Series Models | 4/5 | In Progress|  |
-| 6. RL and Autoencoder | 0/0 | Not started | - |
+| 5. Time Series Models | 5/5 | Complete | 2026-04-06 |
+| 6. RL and Autoencoder | 0/5 | Planning complete | - |
 | 7. Experiments and Interpretability | 0/0 | Not started | - |
 | 8. Paper and Presentation | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-04-01*
-*Last updated: 2026-04-05*
+*Last updated: 2026-04-06*
