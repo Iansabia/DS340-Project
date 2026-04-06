@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-04-06T00:55:25.000Z"
-last_activity: "2026-04-06 -- Completed 05-04-PLAN.md (Cross-tier harness: GRU RMSE=0.2896, LSTM RMSE=0.2910, 6-model comparison table)"
+status: completed
+stopped_at: Completed 05-05-PLAN.md (Phase 5 complete)
+last_updated: "2026-04-06T01:03:04.643Z"
+last_activity: 2026-04-06 -- Completed 05-05-PLAN.md (TFT deferral docs + phase summary, Phase 5 complete)
 progress:
   total_phases: 9
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
-  completed_plans: 13
-  percent: 87
+  completed_plans: 15
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 5 - Time Series Models
+**Current focus:** Phase 5 complete -- ready for Phase 6 (RL and Autoencoder)
 
 ## Current Position
 
-Phase: 5 of 9 (Time Series Models)
-Plan: 4 of 5 complete (05-01 Sequence Utilities, 05-02 GRU, 05-03 LSTM, 05-04 Cross-Tier Harness done)
-Status: Executing
-Last activity: 2026-04-06 -- Completed 05-04-PLAN.md (Cross-tier comparison harness: --tier {1,2,both}, GRU RMSE=0.2896, LSTM RMSE=0.2910, 6-model table)
+Phase: 5 of 9 (Time Series Models) -- COMPLETE
+Plan: 5 of 5 complete (05-01 Sequence Utilities, 05-02 GRU, 05-03 LSTM, 05-04 Cross-Tier Harness, 05-05 Deferral Docs done)
+Status: Phase 5 Complete
+Last activity: 2026-04-06 -- Completed 05-05-PLAN.md (TFT deferral docs + phase summary, Phase 5 complete)
 
-Progress: [████████░░] 87%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [████████░░] 87%
 | Phase 05 P02 | 3min | 2 tasks | 2 files |
 | Phase 05 P03 | 3min | 2 tasks | 2 files |
 | Phase 05 P04 | 40min | 3 tasks | 15 files |
+| Phase 05 P05 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,7 @@ Recent decisions affecting current work:
 - [Phase 05]: Dropped 4 zero-variance columns from NON_FEATURE_COLUMNS (kalshi_order_flow_imbalance + 3 more Kalshi cols all-zero), yielding 31 features not 34
 - [Phase 05]: torch.set_num_threads(1) workaround for PyTorch 2.10.0 Apple Silicon segfault in multi-threaded GRU/LSTM forward pass
 - [Phase 05]: GRU RMSE=0.2896+/-0.0024 and LSTM RMSE=0.2910+/-0.0004 over 3 seeds; both competitive with but do not beat XGBoost (0.2857)
+- [Phase 05]: MOD-07 (TFT) deferred with documented rationale: param-to-sample ratio ~1.9 (200x above 0.01 threshold), 22-day timeline, GRU/LSTM provide alternative Tier 2 coverage
 
 ### Roadmap Evolution
 
@@ -127,6 +129,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T00:55:25Z
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-04-06T01:03:04.640Z
+Stopped at: Completed 05-05-PLAN.md (Phase 5 complete)
 Resume file: None

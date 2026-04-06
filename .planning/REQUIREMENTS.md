@@ -41,7 +41,7 @@
 
 - [x] **MOD-05**: GRU trained on spread prediction with hourly sequences
 - [x] **MOD-06**: LSTM trained on spread prediction with hourly sequences
-- [ ] **MOD-07**: TFT via PyTorch Forecasting (droppable if timeline tight)
+- [x] **MOD-07**: TFT via PyTorch Forecasting (droppable if timeline tight)
 
 ### Models — Tier 3 (RL)
 
@@ -113,7 +113,7 @@
 | EVAL-02 | Phase 4 | Complete |
 | MOD-05 | Phase 5 | Complete |
 | MOD-06 | Phase 5 | Complete |
-| MOD-07 | Phase 5 | Pending |
+| MOD-07 | Phase 5 | Complete |
 | MOD-08 | Phase 6 | Pending |
 | MOD-09 | Phase 6 | Pending |
 | MOD-10 | Phase 6 | Pending |

@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Market Matching** - Match equivalent contracts across platforms using NLP and manual curation
 - [ ] **Phase 3: Feature Engineering** - Compute derived features from aligned 4-hour microstructure data, temporal split, PyTorch Forecasting format
 - [x] **Phase 4: Regression Baselines and Evaluation Framework** - Train Tier 1 models, build evaluation/simulation infrastructure, deliver TA check-in
-- [ ] **Phase 5: Time Series Models** - Train GRU, LSTM, and TFT on spread prediction with hourly sequences
+- [x] **Phase 5: Time Series Models** - Train GRU, LSTM, and TFT on spread prediction with hourly sequences
 - [ ] **Phase 6: RL and Autoencoder** - Build trading environment, train autoencoder anomaly detector, train PPO variants
 - [ ] **Phase 7: Experiments and Interpretability** - Run cross-tier comparison, ablation experiments, SHAP analysis, bootstrap CIs
 - [ ] **Phase 8: Paper and Presentation** - Write final paper and lightning talk slides
@@ -109,10 +109,10 @@ Plans:
 
 Plans:
 - [x] 05-01-PLAN.md -- Sequence utilities (windowing, early stopping, seed, device, scaler helpers) with TDD tests
-- [ ] 05-02-PLAN.md -- GRUPredictor (hidden=64) with BasePredictor contract, warm-up stitching, TDD tests
-- [ ] 05-03-PLAN.md -- LSTMPredictor (hidden=32) with BasePredictor contract, warm-up stitching, TDD tests
-- [ ] 05-04-PLAN.md -- Tier 2 experiment harness (--tier flag, 3 seeds, tier2 JSONs, combined comparison table)
-- [ ] 05-05-PLAN.md -- TFT (MOD-07) deferral documentation + phase-level SUMMARY.md
+- [x] 05-02-PLAN.md -- GRUPredictor (hidden=64) with BasePredictor contract, warm-up stitching, TDD tests
+- [x] 05-03-PLAN.md -- LSTMPredictor (hidden=32) with BasePredictor contract, warm-up stitching, TDD tests
+- [x] 05-04-PLAN.md -- Tier 2 experiment harness (--tier flag, 3 seeds, tier2 JSONs, combined comparison table)
+- [x] 05-05-PLAN.md -- TFT (MOD-07) deferral documentation + phase-level SUMMARY.md
 
 ### Phase 6: RL and Autoencoder
 **Goal**: PPO trading agents and the autoencoder anomaly detector are trained, testing whether RL and anomaly detection improve trading performance
