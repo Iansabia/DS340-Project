@@ -46,7 +46,7 @@
 ### Models — Tier 3 (RL)
 
 - [ ] **MOD-08**: PPO agent acting directly on raw microstructure features
-- [ ] **MOD-09**: Autoencoder trained on normal spread behavior for anomaly detection
+- [x] **MOD-09**: Autoencoder trained on normal spread behavior for anomaly detection
 - [ ] **MOD-10**: PPO agent with autoencoder signal filter (acts on flagged opportunities)
 
 ### Evaluation
@@ -115,7 +115,7 @@
 | MOD-06 | Phase 5 | Complete |
 | MOD-07 | Phase 5 | Complete |
 | MOD-08 | Phase 6 | Pending |
-| MOD-09 | Phase 6 | Pending |
+| MOD-09 | Phase 6 | Complete |
 | MOD-10 | Phase 6 | Pending |
 | EVAL-03 | Phase 7 | Pending |
 | EVAL-04 | Phase 7 | Pending |
