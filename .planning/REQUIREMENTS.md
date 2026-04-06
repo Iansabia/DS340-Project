@@ -53,7 +53,7 @@
 
 - [x] **EVAL-01**: Regression metrics computed for all models (RMSE, MAE, directional accuracy)
 - [x] **EVAL-02**: Profit simulation for all models (P&L, win rate, Sharpe ratio)
-- [ ] **EVAL-03**: SHAP interpretability analysis on best-performing models
+- [x] **EVAL-03**: SHAP interpretability analysis on best-performing models
 - [ ] **EVAL-04**: Bootstrap confidence intervals on key metrics
 
 ### Experiments
@@ -61,7 +61,7 @@
 - [x] **EXP-01**: Experiment 1 — Complexity-vs-performance comparison across all tiers (centerpiece)
 - [x] **EXP-02**: Experiment 2 — Historical window length ablation (6h, 24h, 72h, 7d)
 - [x] **EXP-03**: Experiment 3 — Minimum spread threshold ablation (no min, >2pp, >5pp, >10pp)
-- [ ] **EXP-04**: Transaction cost sensitivity analysis
+- [x] **EXP-04**: Transaction cost sensitivity analysis
 
 ### Deliverables
 
@@ -117,12 +117,12 @@
 | MOD-08 | Phase 6 | Complete |
 | MOD-09 | Phase 6 | Complete |
 | MOD-10 | Phase 6 | Complete |
-| EVAL-03 | Phase 7 | Pending |
+| EVAL-03 | Phase 7 | Complete |
 | EVAL-04 | Phase 7 | Pending |
 | EXP-01 | Phase 7 | Complete |
 | EXP-02 | Phase 7 | Complete |
 | EXP-03 | Phase 7 | Complete |
-| EXP-04 | Phase 7 | Pending |
+| EXP-04 | Phase 7 | Complete |
 | DEL-01 | Phase 8 | Pending |
 | DEL-02 | Phase 8 | Pending |
 

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-04-06T14:32:18.253Z"
-last_activity: 2026-04-06 -- Completed 07-03-PLAN.md (Threshold ablation experiment)
+stopped_at: Completed 07-05-PLAN.md
+last_updated: "2026-04-06T18:14:25.591Z"
+last_activity: 2026-04-06 -- Completed 07-05-PLAN.md (Bootstrap confidence intervals)
 progress:
   total_phases: 9
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 25
-  completed_plans: 23
-  percent: 92
+  completed_plans: 25
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 7 in progress -- Experiments and Interpretability (Plan 3 of 5 complete)
+**Current focus:** Phase 7 in progress -- Experiments and Interpretability (Plan 4 of 5 complete)
 
 ## Current Position
 
 Phase: 7 of 9 (Experiments and Interpretability)
-Plan: 3 of 5 complete (07-01 Cross-Tier Comparison, 07-02 Lookback Ablation, 07-03 Threshold Ablation done)
+Plan: 4 of 5 complete (07-01 Cross-Tier, 07-02 Lookback, 07-03 Threshold, 07-04 SHAP+TxCost done)
 Status: In Progress
-Last activity: 2026-04-06 -- Completed 07-03-PLAN.md (Threshold ablation experiment)
+Last activity: 2026-04-06 -- Completed 07-04-PLAN.md (SHAP and transaction cost analysis)
 
-Progress: [█████████░] 92%
+Progress: [█████████░] 96%
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Progress: [█████████░] 92%
 | Phase 07 P01 | 3min | 1 tasks | 5 files |
 | Phase 07 P03 | 3min | 1 tasks | 35 files |
 | Phase 07 P02 | 3min | 1 tasks | 11 files |
+| Phase 07 P04 | 3min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,8 @@ Recent decisions affecting current work:
 - [Phase 07]: Experiment 1 uses horizontal bar chart for RMSE and tier-distinct line styles for equity curves
 - [Phase 07]: Short lookback (2 bars/8h) marginally outperforms default (6 bars/24h); longer lookback (18/72h) degrades significantly due to padding and overfitting on small dataset
 - [Phase 07]: Single seed=42 for threshold ablation (not 3-seed); PPO discrete predictions {-0.03,0,+0.03} structurally incompatible with thresholds >= 0.05
+- [Phase 07]: polymarket_vwap dominates SHAP importance (0.138 vs next 0.016); XGBoost relies heavily on Polymarket price level
+- [Phase 07]: At 5-7pp Kalshi fees: Tier 1/2 models remain profitable (XGBoost break-even 15.5pp), naive baselines and PPO-Filtered go negative
 
 ### Roadmap Evolution
 
@@ -150,6 +153,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T14:32:18.250Z
-Stopped at: Completed 07-03-PLAN.md
+Last session: 2026-04-06T18:14:25.588Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
