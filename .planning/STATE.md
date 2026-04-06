@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-04-PLAN.md
-last_updated: "2026-04-06T13:55:41.235Z"
+stopped_at: Completed 06-05-PLAN.md
+last_updated: "2026-04-06T14:04:26.667Z"
 last_activity: 2026-04-06 -- Completed 06-04-PLAN.md (PPO-Filtered predictor)
 progress:
   total_phases: 9
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 20
-  completed_plans: 19
+  completed_plans: 20
   percent: 95
 ---
 
@@ -68,6 +68,7 @@ Progress: [██████████] 95%
 | Phase 06 P02 | 2min | 2 tasks | 2 files |
 | Phase 06 P03 | 2min | 2 tasks | 2 files |
 | Phase 06 P04 | 3min | 2 tasks | 2 files |
+| Phase 06 P05 | 6min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,9 @@ Recent decisions affecting current work:
 - [Phase 06]: Action-to-prediction mapping {0:0.0, 1:+0.03, 2:-0.03} exposed as class-level dict for direct testing
 - [Phase 06]: FilteredTradingEnv as gymnasium.Wrapper (not subclass) for clean separation of reward masking from base env
 - [Phase 06]: Predict does NOT use anomaly filter at inference -- filtering only affects training reward signal
+- [Phase 06]: PPO-Raw RMSE=0.3189 vs XGBoost RMSE=0.2857: RL adds no value over regression at this dataset scale
+- [Phase 06]: PPO-Filtered (anomaly-filtered) performs worse than PPO-Raw: 5% flagging rate too aggressive, reward masking hurts training
+- [Phase 06]: Full 8-model cross-tier table confirms complexity-vs-performance thesis: simpler models win at 6.8k samples
 
 ### Roadmap Evolution
 
@@ -140,6 +144,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T13:55:41.233Z
-Stopped at: Completed 06-04-PLAN.md
+Last session: 2026-04-06T14:04:26.664Z
+Stopped at: Completed 06-05-PLAN.md
 Resume file: None
