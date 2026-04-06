@@ -61,6 +61,9 @@ NON_FEATURE_COLUMNS = {
     "group_id",
     "spread_change_target",
     "kalshi_order_flow_imbalance",  # 100% NaN -- upstream Phase 3 bug, drop at harness level
+    "kalshi_buy_volume",            # all-zero in train (upstream data issue)
+    "kalshi_sell_volume",           # all-zero in train (upstream data issue)
+    "kalshi_realized_spread",       # all-zero in train (upstream data issue)
 }
 
 TARGET_COLUMN = "spread_change_target"

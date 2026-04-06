@@ -206,12 +206,21 @@ class GRUPredictor(BasePredictor):
 
         has_val = len(X_seq_val) > 0
 
-        # Convert to tensors
-        X_train_t = torch.tensor(X_seq_train, dtype=torch.float32, device=device)
-        y_train_t = torch.tensor(y_seq_train, dtype=torch.float32, device=device)
+        # Convert to tensors (use from_numpy to avoid segfault with
+        # torch.tensor on large float64 arrays on some platforms)
+        X_train_t = torch.from_numpy(
+            np.ascontiguousarray(X_seq_train, dtype=np.float32)
+        ).to(device)
+        y_train_t = torch.from_numpy(
+            np.ascontiguousarray(y_seq_train, dtype=np.float32)
+        ).to(device)
         if has_val:
-            X_val_t = torch.tensor(X_seq_val, dtype=torch.float32, device=device)
-            y_val_t = torch.tensor(y_seq_val, dtype=torch.float32, device=device)
+            X_val_t = torch.from_numpy(
+                np.ascontiguousarray(X_seq_val, dtype=np.float32)
+            ).to(device)
+            y_val_t = torch.from_numpy(
+                np.ascontiguousarray(y_seq_val, dtype=np.float32)
+            ).to(device)
 
         # Initialize model
         n_features = len(feature_cols)
@@ -419,7 +428,9 @@ class GRUPredictor(BasePredictor):
             ordered_windows.append(windows_by_row[i])
 
         X_windows = np.stack(ordered_windows, axis=0)  # (n_test, lookback, n_features)
-        X_tensor = torch.tensor(X_windows, dtype=torch.float32, device=device)
+        X_tensor = torch.from_numpy(
+            np.ascontiguousarray(X_windows, dtype=np.float32)
+        ).to(device)
 
         self._model.eval()
         with torch.no_grad():

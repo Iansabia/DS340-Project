@@ -232,14 +232,23 @@ class LSTMPredictor(BasePredictor):
             patience=self._patience, min_delta=self._min_delta
         )
 
-        # Convert to tensors
-        X_tr_t = torch.tensor(X_tr_seq, dtype=torch.float32, device=self._device)
-        y_tr_t = torch.tensor(y_tr_seq, dtype=torch.float32, device=self._device)
+        # Convert to tensors (use from_numpy to avoid segfault with
+        # torch.tensor on large float64 arrays on some platforms)
+        X_tr_t = torch.from_numpy(
+            np.ascontiguousarray(X_tr_seq, dtype=np.float32)
+        ).to(self._device)
+        y_tr_t = torch.from_numpy(
+            np.ascontiguousarray(y_tr_seq, dtype=np.float32)
+        ).to(self._device)
 
         has_val = len(X_val_seq) > 0
         if has_val:
-            X_val_t = torch.tensor(X_val_seq, dtype=torch.float32, device=self._device)
-            y_val_t = torch.tensor(y_val_seq, dtype=torch.float32, device=self._device)
+            X_val_t = torch.from_numpy(
+                np.ascontiguousarray(X_val_seq, dtype=np.float32)
+            ).to(self._device)
+            y_val_t = torch.from_numpy(
+                np.ascontiguousarray(y_val_seq, dtype=np.float32)
+            ).to(self._device)
 
         n_train = len(X_tr_t)
 
@@ -400,11 +409,11 @@ class LSTMPredictor(BasePredictor):
                     else:
                         window = stitched[start_idx:end_idx]
 
-                    window_t = torch.tensor(
-                        window[np.newaxis, :, :],
-                        dtype=torch.float32,
-                        device=self._device,
-                    )
+                    window_t = torch.from_numpy(
+                        np.ascontiguousarray(
+                            window[np.newaxis, :, :], dtype=np.float32
+                        )
+                    ).to(self._device)
                     pred = self._model(window_t).cpu().numpy().item()
                     group_preds.append(pred)
 
