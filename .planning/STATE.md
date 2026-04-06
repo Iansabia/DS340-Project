@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-05-PLAN.md
-last_updated: "2026-04-06T14:08:17.738Z"
-last_activity: 2026-04-06 -- Completed 06-04-PLAN.md (PPO-Filtered predictor)
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-04-06T14:30:11Z"
+last_activity: 2026-04-06 -- Completed 07-02-PLAN.md (Lookback window ablation)
 progress:
   total_phases: 9
   completed_phases: 6
-  total_plans: 20
-  completed_plans: 20
-  percent: 95
+  total_plans: 25
+  completed_plans: 22
+  percent: 88
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 6 in progress -- RL and Autoencoder (Plan 4 of 5 complete)
+**Current focus:** Phase 7 in progress -- Experiments and Interpretability (Plan 2 of 5 complete)
 
 ## Current Position
 
-Phase: 6 of 9 (RL and Autoencoder)
-Plan: 4 of 5 complete (06-01 Trading Env, 06-02 Autoencoder, 06-03 PPO-Raw, 06-04 PPO-Filtered done)
+Phase: 7 of 9 (Experiments and Interpretability)
+Plan: 2 of 5 complete (07-01 Cross-Tier Comparison, 07-02 Lookback Ablation done)
 Status: In Progress
-Last activity: 2026-04-06 -- Completed 06-04-PLAN.md (PPO-Filtered predictor)
+Last activity: 2026-04-06 -- Completed 07-02-PLAN.md (Lookback window ablation)
 
-Progress: [██████████] 95%
+Progress: [█████████░] 88%
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Progress: [██████████] 95%
 | Phase 06 P03 | 2min | 2 tasks | 2 files |
 | Phase 06 P04 | 3min | 2 tasks | 2 files |
 | Phase 06 P05 | 6min | 2 tasks | 5 files |
+| Phase 07 P01 | 3min | 1 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -127,6 +128,7 @@ Recent decisions affecting current work:
 - [Phase 06]: PPO-Raw RMSE=0.3189 vs XGBoost RMSE=0.2857: RL adds no value over regression at this dataset scale
 - [Phase 06]: PPO-Filtered (anomaly-filtered) performs worse than PPO-Raw: 5% flagging rate too aggressive, reward masking hurts training
 - [Phase 06]: Full 8-model cross-tier table confirms complexity-vs-performance thesis: simpler models win at 6.8k samples
+- [Phase 07]: Experiment 1 uses horizontal bar chart for RMSE and tier-distinct line styles for equity curves
 
 ### Roadmap Evolution
 
@@ -144,6 +146,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T14:04:26.664Z
-Stopped at: Completed 06-05-PLAN.md
+Last session: 2026-04-06T14:31:07.094Z
+Stopped at: Completed 07-01-PLAN.md
 Resume file: None

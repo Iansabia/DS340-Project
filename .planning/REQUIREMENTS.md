@@ -58,7 +58,7 @@
 
 ### Experiments
 
-- [ ] **EXP-01**: Experiment 1 — Complexity-vs-performance comparison across all tiers (centerpiece)
+- [x] **EXP-01**: Experiment 1 — Complexity-vs-performance comparison across all tiers (centerpiece)
 - [ ] **EXP-02**: Experiment 2 — Historical window length ablation (6h, 24h, 72h, 7d)
 - [ ] **EXP-03**: Experiment 3 — Minimum spread threshold ablation (no min, >2pp, >5pp, >10pp)
 - [ ] **EXP-04**: Transaction cost sensitivity analysis
@@ -119,7 +119,7 @@
 | MOD-10 | Phase 6 | Complete |
 | EVAL-03 | Phase 7 | Pending |
 | EVAL-04 | Phase 7 | Pending |
-| EXP-01 | Phase 7 | Pending |
+| EXP-01 | Phase 7 | Complete |
 | EXP-02 | Phase 7 | Pending |
 | EXP-03 | Phase 7 | Pending |
 | EXP-04 | Phase 7 | Pending |
