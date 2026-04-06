@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-04-06T00:13:50.829Z"
-last_activity: "2026-04-06 -- Completed 05-03-PLAN.md (LSTMPredictor: Tier 2 recurrent alternative, hidden_size=32, 14 TDD tests)"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-04-06T00:55:25.000Z"
+last_activity: "2026-04-06 -- Completed 05-04-PLAN.md (Cross-tier harness: GRU RMSE=0.2896, LSTM RMSE=0.2910, 6-model comparison table)"
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 15
-  completed_plans: 12
-  percent: 80
+  completed_plans: 13
+  percent: 87
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 ## Current Position
 
 Phase: 5 of 9 (Time Series Models)
-Plan: 3 of 5 complete (05-01 Sequence Utilities, 05-02 GRU, 05-03 LSTM done)
+Plan: 4 of 5 complete (05-01 Sequence Utilities, 05-02 GRU, 05-03 LSTM, 05-04 Cross-Tier Harness done)
 Status: Executing
-Last activity: 2026-04-06 -- Completed 05-03-PLAN.md (LSTMPredictor: Tier 2 recurrent alternative, hidden_size=32, 14 TDD tests)
+Last activity: 2026-04-06 -- Completed 05-04-PLAN.md (Cross-tier comparison harness: --tier {1,2,both}, GRU RMSE=0.2896, LSTM RMSE=0.2910, 6-model table)
 
-Progress: [████████░░] 80%
+Progress: [████████░░] 87%
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [████████░░] 80%
 | Phase 05 P01 | 3min | 2 tasks | 2 files |
 | Phase 05 P02 | 3min | 2 tasks | 2 files |
 | Phase 05 P03 | 3min | 2 tasks | 2 files |
+| Phase 05 P04 | 40min | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,9 @@ Recent decisions affecting current work:
 - [Phase 05]: Warm-up stitching prepends cached train rows per group_id for full lookback windows on test data
 - [Phase 05]: Padding by repeating first row when total available rows < lookback, logged to _padded_pairs
 - [Phase 05]: LSTM implemented independently from GRU (parallel Wave 2 execution); hidden_size=32 per CONTEXT.md D7
+- [Phase 05]: Dropped 4 zero-variance columns from NON_FEATURE_COLUMNS (kalshi_order_flow_imbalance + 3 more Kalshi cols all-zero), yielding 31 features not 34
+- [Phase 05]: torch.set_num_threads(1) workaround for PyTorch 2.10.0 Apple Silicon segfault in multi-threaded GRU/LSTM forward pass
+- [Phase 05]: GRU RMSE=0.2896+/-0.0024 and LSTM RMSE=0.2910+/-0.0004 over 3 seeds; both competitive with but do not beat XGBoost (0.2857)
 
 ### Roadmap Evolution
 
@@ -123,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T00:13:50.826Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-04-06T00:55:25Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
