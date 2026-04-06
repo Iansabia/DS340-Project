@@ -257,6 +257,9 @@ class TestBuildModels:
     def test_build_models_tier_both(self):
         models = build_models(tier="both")
         names = [m.name for m in models]
-        for expected in ("Naive", "Volume", "Linear Regression",
-                         "XGBoost", "GRU", "LSTM"):
+        # Naive and Volume have longer descriptive names
+        assert len(models) == 6
+        assert any("Naive" in n for n in names)
+        assert any("Volume" in n for n in names)
+        for expected in ("Linear Regression", "XGBoost", "GRU", "LSTM"):
             assert expected in names, f"{expected} not in build_models(tier='both')"
