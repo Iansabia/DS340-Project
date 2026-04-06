@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-04-06T14:30:11Z"
-last_activity: 2026-04-06 -- Completed 07-02-PLAN.md (Lookback window ablation)
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-04-06T14:32:18.253Z"
+last_activity: 2026-04-06 -- Completed 07-03-PLAN.md (Threshold ablation experiment)
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 25
-  completed_plans: 22
-  percent: 88
+  completed_plans: 23
+  percent: 92
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 7 in progress -- Experiments and Interpretability (Plan 2 of 5 complete)
+**Current focus:** Phase 7 in progress -- Experiments and Interpretability (Plan 3 of 5 complete)
 
 ## Current Position
 
 Phase: 7 of 9 (Experiments and Interpretability)
-Plan: 2 of 5 complete (07-01 Cross-Tier Comparison, 07-02 Lookback Ablation done)
+Plan: 3 of 5 complete (07-01 Cross-Tier Comparison, 07-02 Lookback Ablation, 07-03 Threshold Ablation done)
 Status: In Progress
-Last activity: 2026-04-06 -- Completed 07-02-PLAN.md (Lookback window ablation)
+Last activity: 2026-04-06 -- Completed 07-03-PLAN.md (Threshold ablation experiment)
 
-Progress: [█████████░] 88%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -70,6 +70,8 @@ Progress: [█████████░] 88%
 | Phase 06 P04 | 3min | 2 tasks | 2 files |
 | Phase 06 P05 | 6min | 2 tasks | 5 files |
 | Phase 07 P01 | 3min | 1 tasks | 5 files |
+| Phase 07 P03 | 3min | 1 tasks | 35 files |
+| Phase 07 P02 | 3min | 1 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -129,6 +131,8 @@ Recent decisions affecting current work:
 - [Phase 06]: PPO-Filtered (anomaly-filtered) performs worse than PPO-Raw: 5% flagging rate too aggressive, reward masking hurts training
 - [Phase 06]: Full 8-model cross-tier table confirms complexity-vs-performance thesis: simpler models win at 6.8k samples
 - [Phase 07]: Experiment 1 uses horizontal bar chart for RMSE and tier-distinct line styles for equity curves
+- [Phase 07]: Short lookback (2 bars/8h) marginally outperforms default (6 bars/24h); longer lookback (18/72h) degrades significantly due to padding and overfitting on small dataset
+- [Phase 07]: Single seed=42 for threshold ablation (not 3-seed); PPO discrete predictions {-0.03,0,+0.03} structurally incompatible with thresholds >= 0.05
 
 ### Roadmap Evolution
 
@@ -146,6 +150,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T14:31:07.094Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-04-06T14:32:18.250Z
+Stopped at: Completed 07-03-PLAN.md
 Resume file: None
