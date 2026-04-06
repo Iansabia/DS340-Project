@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-04-06T00:13:15.966Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-04-06T00:13:50.829Z"
 last_activity: "2026-04-06 -- Completed 05-03-PLAN.md (LSTMPredictor: Tier 2 recurrent alternative, hidden_size=32, 14 TDD tests)"
 progress:
   total_phases: 9
@@ -102,6 +102,9 @@ Recent decisions affecting current work:
 - [Phase 05]: EarlyStopping compares against best_loss (not previous loss) for min_delta threshold
 - [Phase 05]: create_sequences preserves first-occurrence group order via OrderedDict
 - [Phase 05]: fit_feature_scaler raises ValueError listing zero-variance column names to surface upstream bugs
+- [Phase 05]: GRU uses input dropout (nn.Dropout on features) not recurrent dropout, per CONTEXT.md D6
+- [Phase 05]: Warm-up stitching prepends cached train rows per group_id for full lookback windows on test data
+- [Phase 05]: Padding by repeating first row when total available rows < lookback, logged to _padded_pairs
 - [Phase 05]: LSTM implemented independently from GRU (parallel Wave 2 execution); hidden_size=32 per CONTEXT.md D7
 
 ### Roadmap Evolution
@@ -120,6 +123,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T00:13:15.964Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-04-06T00:13:50.826Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
