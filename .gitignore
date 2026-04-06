@@ -9,3 +9,7 @@ build/
 .ipynb_checkpoints/
 data/raw/
 data/processed/
+data/live/bars.parquet
+data/live/pair_mapping.json
+data/live/paper_trades.jsonl
+data/live/retrain_log.json
