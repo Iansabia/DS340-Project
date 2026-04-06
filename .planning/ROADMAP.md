@@ -186,7 +186,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 | 3. Feature Engineering | 0/1 | Planning complete | - |
 | 4. Regression Baselines and Evaluation Framework | 1/2 | In Progress | - |
 | 5. Time Series Models | 5/5 | Complete | 2026-04-06 |
-| 6. RL and Autoencoder | 0/5 | Planning complete | - |
+| 6. RL and Autoencoder | 3/5 | In Progress|  |
 | 7. Experiments and Interpretability | 0/0 | Not started | - |
 | 8. Paper and Presentation | 0/0 | Not started | - |
 
