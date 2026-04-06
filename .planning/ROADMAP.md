@@ -158,7 +158,7 @@ Plans:
 **Goal:** Produce honest, paper-ready backtested Sharpe ratios for all 8 models via a walk-forward portfolio simulator with realistic transaction costs ($10k capital, $100/position, 5pp round-trip fees, daily returns annualized by sqrt(365))
 **Requirements**: BACKTEST-CORE, BACKTEST-RUN
 **Depends on:** Phase 7
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 07.1-01-PLAN.md -- WalkForwardBacktester class (TDD): chronological walk-forward, transaction costs, capital-normalized returns, Sharpe/drawdown/Calmar
