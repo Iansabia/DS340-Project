@@ -152,6 +152,16 @@ Plans:
 - [ ] 07-04-PLAN.md -- SHAP analysis (TreeSHAP on XGBoost) + transaction cost sensitivity (0-10pp, break-even per model)
 - [ ] 07-05-PLAN.md -- Bootstrap confidence intervals (1000 resamples, 95% CI on RMSE/MAE/P&L/Sharpe, forest plot)
 
+### Phase 07.1: Walk-Forward Backtesting (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 7
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 07.1 to break down)
+
 ### Phase 8: Paper and Presentation
 **Goal**: The final paper and lightning talk slides are complete, presenting the complexity-vs-performance findings as an empirical contribution
 **Depends on**: Phase 7

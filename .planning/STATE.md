@@ -143,6 +143,7 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - Phase 2.1 inserted after Phase 2: Trade-Based Data Reconstruction (URGENT) — Kalshi candlestick API returns null prices for 76/77 economics markets. Rebuilding both adapters to use raw trade records with 4-hour VWAP candles, forward-fill alignment, and microstructure features.
+- Phase 7.1 inserted after Phase 7: Walk-Forward Backtesting (URGENT) — Current Sharpe ratios are inflated (panel data + no transaction costs). Walk-forward portfolio simulator with realistic fees produces the honest, comparable Sharpe and equity curve for the paper.
 
 ### Pending Todos
 
