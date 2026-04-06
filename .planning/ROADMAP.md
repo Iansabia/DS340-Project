@@ -143,11 +143,14 @@ Plans:
   3. Experiment 3 produces results for no minimum, >2pp, >5pp, and >10pp spread thresholds showing how filtering affects trading performance
   4. SHAP feature importance analysis is computed for the best-performing models (TreeSHAP for XGBoost, DeepExplainer or attention for neural models)
   5. Bootstrap confidence intervals are reported on key metrics, and transaction cost sensitivity analysis quantifies break-even fee levels
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md -- Experiment 1: cross-tier comparison (formalize 8-model results into summary JSON, RMSE bar chart, P&L equity curves, LaTeX table)
+- [ ] 07-02-PLAN.md -- Experiment 2: lookback window ablation (GRU+LSTM at lookback={2,6,12,18}, RMSE/P&L plots)
+- [ ] 07-03-PLAN.md -- Experiment 3: spread threshold ablation (all 8 models at threshold={0.0,0.02,0.05,0.10}, heatmap/bar chart)
+- [ ] 07-04-PLAN.md -- SHAP analysis (TreeSHAP on XGBoost) + transaction cost sensitivity (0-10pp, break-even per model)
+- [ ] 07-05-PLAN.md -- Bootstrap confidence intervals (1000 resamples, 95% CI on RMSE/MAE/P&L/Sharpe, forest plot)
 
 ### Phase 8: Paper and Presentation
 **Goal**: The final paper and lightning talk slides are complete, presenting the complexity-vs-performance findings as an empirical contribution
@@ -187,7 +190,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 | 4. Regression Baselines and Evaluation Framework | 1/2 | In Progress | - |
 | 5. Time Series Models | 5/5 | Complete | 2026-04-06 |
 | 6. RL and Autoencoder | 3/5 | In Progress|  |
-| 7. Experiments and Interpretability | 0/0 | Not started | - |
+| 7. Experiments and Interpretability | 0/5 | Planning complete | - |
 | 8. Paper and Presentation | 0/0 | Not started | - |
 
 ---
