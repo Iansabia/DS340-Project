@@ -122,32 +122,31 @@ class TestEarlyStopping:
     """Patience-based early stopping tracks validation loss."""
 
     def test_early_stopping_triggers_after_patience(self):
-        """patience=3, min_delta=0.01: improvements < min_delta exhaust patience."""
+        """patience=3, min_delta=0.01: no step improves > min_delta from best."""
         es = EarlyStopping(patience=3, min_delta=0.01)
-        losses = [0.5, 0.49, 0.488, 0.487, 0.486]
-        # Step 0: 0.5 → best_loss=0.5, counter=0, False
-        # Step 1: 0.49 → improvement=0.01 (not > min_delta), counter=1, False
-        # Step 2: 0.488 → improvement < min_delta from 0.49, counter=2, False
-        # Step 3: 0.487 → improvement < min_delta, counter=3 → True
+        # All losses after step 0 are within min_delta of best (0.5):
+        # none satisfy val_loss < 0.5 - 0.01 = 0.49, so counter increments each time.
+        losses = [0.5, 0.499, 0.498, 0.497]
+        # Step 0: 0.5 < inf-0.01 → best=0.5, counter=0, False
+        # Step 1: 0.499 < 0.49? No → counter=1, False
+        # Step 2: 0.498 < 0.49? No → counter=2, False
+        # Step 3: 0.497 < 0.49? No → counter=3 >= 3 → True
         results = [es.step(l) for l in losses]
-        # Should NOT trigger on first steps
         assert results[0] is False
-        # Should trigger once patience is exhausted
-        assert any(results), "EarlyStopping should have triggered"
-        # Find the first True
-        first_true = results.index(True)
-        assert first_true <= 4, "Should trigger within the loss sequence"
+        assert results[1] is False
+        assert results[2] is False
+        assert results[3] is True
 
     def test_early_stopping_resets_on_improvement(self):
         """patience=2: big improvement resets counter."""
         es = EarlyStopping(patience=2, min_delta=0.01)
-        losses = [0.5, 0.3, 0.31, 0.29, 0.30, 0.31]
-        # Step 0: 0.5 → best=0.5, counter=0
-        # Step 1: 0.3 → improvement=0.2 > min_delta → best=0.3, counter=0
-        # Step 2: 0.31 → no improvement → counter=1
-        # Step 3: 0.29 → improvement=0.01 >= min_delta → best=0.29, counter=0 (reset!)
-        # Step 4: 0.30 → no improvement → counter=1
-        # Step 5: 0.31 → no improvement → counter=2 → True
+        losses = [0.5, 0.3, 0.31, 0.1, 0.11, 0.12]
+        # Step 0: 0.5 < inf-0.01 → best=0.5, counter=0, False
+        # Step 1: 0.3 < 0.5-0.01=0.49 → best=0.3, counter=0, False
+        # Step 2: 0.31 < 0.3-0.01=0.29? No → counter=1, False
+        # Step 3: 0.1 < 0.29? Yes → best=0.1, counter=0, False (RESET!)
+        # Step 4: 0.11 < 0.1-0.01=0.09? No → counter=1, False
+        # Step 5: 0.12 < 0.09? No → counter=2 >= 2 → True
         results = [es.step(l) for l in losses]
         # Should NOT trigger early (steps 0-4 all False)
         assert all(r is False for r in results[:5]), (
