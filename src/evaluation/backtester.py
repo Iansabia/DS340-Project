@@ -234,8 +234,14 @@ class WalkForwardBacktester:
         start_value = equity_curve[0][1]
         end_value = equity_curve[-1][1]
         total_return = (end_value - start_value) / start_value
+        # Guard: if portfolio lost everything (total_return <= -1),
+        # the base (1+total_return) is <= 0 and fractional exponent
+        # produces NaN.  Return negative infinity-like value instead.
+        base = 1.0 + total_return
+        if base <= 0:
+            return -999.0
         # Annualize: (1 + total_return)^(365/n_days) - 1
-        annualized_return = (1.0 + total_return) ** (365.0 / n_days) - 1.0
+        annualized_return = base ** (365.0 / n_days) - 1.0
         return annualized_return / max_drawdown
 
 
