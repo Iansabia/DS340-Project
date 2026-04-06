@@ -54,7 +54,7 @@
 - [x] **EVAL-01**: Regression metrics computed for all models (RMSE, MAE, directional accuracy)
 - [x] **EVAL-02**: Profit simulation for all models (P&L, win rate, Sharpe ratio)
 - [x] **EVAL-03**: SHAP interpretability analysis on best-performing models
-- [ ] **EVAL-04**: Bootstrap confidence intervals on key metrics
+- [x] **EVAL-04**: Bootstrap confidence intervals on key metrics
 
 ### Experiments
 
@@ -118,7 +118,7 @@
 | MOD-09 | Phase 6 | Complete |
 | MOD-10 | Phase 6 | Complete |
 | EVAL-03 | Phase 7 | Complete |
-| EVAL-04 | Phase 7 | Pending |
+| EVAL-04 | Phase 7 | Complete |
 | EXP-01 | Phase 7 | Complete |
 | EXP-02 | Phase 7 | Complete |
 | EXP-03 | Phase 7 | Complete |

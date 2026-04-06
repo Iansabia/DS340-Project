@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 7 in progress -- Experiments and Interpretability (Plan 4 of 5 complete)
+**Current focus:** Phase 7 complete -- Experiments and Interpretability (all 5 plans done)
 
 ## Current Position
 
 Phase: 7 of 9 (Experiments and Interpretability)
-Plan: 4 of 5 complete (07-01 Cross-Tier, 07-02 Lookback, 07-03 Threshold, 07-04 SHAP+TxCost done)
-Status: In Progress
-Last activity: 2026-04-06 -- Completed 07-04-PLAN.md (SHAP and transaction cost analysis)
+Plan: 5 of 5 complete (07-01 Cross-Tier, 07-02 Lookback, 07-03 Threshold, 07-04 SHAP+TxCost, 07-05 Bootstrap CIs done)
+Status: Phase 7 Complete
+Last activity: 2026-04-06 -- Completed 07-05-PLAN.md (Bootstrap confidence intervals)
 
-Progress: [█████████░] 96%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [█████████░] 96%
 | Phase 07 P03 | 3min | 1 tasks | 35 files |
 | Phase 07 P02 | 3min | 1 tasks | 11 files |
 | Phase 07 P04 | 3min | 2 tasks | 7 files |
+| Phase 07 P05 | 2min | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,8 @@ Recent decisions affecting current work:
 - [Phase 07]: Single seed=42 for threshold ablation (not 3-seed); PPO discrete predictions {-0.03,0,+0.03} structurally incompatible with thresholds >= 0.05
 - [Phase 07]: polymarket_vwap dominates SHAP importance (0.138 vs next 0.016); XGBoost relies heavily on Polymarket price level
 - [Phase 07]: At 5-7pp Kalshi fees: Tier 1/2 models remain profitable (XGBoost break-even 15.5pp), naive baselines and PPO-Filtered go negative
+- [Phase 07]: Bootstrap 95% CIs confirm XGBoost/GRU/LSTM RMSE CIs overlap -- performance differences not statistically significant at this dataset scale
+- [Phase 07]: Reduced training for bootstrap (50 epochs Tier 2, 10k steps Tier 3) since bootstrap resamples predictions not model weights
 
 ### Roadmap Evolution
 
@@ -154,5 +157,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-04-06T18:14:25.588Z
-Stopped at: Completed 07-04-PLAN.md
+Stopped at: Completed 07-05-PLAN.md
 Resume file: None
