@@ -6,6 +6,9 @@ from src.models.naive import NaivePredictor
 from src.models.volume import VolumePredictor
 from src.models.gru import GRUPredictor
 from src.models.lstm import LSTMPredictor
+from src.models.ppo_raw import PPORawPredictor
+from src.models.ppo_filtered import PPOFilteredPredictor
+from src.models.autoencoder import AnomalyDetectorAutoencoder
 
 __all__ = [
     "BasePredictor",
@@ -15,4 +18,7 @@ __all__ = [
     "VolumePredictor",
     "GRUPredictor",
     "LSTMPredictor",
+    "PPORawPredictor",
+    "PPOFilteredPredictor",
+    "AnomalyDetectorAutoencoder",
 ]

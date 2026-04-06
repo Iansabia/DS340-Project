@@ -1,8 +1,8 @@
-"""Cross-tier model comparison: Tier 1 baselines + Tier 2 time-series models.
+"""Cross-tier model comparison: Tier 1 baselines + Tier 2 time-series + Tier 3 RL.
 
 Originally the April-4 TA check-in deliverable (Tier 1 only).  Extended in
-Phase 5 Plan 04 to support ``--tier {1,2,both}`` for the unified cross-tier
-comparison table that is Phase 5's centerpiece.
+Phase 5 Plan 04 to support ``--tier {1,2,both}`` and in Phase 6 Plan 05
+to support ``--tier {3,all}`` for the full cross-tier comparison table.
 
 It:
 
@@ -15,7 +15,7 @@ It:
      34-feature matrix (``kalshi_order_flow_imbalance`` excluded — 100% NaN
      upstream Phase 3 bug), using ``BasePredictor.evaluate`` so every model
      is scored on the same metrics.
-  4. For Tier 2 models, runs 3 seeds {42, 123, 456} and reports mean +/- std.
+  4. For Tier 2/3 models, runs 3 seeds {42, 123, 456} and reports mean +/- std.
   5. Saves each model's results to JSON via ``src.evaluation.results_store``.
   6. Prints a formatted comparison table showing RMSE, MAE, directional
      accuracy, P&L, trades, win rate, and Sharpe for every model.
@@ -23,8 +23,10 @@ It:
 Run:
     python -m experiments.run_baselines                        # default: Tier 1 only
     python -m experiments.run_baselines --tier 2               # Tier 2 only (GRU + LSTM, 3 seeds)
-    python -m experiments.run_baselines --tier both            # Combined comparison table
-    python -m experiments.run_baselines --tier both --threshold 0.05
+    python -m experiments.run_baselines --tier 3               # Tier 3 only (PPO-Raw + PPO-Filtered, 3 seeds)
+    python -m experiments.run_baselines --tier both            # Tier 1 + 2
+    python -m experiments.run_baselines --tier all             # Tier 1 + 2 + 3 (full cross-tier)
+    python -m experiments.run_baselines --tier all --threshold 0.05
 """
 from __future__ import annotations
 
@@ -43,15 +45,22 @@ from src.models.lstm import LSTMPredictor
 from src.models.naive import NaivePredictor
 from src.models.volume import VolumePredictor
 from src.models.xgboost_model import XGBoostPredictor
+from src.models.ppo_raw import PPORawPredictor
+from src.models.ppo_filtered import PPOFilteredPredictor
+from src.models.autoencoder import AnomalyDetectorAutoencoder
 
 
 DEFAULT_DATA_DIR = Path("data/processed")
 DEFAULT_RESULTS_DIR = Path("experiments/results/tier1")
 DEFAULT_RESULTS_DIR_TIER2 = Path("experiments/results/tier2")
+DEFAULT_RESULTS_DIR_TIER3 = Path("experiments/results/tier3")
 DEFAULT_THRESHOLD = 0.02
 
 # Seeds for Tier 2 multi-seed aggregation (CONTEXT.md D8).
 TIER2_SEEDS = [42, 123, 456]
+
+# Seeds for Tier 3 RL models (same seeds as Tier 2 for fair comparison).
+TIER3_SEEDS = [42, 123, 456]
 
 # Columns that must never be fed to models as features.
 NON_FEATURE_COLUMNS = {
@@ -76,6 +85,8 @@ _MODEL_ORDER = [
     "XGBoost",
     "GRU",
     "LSTM",
+    "PPO-Raw",
+    "PPO-Filtered",
 ]
 
 
@@ -175,12 +186,20 @@ def build_models(tier: str = "1") -> list[BasePredictor]:
         GRUPredictor(random_state=42),
         LSTMPredictor(random_state=42),
     ]
+    tier3 = [
+        PPORawPredictor(random_state=42),
+        PPOFilteredPredictor(random_state=42),
+    ]
     if tier == "1":
         return tier1
     if tier == "2":
         return tier2
+    if tier == "3":
+        return tier3
     if tier == "both":
         return tier1 + tier2
+    if tier == "all":
+        return tier1 + tier2 + tier3
     raise ValueError(f"Unknown tier: {tier!r}")
 
 
@@ -255,6 +274,133 @@ def run_tier2_with_seeds(
         )
 
 
+def run_tier3_with_seeds(
+    df_train: pd.DataFrame,
+    df_test: pd.DataFrame,
+    feature_cols: list[str],
+    threshold: float,
+    results_dir: Path,
+    n_train: int,
+    n_test: int,
+    n_features: int,
+    seeds: list[int] | None = None,
+    test_timestamps: np.ndarray | None = None,
+) -> None:
+    """Train PPO-Raw and PPO-Filtered with multiple seeds and save results.
+
+    PPO-Raw: trains independently per seed.
+    PPO-Filtered: trains ONE autoencoder (seed=42), then trains PPO per seed
+    with the same pre-trained anomaly detector.
+
+    Results are saved in the same JSON schema as Tier 1/2 for direct
+    comparison in the cross-tier table.
+    """
+    if seeds is None:
+        seeds = TIER3_SEEDS
+
+    X_train_seq, y_train = prepare_xy_for_seq(df_train, feature_cols)
+    X_test_seq, y_test = prepare_xy_for_seq(df_test, feature_cols)
+
+    # ---- PPO-Raw ----
+    ppo_raw_seed_rmses: list[float] = []
+    ppo_raw_last_metrics: dict | None = None
+    ppo_raw_last_pnl: list | None = None
+
+    for seed in seeds:
+        print(f"\n{'='*60}")
+        print(f"Training PPO-Raw with seed={seed}")
+        print(f"{'='*60}")
+        model = PPORawPredictor(random_state=seed, total_timesteps=100_000)
+        model.fit(X_train_seq, y_train)
+        metrics = model.evaluate(
+            X_test_seq, y_test, threshold=threshold,
+            timestamps=test_timestamps,
+        )
+        ppo_raw_seed_rmses.append(metrics["rmse"])
+        ppo_raw_last_pnl = metrics.pop("pnl_series")
+        ppo_raw_last_metrics = metrics
+
+    assert ppo_raw_last_metrics is not None and ppo_raw_last_pnl is not None
+    mean_rmse = float(np.mean(ppo_raw_seed_rmses))
+    std_rmse = float(np.std(ppo_raw_seed_rmses, ddof=0))
+
+    extra = {
+        "threshold": threshold,
+        "n_train_rows": n_train,
+        "n_test_rows": n_test,
+        "n_features": n_features,
+        "pnl_series": ppo_raw_last_pnl,
+        "seeds": seeds,
+        "seed_rmses": [float(r) for r in ppo_raw_seed_rmses],
+        "mean_rmse": mean_rmse,
+        "std_rmse": std_rmse,
+    }
+    save_results("PPO-Raw", ppo_raw_last_metrics, results_dir, extra=extra)
+    print(
+        f"\n[PPO-Raw] Saved: mean_rmse={mean_rmse:.4f} "
+        f"+/- {std_rmse:.4f} over {len(seeds)} seeds"
+    )
+
+    # ---- PPO-Filtered ----
+    # Train ONE autoencoder (seed=42) shared across all PPO seeds.
+    print(f"\n{'='*60}")
+    print("Training autoencoder for PPO-Filtered (seed=42)")
+    print(f"{'='*60}")
+    autoencoder = AnomalyDetectorAutoencoder(
+        input_dim=n_features, random_state=42,
+    )
+    autoencoder.fit(df_train[feature_cols], feature_cols)
+    flagging_rate = float(
+        autoencoder.flag_anomalies(df_train[feature_cols]).mean()
+    )
+    print(f"Autoencoder flagging rate on train: {flagging_rate:.1%}")
+
+    ppo_filt_seed_rmses: list[float] = []
+    ppo_filt_last_metrics: dict | None = None
+    ppo_filt_last_pnl: list | None = None
+
+    for seed in seeds:
+        print(f"\n{'='*60}")
+        print(f"Training PPO-Filtered with seed={seed}")
+        print(f"{'='*60}")
+        model = PPOFilteredPredictor(
+            anomaly_detector=autoencoder,
+            random_state=seed,
+            total_timesteps=100_000,
+        )
+        model.fit(X_train_seq, y_train)
+        metrics = model.evaluate(
+            X_test_seq, y_test, threshold=threshold,
+            timestamps=test_timestamps,
+        )
+        ppo_filt_seed_rmses.append(metrics["rmse"])
+        ppo_filt_last_pnl = metrics.pop("pnl_series")
+        ppo_filt_last_metrics = metrics
+
+    assert ppo_filt_last_metrics is not None and ppo_filt_last_pnl is not None
+    mean_rmse_f = float(np.mean(ppo_filt_seed_rmses))
+    std_rmse_f = float(np.std(ppo_filt_seed_rmses, ddof=0))
+
+    extra_f = {
+        "threshold": threshold,
+        "n_train_rows": n_train,
+        "n_test_rows": n_test,
+        "n_features": n_features,
+        "pnl_series": ppo_filt_last_pnl,
+        "seeds": seeds,
+        "seed_rmses": [float(r) for r in ppo_filt_seed_rmses],
+        "mean_rmse": mean_rmse_f,
+        "std_rmse": std_rmse_f,
+    }
+    save_results(
+        "PPO-Filtered", ppo_filt_last_metrics, results_dir, extra=extra_f,
+    )
+    print(
+        f"\n[PPO-Filtered] Saved: mean_rmse={mean_rmse_f:.4f} "
+        f"+/- {std_rmse_f:.4f} over {len(seeds)} seeds"
+    )
+
+
 def format_comparison_table(
     results: list[dict],
     tier: str = "1",
@@ -298,6 +444,10 @@ def format_comparison_table(
         title = "====== Tier 1 Baseline Results ======"
     elif tier == "2":
         title = "====== Tier 2 Time Series Results ======"
+    elif tier == "3":
+        title = "====== Tier 3 RL Results ======"
+    elif tier == "all":
+        title = "====== Full Cross-Tier Comparison ======"
     else:
         title = "====== Cross-Tier Comparison ======"
 
@@ -342,7 +492,8 @@ def main(argv: list[str] | None = None) -> int:
         description=(
             "Train and evaluate models on the Phase 3 matched-pairs dataset. "
             "Use --tier to select Tier 1 (regression baselines), Tier 2 "
-            "(time-series: GRU, LSTM), or both for a combined comparison."
+            "(time-series: GRU, LSTM), Tier 3 (RL: PPO-Raw, PPO-Filtered), "
+            "or all for a full cross-tier comparison."
         )
     )
     parser.add_argument(
@@ -374,10 +525,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--tier",
         type=str,
-        choices=["1", "2", "both"],
+        choices=["1", "2", "3", "both", "all"],
         default="1",
         help="Which tier(s) to run: 1=regression baselines, "
-        "2=time-series (GRU, LSTM), both=combined comparison",
+        "2=time-series (GRU, LSTM), 3=RL (PPO-Raw, PPO-Filtered), "
+        "both=Tier 1+2, all=Tier 1+2+3",
     )
     args = parser.parse_args(argv)
 
@@ -387,10 +539,12 @@ def main(argv: list[str] | None = None) -> int:
     # Resolve results directories
     tier1_results_dir = args.results_dir or DEFAULT_RESULTS_DIR
     tier2_results_dir = args.results_dir or DEFAULT_RESULTS_DIR_TIER2
-    # If user explicitly sets --results-dir and tier is 'both', both tiers
+    tier3_results_dir = args.results_dir or DEFAULT_RESULTS_DIR_TIER3
+    # If user explicitly sets --results-dir and tier is 'both'/'all', tiers
     # write to the same dir (user override). Otherwise use separate dirs.
-    if args.results_dir and tier == "both":
+    if args.results_dir and tier in ("both", "all"):
         tier2_results_dir = args.results_dir
+        tier3_results_dir = args.results_dir
 
     try:
         train_raw, test_raw = load_train_test(data_dir)
@@ -423,7 +577,7 @@ def main(argv: list[str] | None = None) -> int:
     test_timestamps = test["timestamp"].to_numpy()
 
     # ---- Tier 1 ----
-    if tier in ("1", "both"):
+    if tier in ("1", "both", "all"):
         print(f"\nResults will be saved to: {tier1_results_dir}")
         print()
         X_train, y_train = prepare_xy(train, feature_cols)
@@ -447,7 +601,7 @@ def main(argv: list[str] | None = None) -> int:
             save_results(model.name, metrics, tier1_results_dir, extra=extra)
 
     # ---- Tier 2 ----
-    if tier in ("2", "both"):
+    if tier in ("2", "both", "all"):
         print(f"\nTier 2 results will be saved to: {tier2_results_dir}")
         run_tier2_with_seeds(
             df_train=train,
@@ -455,6 +609,21 @@ def main(argv: list[str] | None = None) -> int:
             feature_cols=feature_cols,
             threshold=args.threshold,
             results_dir=tier2_results_dir,
+            n_train=n_train,
+            n_test=n_test,
+            n_features=n_features,
+            test_timestamps=test_timestamps,
+        )
+
+    # ---- Tier 3 ----
+    if tier in ("3", "all"):
+        print(f"\nTier 3 results will be saved to: {tier3_results_dir}")
+        run_tier3_with_seeds(
+            df_train=train,
+            df_test=test,
+            feature_cols=feature_cols,
+            threshold=args.threshold,
+            results_dir=tier3_results_dir,
             n_train=n_train,
             n_test=n_test,
             n_features=n_features,
@@ -470,12 +639,23 @@ def main(argv: list[str] | None = None) -> int:
         all_results = load_all_results(tier2_results_dir)
         print()
         print(format_comparison_table(all_results, tier="2"))
-    else:  # "both"
+    elif tier == "3":
+        all_results = load_all_results(tier3_results_dir)
+        print()
+        print(format_comparison_table(all_results, tier="3"))
+    elif tier == "both":
         tier1_results = load_all_results(tier1_results_dir)
         tier2_results = load_all_results(tier2_results_dir)
         combined = tier1_results + tier2_results
         print()
         print(format_comparison_table(combined, tier="both"))
+    elif tier == "all":
+        tier1_results = load_all_results(tier1_results_dir)
+        tier2_results = load_all_results(tier2_results_dir)
+        tier3_results = load_all_results(tier3_results_dir)
+        combined = tier1_results + tier2_results + tier3_results
+        print()
+        print(format_comparison_table(combined, tier="all"))
 
     print()
     return 0
