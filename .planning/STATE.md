@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07.1-01-PLAN.md
+stopped_at: Completed 07.1-02-PLAN.md
 last_updated: "2026-04-06T18:40:56.770Z"
-last_activity: 2026-04-06 -- Completed 07.1-01-PLAN.md (WalkForwardBacktester core class)
+last_activity: 2026-04-06 -- Completed 07.1-02-PLAN.md (Walk-forward backtest execution)
 progress:
   total_phases: 10
   completed_phases: 7
   total_plans: 27
-  completed_plans: 26
-  percent: 96
+  completed_plans: 27
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 7.1 in progress -- Walk-Forward Backtesting (Plan 01 of 02 done)
+**Current focus:** Phase 7.1 complete -- Walk-Forward Backtesting (Plan 02 of 02 done)
 
 ## Current Position
 
 Phase: 7.1 of 9 (Walk-Forward Backtesting)
-Plan: 1 of 2 complete (07.1-01 WalkForwardBacktester core class done)
-Status: In Progress
-Last activity: 2026-04-06 -- Completed 07.1-01-PLAN.md (WalkForwardBacktester core class)
+Plan: 2 of 2 complete (07.1-02 Run backtest for all 8 models done)
+Status: Complete
+Last activity: 2026-04-06 -- Completed 07.1-02-PLAN.md (Walk-forward backtest execution)
 
-Progress: [██████████] 96%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -75,6 +75,7 @@ Progress: [██████████] 96%
 | Phase 07 P04 | 3min | 2 tasks | 7 files |
 | Phase 07 P05 | 2min | 1 tasks | 4 files |
 | Phase 07.1 P01 | 6min | 2 tasks | 2 files |
+| Phase 07.1 P02 | 7min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -141,6 +142,8 @@ Recent decisions affecting current work:
 - [Phase 07]: Bootstrap 95% CIs confirm XGBoost/GRU/LSTM RMSE CIs overlap -- performance differences not statistically significant at this dataset scale
 - [Phase 07]: Reduced training for bootstrap (50 epochs Tier 2, 10k steps Tier 3) since bootstrap resamples predictions not model weights
 - [Phase 07.1]: WalkForwardBacktester uses direction-aware P&L (gross = direction * contracts * actual_change) with 3pp entry + 2pp exit fees per trade
+- [Phase 07.1]: Backtested Sharpe ratios: LinReg 8.70, XGBoost 8.30, GRU 8.29, LSTM 8.38, PPO-Raw 5.96, PPO-Filtered 1.99; Naive -2.25, Volume -2.26 (correctly negative with fees)
+- [Phase 07.1]: PPO uses 50k timesteps for backtest (not 100k) since backtest evaluates prediction quality, not maximal RL convergence
 
 ### Roadmap Evolution
 
@@ -159,6 +162,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T18:40:56.768Z
-Stopped at: Completed 07.1-01-PLAN.md
+Last session: 2026-04-06T18:50:32Z
+Stopped at: Completed 07.1-02-PLAN.md
 Resume file: None
