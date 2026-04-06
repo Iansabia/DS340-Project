@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-04-05T14:20:10.085Z"
-last_activity: 2026-04-05 -- Completed 04-02-PLAN.md (Linear Regression, XGBoost, results store, baseline comparison script)
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-04-06T00:05:09Z"
+last_activity: 2026-04-06 -- Completed 05-01-PLAN.md (Sequence utilities: windowing, early stopping, seed, device, scaler)
 progress:
   total_phases: 9
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 9
-  percent: 90
+  total_plans: 15
+  completed_plans: 10
+  percent: 67
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 4 - Regression Baselines
+**Current focus:** Phase 5 - Time Series Models
 
 ## Current Position
 
-Phase: 4 of 9 (Regression Baselines) - COMPLETE
-Plan: Phase 4 complete, ready for Phase 5 (Time Series Models)
+Phase: 5 of 9 (Time Series Models)
+Plan: 1 of 5 complete (05-01 Sequence Utilities done, 05-02 GRU next)
 Status: Executing
-Last activity: 2026-04-05 -- Completed 04-02-PLAN.md (Linear Regression, XGBoost, results store, baseline comparison script)
+Last activity: 2026-04-06 -- Completed 05-01-PLAN.md (Sequence utilities: windowing, early stopping, seed, device, scaler)
 
-Progress: [█████████░] 90%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Progress: [█████████░] 90%
 | Phase 03 P01 (redo) | 6min | 2 tasks | 10 files |
 | Phase 04 P01 | 4min | 2 tasks | 11 files |
 | Phase 04 P02 | 4min | 2 tasks | 12 files |
+| Phase 05 P01 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,9 @@ Recent decisions affecting current work:
 - [Phase 04]: Linear Regression nearly matches XGBoost on RMSE (0.1759 vs 0.1729) — raises bar for Tier 2/3 complexity justification
 - [Phase 04]: run_baselines.py computes spread-change target inline (groupby pair_id shift -1) — Phase 3 has no precomputed target column
 - [Phase 04]: XGBoost hyperparameters n_estimators=200 max_depth=4 lr=0.05 — shallower trees reduce overfit on 978-row train set
+- [Phase 05]: EarlyStopping compares against best_loss (not previous loss) for min_delta threshold
+- [Phase 05]: create_sequences preserves first-occurrence group order via OrderedDict
+- [Phase 05]: fit_feature_scaler raises ValueError listing zero-variance column names to surface upstream bugs
 
 ### Roadmap Evolution
 
@@ -113,6 +117,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-05T14:18:45.019Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-04-06T00:05:09Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None

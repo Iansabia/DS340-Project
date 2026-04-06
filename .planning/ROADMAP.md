@@ -108,7 +108,7 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 05-01-PLAN.md -- Sequence utilities (windowing, early stopping, seed, device, scaler helpers) with TDD tests
+- [x] 05-01-PLAN.md -- Sequence utilities (windowing, early stopping, seed, device, scaler helpers) with TDD tests
 - [ ] 05-02-PLAN.md -- GRUPredictor (hidden=64) with BasePredictor contract, warm-up stitching, TDD tests
 - [ ] 05-03-PLAN.md -- LSTMPredictor (hidden=32) with BasePredictor contract, warm-up stitching, TDD tests
 - [ ] 05-04-PLAN.md -- Tier 2 experiment harness (--tier flag, 3 seeds, tier2 JSONs, combined comparison table)
@@ -182,7 +182,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 | 2.1. Trade-Based Data Reconstruction | 1/2 | Executing | - |
 | 3. Feature Engineering | 0/1 | Planning complete | - |
 | 4. Regression Baselines and Evaluation Framework | 1/2 | In Progress | - |
-| 5. Time Series Models | 0/0 | Not started | - |
+| 5. Time Series Models | 1/5 | In Progress | - |
 | 6. RL and Autoencoder | 0/0 | Not started | - |
 | 7. Experiments and Interpretability | 0/0 | Not started | - |
 | 8. Paper and Presentation | 0/0 | Not started | - |
