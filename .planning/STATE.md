@@ -149,6 +149,7 @@ Recent decisions affecting current work:
 
 - Phase 2.1 inserted after Phase 2: Trade-Based Data Reconstruction (URGENT) — Kalshi candlestick API returns null prices for 76/77 economics markets. Rebuilding both adapters to use raw trade records with 4-hour VWAP candles, forward-fill alignment, and microstructure features.
 - Phase 7.1 inserted after Phase 7: Walk-Forward Backtesting (URGENT) — Current Sharpe ratios are inflated (panel data + no transaction costs). Walk-forward portfolio simulator with realistic fees produces the honest, comparable Sharpe and equity curve for the paper.
+- Phase 7.2 inserted after Phase 7.1: Live Paper Trading and Data Collection — Deploy models on live prediction market data via pmxt SDK. Paper trade all 8 models, collect 4h bars continuously (growing dataset), retrain weekly to test if more data helps neural/RL models catch up to XGBoost.
 
 ### Pending Todos
 
