@@ -170,7 +170,7 @@ Plans:
 **Goal:** Deploy a live paper trading system that collects data from Kalshi+Polymarket via pmxt SDK, runs all 8 models on live bars, logs paper trades, and supports periodic retraining on the growing dataset
 **Requirements**: LIVE-COLLECT, LIVE-BARS, LIVE-MAPPING, LIVE-PAPER-TRADE, LIVE-DASHBOARD, LIVE-RETRAIN, LIVE-METRICS-DELTA
 **Depends on:** Phase 7.1
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 07.2-01-PLAN.md -- Live data collector: polls pmxt SDK for Kalshi+Polymarket prices, constructs 4h bars matching train.parquet schema, appends to data/live/bars.parquet

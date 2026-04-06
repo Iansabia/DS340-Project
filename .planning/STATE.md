@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07.2-03-PLAN.md
-last_updated: "2026-04-06T23:57:59.258Z"
+stopped_at: Completed 07.2-02-PLAN.md
+last_updated: "2026-04-06T23:59:03.800Z"
 last_activity: 2026-04-06 -- Completed 07.2-03-PLAN.md (Auto-retrain pipeline)
 progress:
   total_phases: 11
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 30
-  completed_plans: 29
+  completed_plans: 30
   percent: 97
 ---
 
@@ -78,6 +78,7 @@ Progress: [██████████] 97%
 | Phase 07.1 P02 | 7min | 2 tasks | 12 files |
 | Phase 07.2 P01 | 8min | 2 tasks | 6 files |
 | Phase 07.2 P03 | 3min | 2 tasks | 2 files |
+| Phase 07.2 P02 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,8 @@ Recent decisions affecting current work:
 - [Phase 07.2]: Kalshi prices via direct orderbook API (pmxt returns 0 for Kalshi); Polymarket via Gamma API with hex-to-decimal clobTokenId conversion
 - [Phase 07.2]: All 144 active pairs are resolved historical markets; --demo flag provides synthetic bars for pipeline testing
 - [Phase 07.2]: Retrain pipeline reuses run_baselines.py functions for identical training logic; test set fixed for fair comparison
+- [Phase 07.2]: Lazy model training: models trained on first run_cycle(), not in constructor
+- [Phase 07.2]: Tier 1 flat features vs Tier 2/3 sequence inference paths for paper trading
 
 ### Roadmap Evolution
 
@@ -168,6 +171,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T23:57:59.255Z
-Stopped at: Completed 07.2-03-PLAN.md
+Last session: 2026-04-06T23:59:03.798Z
+Stopped at: Completed 07.2-02-PLAN.md
 Resume file: None
