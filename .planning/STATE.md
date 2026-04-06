@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 07-05-PLAN.md
-last_updated: "2026-04-06T18:19:59.459Z"
-last_activity: 2026-04-06 -- Completed 07-05-PLAN.md (Bootstrap confidence intervals)
+status: executing
+stopped_at: Completed 07.1-01-PLAN.md
+last_updated: "2026-04-06T18:40:56.770Z"
+last_activity: 2026-04-06 -- Completed 07.1-01-PLAN.md (WalkForwardBacktester core class)
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 7
-  total_plans: 25
-  completed_plans: 25
-  percent: 100
+  total_plans: 27
+  completed_plans: 26
+  percent: 96
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 7 complete -- Experiments and Interpretability (all 5 plans done)
+**Current focus:** Phase 7.1 in progress -- Walk-Forward Backtesting (Plan 01 of 02 done)
 
 ## Current Position
 
-Phase: 7 of 9 (Experiments and Interpretability)
-Plan: 5 of 5 complete (07-01 Cross-Tier, 07-02 Lookback, 07-03 Threshold, 07-04 SHAP+TxCost, 07-05 Bootstrap CIs done)
-Status: Phase 7 Complete
-Last activity: 2026-04-06 -- Completed 07-05-PLAN.md (Bootstrap confidence intervals)
+Phase: 7.1 of 9 (Walk-Forward Backtesting)
+Plan: 1 of 2 complete (07.1-01 WalkForwardBacktester core class done)
+Status: In Progress
+Last activity: 2026-04-06 -- Completed 07.1-01-PLAN.md (WalkForwardBacktester core class)
 
-Progress: [██████████] 100%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Progress: [██████████] 100%
 | Phase 07 P02 | 3min | 1 tasks | 11 files |
 | Phase 07 P04 | 3min | 2 tasks | 7 files |
 | Phase 07 P05 | 2min | 1 tasks | 4 files |
+| Phase 07.1 P01 | 6min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -139,6 +140,7 @@ Recent decisions affecting current work:
 - [Phase 07]: At 5-7pp Kalshi fees: Tier 1/2 models remain profitable (XGBoost break-even 15.5pp), naive baselines and PPO-Filtered go negative
 - [Phase 07]: Bootstrap 95% CIs confirm XGBoost/GRU/LSTM RMSE CIs overlap -- performance differences not statistically significant at this dataset scale
 - [Phase 07]: Reduced training for bootstrap (50 epochs Tier 2, 10k steps Tier 3) since bootstrap resamples predictions not model weights
+- [Phase 07.1]: WalkForwardBacktester uses direction-aware P&L (gross = direction * contracts * actual_change) with 3pp entry + 2pp exit fees per trade
 
 ### Roadmap Evolution
 
@@ -157,6 +159,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T18:14:25.588Z
-Stopped at: Completed 07-05-PLAN.md
+Last session: 2026-04-06T18:40:56.768Z
+Stopped at: Completed 07.1-01-PLAN.md
 Resume file: None
