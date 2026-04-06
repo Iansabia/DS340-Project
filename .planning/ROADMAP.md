@@ -19,6 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Time Series Models** - Train GRU, LSTM, and TFT on spread prediction with hourly sequences
 - [ ] **Phase 6: RL and Autoencoder** - Build trading environment, train autoencoder anomaly detector, train PPO variants
 - [x] **Phase 7: Experiments and Interpretability** - Run cross-tier comparison, ablation experiments, SHAP analysis, bootstrap CIs (completed 2026-04-06)
+- [ ] **Phase 7.1: Walk-Forward Backtesting** - Produce honest backtested Sharpe ratios via walk-forward portfolio simulator with realistic transaction costs
 - [ ] **Phase 8: Paper and Presentation** - Write final paper and lightning talk slides
 
 ## Phase Details
@@ -154,13 +155,14 @@ Plans:
 
 ### Phase 07.1: Walk-Forward Backtesting (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Produce honest, paper-ready backtested Sharpe ratios for all 8 models via a walk-forward portfolio simulator with realistic transaction costs ($10k capital, $100/position, 5pp round-trip fees, daily returns annualized by sqrt(365))
+**Requirements**: BACKTEST-CORE, BACKTEST-RUN
 **Depends on:** Phase 7
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 07.1 to break down)
+- [ ] 07.1-01-PLAN.md -- WalkForwardBacktester class (TDD): chronological walk-forward, transaction costs, capital-normalized returns, Sharpe/drawdown/Calmar
+- [ ] 07.1-02-PLAN.md -- Run all 8 models through backtester, save JSON results, generate equity curve + drawdown figures, print comparison table
 
 ### Phase 8: Paper and Presentation
 **Goal**: The final paper and lightning talk slides are complete, presenting the complexity-vs-performance findings as an empirical contribution
@@ -184,7 +186,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 
 ```
 1 -> 2 -> 2.1 -> 3 -> 4 -> 5 ─┐
-                           └─> 6 ─┤-> 7 -> 8
+                           └─> 6 ─┤-> 7 -> 7.1 -> 8
 ```
 
 **Milestone Deadlines:**
@@ -201,6 +203,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 | 5. Time Series Models | 5/5 | Complete | 2026-04-06 |
 | 6. RL and Autoencoder | 3/5 | In Progress|  |
 | 7. Experiments and Interpretability | 5/5 | Complete   | 2026-04-06 |
+| 7.1. Walk-Forward Backtesting | 0/2 | Planning complete | - |
 | 8. Paper and Presentation | 0/0 | Not started | - |
 
 ---
