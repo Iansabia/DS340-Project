@@ -9,7 +9,13 @@ build/
 .ipynb_checkpoints/
 data/raw/
 data/processed/
+# Keep training data for CI (small files, needed by GitHub Actions)
+!data/processed/train.parquet
+!data/processed/test.parquet
+!data/processed/aligned_pairs.parquet
+!data/processed/all_pairs_v2.json
+# Live data managed by GitHub Actions (force-added in workflow)
 data/live/bars.parquet
-data/live/pair_mapping.json
 data/live/paper_trades.jsonl
 data/live/retrain_log.json
+data/pmxt/

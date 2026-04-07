@@ -1,0 +1,102 @@
+name: Collect & Paper Trade
+
+on:
+  schedule:
+    # Run every 4 hours (matches our bar interval)
+    - cron: '0 */4 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  collect-and-trade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          # Need full history for data files
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements-ci.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements-ci.txt
+
+      - name: Collect live prices
+        run: |
+          echo "=== Collecting live prices from 615 matched pairs ==="
+          python -m src.live.collector --live-pairs
+          echo ""
+          echo "=== Collection complete ==="
+          # Show what we got
+          python -c "
+          import pandas as pd
+          from pathlib import Path
+          p = Path('data/live/bars.parquet')
+          if p.exists():
+              df = pd.read_parquet(p)
+              live = df[df['pair_id'].str.startswith('live_')]
+              print(f'Total bars: {len(df)} ({len(live)} live)')
+              print(f'Active pairs: {live[\"pair_id\"].nunique()}')
+          else:
+              print('No bars collected yet')
+          "
+
+      - name: Paper trade (Tier 1 + 2 only)
+        run: |
+          echo "=== Training models and running inference ==="
+          python -m src.live.paper_trader --skip-tier3
+          echo ""
+          echo "=== Paper trading complete ==="
+
+      - name: Show dashboard
+        run: |
+          python -m src.live.dashboard
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add live data files (unignore them for CI)
+          git add -f data/live/bars.parquet
+          git add -f data/live/paper_trades.jsonl
+          git add -f data/live/pair_mapping.json
+
+          # Check if there are changes to commit
+          if git diff --cached --quiet; then
+            echo "No new data to commit"
+          else
+            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+            BARS=$(python -c "
+          import pandas as pd
+          from pathlib import Path
+          p = Path('data/live/bars.parquet')
+          if p.exists():
+              df = pd.read_parquet(p)
+              live = df[df['pair_id'].str.startswith('live_')]
+              print(f'{len(live)} bars, {live[\"pair_id\"].nunique()} pairs')
+          else:
+              print('0 bars')
+          " 2>/dev/null || echo "unknown")
+            git commit -m "data: live collection ${TIMESTAMP} (${BARS})"
+            git push
+            echo "Committed and pushed live data"
+          fi
