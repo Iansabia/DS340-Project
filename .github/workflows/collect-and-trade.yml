@@ -100,3 +100,4 @@ jobs:
             git push
             echo "Committed and pushed live data"
           fi
+# trigger workflow detection
