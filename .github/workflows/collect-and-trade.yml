@@ -75,10 +75,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Add live data files (unignore them for CI)
-          git add -f data/live/bars.parquet
-          git add -f data/live/paper_trades.jsonl
-          git add -f data/live/pair_mapping.json
+          # Add live data files (unignore them for CI, ignore missing)
+          git add -f data/live/bars.parquet 2>/dev/null || true
+          git add -f data/live/paper_trades.jsonl 2>/dev/null || true
+          git add -f data/live/pair_mapping.json 2>/dev/null || true
 
           # Check if there are changes to commit
           if git diff --cached --quiet; then
