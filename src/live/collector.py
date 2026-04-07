@@ -38,24 +38,38 @@ class LiveCollector:
     """Collects live prediction market prices and constructs bars.
 
     Fetches current prices from Kalshi (orderbook API) and Polymarket
-    (Gamma API), builds snapshot bars, computes derived features, and
-    appends to a growing parquet file.
+    (Gamma API or pmxt SDK), builds snapshot bars, computes derived
+    features, and appends to a growing parquet file.
+
+    Supports two pair sources:
+    - Historical pairs (default): 144 pairs from train.parquet
+    - Live pairs (--live-pairs): 615+ actively-trading matched pairs
+      from data/live/active_matches.json
     """
 
     KALSHI_ORDERBOOK_URL = (
         "https://api.elections.kalshi.com/trade-api/v2/markets/{ticker}/orderbook"
     )
     POLYMARKET_GAMMA_URL = "https://gamma-api.polymarket.com/markets"
+    ACTIVE_MATCHES_PATH = Path("data/live/active_matches.json")
 
-    def __init__(self, live_dir: Path = Path("data/live")):
+    def __init__(
+        self,
+        live_dir: Path = Path("data/live"),
+        use_live_pairs: bool = False,
+    ):
         self.live_dir = Path(live_dir)
         self.live_dir.mkdir(parents=True, exist_ok=True)
         self.bars_path = self.live_dir / "bars.parquet"
         self.mapping_path = self.live_dir / "pair_mapping.json"
+        self._use_live_pairs = use_live_pairs
 
-        # Load all pairs and filter to the 144 active ones
-        self._all_pairs = self._load_all_pairs()
-        self._active_pairs = self._filter_active_pairs()
+        if use_live_pairs:
+            self._all_pairs = []
+            self._active_pairs = self._load_live_pairs()
+        else:
+            self._all_pairs = self._load_all_pairs()
+            self._active_pairs = self._filter_active_pairs()
         self._group_id_map = self._load_group_id_map()
 
     # ------------------------------------------------------------------
@@ -96,6 +110,43 @@ class LiveCollector:
                     ),
                 }
         logger.info(f"Active pairs loaded: {len(active)}")
+        return active
+
+    def _load_live_pairs(self) -> dict[str, dict]:
+        """Load actively-trading matched pairs from active_matches.json.
+
+        These are 615+ pairs found by semantic matching of currently-active
+        Kalshi and Polymarket markets. Uses kalshi_ticker for orderbook API
+        and poly_id for pmxt/Gamma price fetching.
+
+        Returns:
+            Dict mapping pair_id -> {kalshi_market_id, polymarket_market_id, ...}
+        """
+        matches_path = self.live_dir / "active_matches.json"
+        if not matches_path.exists():
+            matches_path = self.ACTIVE_MATCHES_PATH
+        if not matches_path.exists():
+            logger.warning(f"No active matches found at {matches_path}")
+            return {}
+
+        with open(matches_path) as f:
+            matches = json.load(f)
+
+        active = {}
+        for i, m in enumerate(matches):
+            pair_id = f"live_{i:04d}"
+            active[pair_id] = {
+                "kalshi_market_id": m["kalshi_ticker"],
+                "polymarket_market_id": m["poly_id"],
+                # For live pairs, poly_id is a condition_id (not hex token)
+                # We'll use pmxt SDK or direct slug lookup for prices
+                "polymarket_token_decimal": m["poly_id"],
+                "is_live_pair": True,
+                "kalshi_title": m.get("kalshi_title", ""),
+                "poly_title": m.get("poly_title", ""),
+                "similarity": m.get("similarity", 0),
+            }
+        logger.info(f"Live pairs loaded: {len(active)}")
         return active
 
     def _load_group_id_map(self) -> dict[str, int]:
@@ -197,14 +248,92 @@ class LiveCollector:
         return None
 
     def fetch_polymarket_prices(self) -> dict[str, float | None]:
-        """Fetch current prices from Polymarket Gamma API.
+        """Fetch current prices from Polymarket.
 
-        For each active pair, queries the Gamma API using the decimal
-        clobTokenId derived from our hex token ID.
+        For historical pairs: uses Gamma API with decimal clobTokenId.
+        For live pairs: uses pmxt SDK which handles the lookup natively.
 
         Returns:
-            Dict mapping polymarket_market_id (hex) -> price (or None).
+            Dict mapping polymarket_market_id -> price (or None).
         """
+        if self._use_live_pairs:
+            return self._fetch_polymarket_prices_pmxt()
+        return self._fetch_polymarket_prices_gamma()
+
+    def _fetch_polymarket_prices_pmxt(self) -> dict[str, float | None]:
+        """Fetch Polymarket prices via Gamma API slug lookup (for live pairs).
+
+        Uses the Gamma API with slug-based lookup for speed instead of
+        individual pmxt fetch_market calls.
+        """
+        prices: dict[str, float | None] = {}
+
+        # Build unique poly IDs to fetch
+        unique_poly_ids = list(
+            set(p["polymarket_market_id"] for p in self._active_pairs.values())
+        )
+
+        # Use Gamma API directly — fetch by condition_id in batches
+        GAMMA_URL = "https://gamma-api.polymarket.com/markets"
+        fetched = 0
+        batch_size = 20  # Gamma supports batch queries
+
+        for i in range(0, len(unique_poly_ids), batch_size):
+            batch = unique_poly_ids[i : i + batch_size]
+
+            for poly_id in batch:
+                try:
+                    # Try condition_id lookup
+                    r = requests.get(
+                        GAMMA_URL,
+                        params={"id": poly_id},
+                        timeout=10,
+                    )
+                    if r.status_code != 200:
+                        # Try slug lookup
+                        r = requests.get(
+                            GAMMA_URL,
+                            params={"slug": poly_id},
+                            timeout=10,
+                        )
+
+                    r.raise_for_status()
+                    data = r.json()
+
+                    if data and isinstance(data, list) and len(data) > 0:
+                        market = data[0]
+                        outcome_prices = market.get("outcomePrices", "")
+                        if outcome_prices:
+                            if isinstance(outcome_prices, str):
+                                parsed = json.loads(outcome_prices)
+                            else:
+                                parsed = outcome_prices
+                            yes_price = float(parsed[0])
+                            if 0 < yes_price < 1:
+                                prices[poly_id] = yes_price
+                                fetched += 1
+                            else:
+                                prices[poly_id] = None
+                        else:
+                            prices[poly_id] = None
+                    else:
+                        prices[poly_id] = None
+                except Exception as e:
+                    logger.debug(f"Polymarket error for {poly_id[:30]}: {e}")
+                    prices[poly_id] = None
+
+                time.sleep(0.05)
+
+            if (i + batch_size) % 100 == 0 and i > 0:
+                logger.info(
+                    f"  Polymarket: {fetched} prices from {i + batch_size}/{len(unique_poly_ids)}"
+                )
+
+        logger.info(f"Polymarket prices: {fetched}/{len(unique_poly_ids)} with data")
+        return prices
+
+    def _fetch_polymarket_prices_gamma(self) -> dict[str, float | None]:
+        """Fetch Polymarket prices via Gamma API (for historical pairs)."""
         prices: dict[str, float | None] = {}
 
         for pair_id, pair_info in self._active_pairs.items():
@@ -224,7 +353,6 @@ class LiveCollector:
                     market = data[0]
                     outcome_prices = market.get("outcomePrices", "")
                     if outcome_prices:
-                        # outcomePrices is a JSON string like '["0.65","0.35"]'
                         if isinstance(outcome_prices, str):
                             parsed = json.loads(outcome_prices)
                         else:
@@ -246,7 +374,6 @@ class LiveCollector:
                 logger.debug(f"Polymarket parse error for {poly_hex[:16]}...: {e}")
                 prices[poly_hex] = None
 
-            # Respect Polymarket rate limits
             time.sleep(0.1)
 
         return prices
@@ -592,6 +719,12 @@ def main():
         help="Number of pairs for demo mode (default: 5)",
     )
     parser.add_argument(
+        "--live-pairs",
+        action="store_true",
+        help="Use 615+ actively-trading matched pairs (from active_matches.json) "
+        "instead of the historical 144 pairs",
+    )
+    parser.add_argument(
         "--live-dir",
         type=str,
         default="data/live",
@@ -605,7 +738,10 @@ def main():
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
 
-    collector = LiveCollector(live_dir=Path(args.live_dir))
+    collector = LiveCollector(
+        live_dir=Path(args.live_dir),
+        use_live_pairs=args.live_pairs,
+    )
 
     if args.build_mapping:
         mapping = collector.build_pair_mapping()
