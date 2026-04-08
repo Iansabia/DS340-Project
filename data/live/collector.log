@@ -1,0 +1,11 @@
+2026-04-06 21:17:24,648 [INFO] __main__: Active pairs loaded: 144
+2026-04-06 21:17:24,650 [INFO] __main__: Starting continuous collection (interval=14400s)
+2026-04-06 21:17:24,650 [INFO] __main__: Starting collection cycle at 1775524644
+2026-04-06 21:18:44,365 [INFO] __main__: No active pairs found with current prices on both platforms. Skipped 144 pairs.
+2026-04-06 21:18:44,366 [INFO] __main__: Cycle complete: 0 bars. Next in 14400s.
+2026-04-07 01:18:44,434 [INFO] __main__: Starting collection cycle at 1775539124
+2026-04-07 01:19:51,519 [INFO] __main__: No active pairs found with current prices on both platforms. Skipped 144 pairs.
+2026-04-07 01:19:51,520 [INFO] __main__: Cycle complete: 0 bars. Next in 14400s.
+2026-04-07 05:19:51,592 [INFO] __main__: Starting collection cycle at 1775553591
+2026-04-07 05:21:00,274 [INFO] __main__: No active pairs found with current prices on both platforms. Skipped 144 pairs.
+2026-04-07 05:21:00,274 [INFO] __main__: Cycle complete: 0 bars. Next in 14400s.

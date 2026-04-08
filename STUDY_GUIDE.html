@@ -1,0 +1,2417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DS340 Study Guide — Cross-Platform Prediction Market Arbitrage</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --bg-card: #161b22;
+  --bg-card-alt: #1c2333;
+  --bg-sidebar: #0d1117;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --text-heading: #ffffff;
+  --accent: #58a6ff;
+  --tier1: #58a6ff;
+  --tier1-bg: rgba(88,166,255,0.08);
+  --tier2: #3fb950;
+  --tier2-bg: rgba(63,185,80,0.08);
+  --tier3: #d29922;
+  --tier3-bg: rgba(210,153,34,0.08);
+  --tier4: #f85149;
+  --tier4-bg: rgba(248,81,73,0.08);
+  --naive-color: #8b949e;
+  --success: #3fb950;
+  --danger: #f85149;
+  --warning: #d29922;
+  --purple: #bc8cff;
+  --flow-line: #30363d;
+  --gradient-blue: linear-gradient(135deg, #1a365d 0%, #0d1117 100%);
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ===== SIDEBAR NAV ===== */
+.sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 24px 0;
+  z-index: 100;
+}
+
+.sidebar-header {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.sidebar-header h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.sidebar-header p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.sidebar nav ul { list-style: none; }
+
+.sidebar nav ul li a {
+  display: block;
+  padding: 8px 20px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.sidebar nav ul li a:hover,
+.sidebar nav ul li a.active {
+  color: var(--text);
+  background: var(--bg-card);
+  border-left-color: var(--accent);
+}
+
+.sidebar nav ul li.section-label {
+  padding: 16px 20px 6px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* ===== MAIN CONTENT ===== */
+.main {
+  flex: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 48px 120px;
+}
+
+/* ===== SECTIONS ===== */
+section {
+  margin-bottom: 64px;
+  scroll-margin-top: 24px;
+}
+
+h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+  margin-top: 24px;
+}
+
+p { margin-bottom: 14px; }
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.card-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stat-card .stat-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ===== HERO ===== */
+.hero {
+  background: var(--gradient-blue);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 48px 40px;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(88,166,255,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero h1 { font-size: 2.2rem; margin-bottom: 12px; }
+
+.hero .research-q {
+  font-size: 1.15rem;
+  color: var(--accent);
+  font-style: italic;
+  margin: 20px 0;
+  padding: 16px 20px;
+  border-left: 3px solid var(--accent);
+  background: rgba(88,166,255,0.06);
+  border-radius: 0 6px 6px 0;
+}
+
+.hero .answer {
+  font-size: 1.05rem;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.team-info {
+  display: flex;
+  gap: 24px;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.team-info span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ===== PIPELINE DIAGRAM ===== */
+.pipeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  margin: 24px 0;
+}
+
+.pipeline-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px 0;
+  position: relative;
+}
+
+.pipeline-step::before {
+  content: '';
+  position: absolute;
+  left: 23px;
+  top: 60px;
+  bottom: -20px;
+  width: 2px;
+  background: var(--flow-line);
+}
+
+.pipeline-step:last-child::before { display: none; }
+
+.step-number {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--bg);
+  z-index: 1;
+}
+
+.step-content {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+}
+
+.step-content h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 6px;
+}
+
+.step-content p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+.step-content .detail {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: 6px;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  overflow-x: auto;
+}
+
+/* ===== TIER BADGES ===== */
+.tier-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  vertical-align: middle;
+}
+
+.tier-1 { background: var(--tier1-bg); color: var(--tier1); border: 1px solid var(--tier1); }
+.tier-2 { background: var(--tier2-bg); color: var(--tier2); border: 1px solid var(--tier2); }
+.tier-3 { background: var(--tier3-bg); color: var(--tier3); border: 1px solid var(--tier3); }
+.tier-4 { background: var(--tier4-bg); color: var(--tier4); border: 1px solid var(--tier4); }
+.tier-naive { background: rgba(139,148,158,0.1); color: var(--naive-color); border: 1px solid var(--naive-color); }
+
+/* ===== MODEL CARDS ===== */
+.model-tier-section {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.model-tier-header {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.model-tier-header h3 { margin: 0; }
+
+.model-tier-body {
+  padding: 0 24px 24px;
+}
+
+.model-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.model-card h4 {
+  font-size: 1rem;
+  color: var(--text-heading);
+  margin-bottom: 8px;
+}
+
+.model-card .arch {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.8rem;
+  color: var(--accent);
+  background: var(--bg-card);
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin: 10px 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.model-card .params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.model-card .param-tag {
+  font-size: 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  color: var(--text-muted);
+}
+
+/* ===== TABLES ===== */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 16px 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+thead th {
+  background: var(--bg-card-alt);
+  color: var(--text-heading);
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+tbody tr:hover { background: rgba(88,166,255,0.04); }
+
+tbody tr:last-child td { border-bottom: none; }
+
+.val-positive { color: var(--success); font-weight: 600; }
+.val-negative { color: var(--danger); font-weight: 600; }
+.val-best { color: var(--accent); font-weight: 700; }
+.val-muted { color: var(--text-muted); }
+
+/* ===== BAR CHARTS ===== */
+.bar-chart {
+  margin: 20px 0;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.bar-label {
+  width: 140px;
+  min-width: 140px;
+  text-align: right;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.bar-track {
+  flex: 1;
+  height: 28px;
+  background: var(--bg);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  min-width: 40px;
+}
+
+/* ===== COLLAPSIBLE ===== */
+details {
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+details > summary {
+  padding: 14px 20px;
+  background: var(--bg-card);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-heading);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+
+details > summary::before {
+  content: '\25B6';
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+details > summary::-webkit-details-marker { display: none; }
+
+details > .detail-content {
+  padding: 20px 24px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+}
+
+/* ===== FLOW DIAGRAMS ===== */
+.flow-horizontal {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: 20px 0;
+  margin: 16px 0;
+}
+
+.flow-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  min-width: 140px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.flow-box .flow-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.flow-box .flow-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.flow-arrow {
+  font-size: 1.4rem;
+  color: var(--text-muted);
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+/* ===== ARCHITECTURE DIAGRAM ===== */
+.arch-diagram {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 32px;
+  margin: 20px 0;
+}
+
+.arch-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.arch-node {
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  min-width: 120px;
+}
+
+.arch-connector {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+}
+
+/* ===== INSIGHT BOXES ===== */
+.insight {
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.insight-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.insight-text { flex: 1; font-size: 0.92rem; }
+
+.insight-key {
+  background: var(--tier1-bg);
+  border: 1px solid rgba(88,166,255,0.3);
+}
+
+.insight-warning {
+  background: var(--tier3-bg);
+  border: 1px solid rgba(210,153,34,0.3);
+}
+
+.insight-success {
+  background: var(--tier2-bg);
+  border: 1px solid rgba(63,185,80,0.3);
+}
+
+.insight-danger {
+  background: var(--tier4-bg);
+  border: 1px solid rgba(248,81,73,0.3);
+}
+
+/* ===== CODE BLOCKS ===== */
+.code-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.82rem;
+  overflow-x: auto;
+  margin: 12px 0;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.code-block .keyword { color: var(--tier4); }
+.code-block .func { color: var(--accent); }
+.code-block .string { color: var(--tier2); }
+.code-block .comment { color: #484f58; font-style: italic; }
+.code-block .type { color: var(--tier3); }
+
+/* ===== COMPARISON GRID ===== */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.comparison .comp-side {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.comparison .comp-side h4 {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  color: var(--text-heading);
+}
+
+/* ===== TAG LISTS ===== */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ===== FEATURE LIST ===== */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.feature-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--text-muted);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { padding: 24px 20px 80px; }
+  .hero { padding: 32px 24px; }
+  .hero h1 { font-size: 1.6rem; }
+  .comparison { grid-template-columns: 1fr; }
+  .flow-horizontal { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  h1 { font-size: 1.8rem; }
+}
+
+/* ===== HIGHLIGHT MARKER ===== */
+mark {
+  background: rgba(88,166,255,0.15);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+/* ===== SEPARATOR ===== */
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 40px 0;
+}
+
+/* ===== EQUITY CURVE (CSS) ===== */
+.equity-curve-container {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 16px 0;
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.equity-line {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  right: 24px;
+  height: 160px;
+  background: linear-gradient(to top, rgba(63,185,80,0.05), rgba(63,185,80,0.15));
+  clip-path: polygon(
+    0% 100%, 2% 95%, 5% 94%, 8% 92%, 11% 85%,
+    14% 78%, 17% 65%, 20% 66%, 23% 58%,
+    26% 42%, 30% 38%, 34% 36%, 38% 35%,
+    42% 34%, 45% 33%, 48% 33%, 50% 36%,
+    53% 18%, 56% 17%, 59% 15%, 62% 14%,
+    65% 10%, 68% 5%, 72% 3.5%, 75% 2%,
+    78% 2%, 81% 2.5%, 85% 1.5%, 88% 2%,
+    91% 1.5%, 94% 1%, 97% 0.5%, 100% 0.7%,
+    100% 100%
+  );
+  border-radius: 0 0 6px 6px;
+}
+
+.equity-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to top, rgba(63,185,80,0.1), transparent);
+  clip-path: inherit;
+}
+
+.equity-label {
+  position: absolute;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.eq-start { left: 24px; bottom: 4px; }
+.eq-end { right: 24px; bottom: 4px; }
+.eq-title { left: 24px; top: 8px; font-weight: 600; color: var(--text-heading); font-size: 0.85rem; }
+.eq-value { right: 24px; top: 8px; color: var(--success); font-weight: 700; font-size: 1rem; }
+
+/* ===== WATERFALL CHART ===== */
+.waterfall {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 180px;
+  padding: 20px 0;
+  margin: 16px 0;
+}
+
+.waterfall-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 60px;
+}
+
+.waterfall-bar .wf-bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.4s ease;
+}
+
+.waterfall-bar .wf-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.waterfall-bar .wf-value {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* ===== ANIMATED GLOW ===== */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(88,166,255,0.2); }
+  50% { box-shadow: 0 0 16px rgba(88,166,255,0.4); }
+}
+
+.glow { animation: pulse-glow 3s infinite; }
+
+/* ===== WINNER HIGHLIGHT ===== */
+.winner-row { background: rgba(88,166,255,0.06) !important; }
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .sidebar { display: none; }
+  body { background: #fff; color: #000; }
+  .main { max-width: 100%; padding: 20px; }
+  .card, .model-card, details, .hero { border-color: #ccc; background: #f9f9f9; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h2>DS340 Study Guide</h2>
+    <p>Prediction Market Arbitrage</p>
+  </div>
+  <nav>
+    <ul>
+      <li class="section-label">Overview</li>
+      <li><a href="#overview">Project Overview</a></li>
+      <li><a href="#research-question">Research Question</a></li>
+      <li><a href="#pipeline">How It Works</a></li>
+
+      <li class="section-label">Models</li>
+      <li><a href="#tiers">The 4 Model Tiers</a></li>
+      <li><a href="#tier1-detail">Tier 1: Regression</a></li>
+      <li><a href="#tier2-detail">Tier 2: Time Series</a></li>
+      <li><a href="#tier3-detail">Tier 3: RL</a></li>
+      <li><a href="#tier4-detail">Tier 4: RL + Anomaly</a></li>
+      <li><a href="#naive-detail">Naive Baselines</a></li>
+
+      <li class="section-label">Results</li>
+      <li><a href="#historical-results">Historical Backtest</a></li>
+      <li><a href="#live-results">Live Paper Trading</a></li>
+      <li><a href="#equity-curve">Equity Curve</a></li>
+
+      <li class="section-label">Experiments</li>
+      <li><a href="#experiments">Experiment Suite</a></li>
+      <li><a href="#shap">SHAP Analysis</a></li>
+      <li><a href="#bootstrap">Bootstrap CIs</a></li>
+      <li><a href="#transaction-costs">Transaction Costs</a></li>
+      <li><a href="#ablations">Ablation Studies</a></li>
+
+      <li class="section-label">Insights</li>
+      <li><a href="#key-insights">Key Insights</a></li>
+      <li><a href="#penny-filter">Penny Contract Filter</a></li>
+      <li><a href="#edge-source">Where The Edge Is</a></li>
+
+      <li class="section-label">System</li>
+      <li><a href="#architecture">Live Architecture</a></li>
+      <li><a href="#features">Features (31+6)</a></li>
+      <li><a href="#technical">Technical Details</a></li>
+      <li><a href="#code-org">Code Organization</a></li>
+    </ul>
+  </nav>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main">
+
+<!-- ===== HERO ===== -->
+<section id="overview">
+  <div class="hero">
+    <h1>Cross-Platform Prediction Market Arbitrage</h1>
+    <p class="subtitle">DS340 Final Project &mdash; Complexity vs. Performance in ML-Driven Trading</p>
+
+    <div class="research-q" id="research-question">
+      "Does increasing model complexity (RL, anomaly detection) improve arbitrage detection over simpler regression approaches, and if so, when is that complexity justified?"
+    </div>
+
+    <p class="answer">Answer: No. Simpler models (Linear Regression, XGBoost) beat complex models (GRU, LSTM, PPO) across every metric. Model complexity is not justified at this dataset scale.</p>
+
+    <div class="team-info">
+      <span>Ian Sabia (U33871576)</span>
+      <span>Alvin Jang (U64760665)</span>
+      <span>Spring 2026</span>
+    </div>
+  </div>
+
+  <!-- Key Stats -->
+  <div class="card-grid">
+    <div class="stat-card">
+      <span class="stat-value">615</span>
+      <span class="stat-label">Live Matched Pairs</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">144</span>
+      <span class="stat-label">Historical Pairs</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">8</span>
+      <span class="stat-label">Models Evaluated</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">31</span>
+      <span class="stat-label">Features Per Bar</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PIPELINE ===== -->
+<section id="pipeline">
+  <h2>How It Works: End-to-End Pipeline</h2>
+  <p>The system detects price discrepancies between Kalshi and Polymarket on matched contracts, predicts whether spreads will converge or diverge, and generates trading signals.</p>
+
+  <div class="pipeline">
+    <!-- Step 1: Matching -->
+    <div class="pipeline-step">
+      <div class="step-number" style="background: var(--tier1);">1</div>
+      <div class="step-content">
+        <h4>Contract Matching (NLP)</h4>
+        <p>Same events on both platforms are matched using semantic similarity. Keyword pre-filtering narrows candidates, then sentence-transformer embeddings (all-MiniLM-L6-v2, 384-dim) compute cosine similarity scores.</p>
+        <div class="detail">
+Kalshi: "Will WTI oil close above $70 on Apr 11?"
+Polymarket: "WTI Crude Oil above $70 on April 11?"
+Cosine similarity: 0.94 &#8594; MATCH
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Spread -->
+    <div class="pipeline-step">
+      <div class="step-number" style="background: var(--tier2);">2</div>
+      <div class="step-content">
+        <h4>Spread Computation</h4>
+        <p>Both platforms price the same binary event differently. The spread captures the price disagreement, which is our trading signal.</p>
+        <div class="detail">spread = kalshi_close - polymarket_close
+
+Example: Kalshi prices at $0.62, Polymarket at $0.55
+Spread = +$0.07 (7 percentage points)
+&#8594; Kalshi thinks it's MORE likely than Polymarket</div>
+      </div>
+    </div>
+
+    <!-- Step 3: Features -->
+    <div class="pipeline-step">
+      <div class="step-number" style="background: var(--tier3);">3</div>
+      <div class="step-content">
+        <h4>Feature Engineering (31 + 6 derived)</h4>
+        <p>31 features from aligned OHLCV data on both platforms, plus 6 derived features: price velocity, volume ratio, spread momentum, spread volatility, and order flow imbalance for each platform.</p>
+        <div class="detail">Raw: OHLCV x 2 platforms, volume, trade count, dollar volume,
+     buy/sell volume, realized spread, max trade size, has_trade,
+     hours_since_last_trade, spread, pair_id
+
+Derived: price_velocity, volume_ratio, spread_momentum,
+         spread_volatility, kalshi_order_flow_imbalance,
+         polymarket_order_flow_imbalance</div>
+      </div>
+    </div>
+
+    <!-- Step 4: Prediction -->
+    <div class="pipeline-step">
+      <div class="step-number" style="background: var(--purple);">4</div>
+      <div class="step-content">
+        <h4>Spread Change Prediction</h4>
+        <p>Models predict <mark>spread_change = next_spread - current_spread</mark>. Positive prediction means spread is expected to widen; negative means expected to narrow.</p>
+        <div class="detail">Target: y = spread[t+1] - spread[t]
+         = (kalshi[t+1] - poly[t+1]) - (kalshi[t] - poly[t])
+
+Regression models: predict exact value
+RL models: choose action {hold, long, short}</div>
+      </div>
+    </div>
+
+    <!-- Step 5: Trading -->
+    <div class="pipeline-step">
+      <div class="step-number" style="background: var(--success);">5</div>
+      <div class="step-content">
+        <h4>Trading Signal Generation</h4>
+        <p>If <mark>|prediction| > threshold</mark>, enter a trade. Long the spread (buy Kalshi, sell Polymarket) if prediction is positive. Short the spread if negative. $100 per position.</p>
+        <div class="detail">if |prediction| > 0.02:        # 2pp threshold
+    if prediction > 0: LONG    # expect spread to widen
+    if prediction < 0: SHORT   # expect spread to narrow
+else: HOLD                     # insufficient signal</div>
+      </div>
+    </div>
+
+    <!-- Step 6: Evaluation -->
+    <div class="pipeline-step">
+      <div class="step-number" style="background: var(--tier4);">6</div>
+      <div class="step-content">
+        <h4>Evaluation</h4>
+        <p>Regression metrics (RMSE, MAE, directional accuracy) plus trading metrics (P&L, Sharpe ratio, win rate) with walk-forward backtesting and bootstrap confidence intervals.</p>
+        <div class="detail">Regression: RMSE, MAE, directional_accuracy
+Trading: total_pnl, num_trades, win_rate, sharpe_ratio
+Backtest: $10k capital, $100/pos, 5pp round-trip costs
+Bootstrap: 1000 resamples, 95% confidence intervals</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MODEL TIERS ===== -->
+<section id="tiers">
+  <h2>The 4 Model Tiers</h2>
+  <p>Models are organized by increasing complexity. The project tests whether additional complexity improves performance&mdash;spoiler: it does not.</p>
+
+  <!-- Visual Tier Comparison -->
+  <div class="flow-horizontal">
+    <div class="flow-box" style="border-color: var(--tier1);">
+      <div class="flow-title" style="color: var(--tier1);">Tier 1</div>
+      <div class="flow-value">Regression</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">Simplest</div>
+    </div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-box" style="border-color: var(--tier2);">
+      <div class="flow-title" style="color: var(--tier2);">Tier 2</div>
+      <div class="flow-value">Time Series</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">Recurrent</div>
+    </div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-box" style="border-color: var(--tier3);">
+      <div class="flow-title" style="color: var(--tier3);">Tier 3</div>
+      <div class="flow-value">RL (PPO)</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">Reinforcement</div>
+    </div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-box" style="border-color: var(--tier4);">
+      <div class="flow-title" style="color: var(--tier4);">Tier 4</div>
+      <div class="flow-value">RL + AE</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">Most Complex</div>
+    </div>
+  </div>
+
+  <div class="insight insight-key">
+    <div class="insight-icon">&#9650;</div>
+    <div class="insight-text"><strong>Central finding:</strong> Performance <em>decreases</em> as complexity increases. XGBoost (Tier 1) has RMSE 0.286 while PPO-Filtered (Tier 4) has RMSE 0.327. The simplest models win because the dataset (144 pairs, ~8k rows) is too small for complex models to learn meaningful patterns beyond what regression captures.</div>
+  </div>
+
+  <!-- TIER 1 -->
+  <div class="model-tier-section" style="border-color: var(--tier1);" id="tier1-detail">
+    <div class="model-tier-header" style="background: var(--tier1-bg);">
+      <span class="tier-badge tier-1">Tier 1</span>
+      <h3>Regression Baselines</h3>
+    </div>
+    <div class="model-tier-body">
+      <p>Flat tabular features, no sequential modeling. Each bar is an independent observation. These are the <strong>strongest models</strong> in the project.</p>
+
+      <div class="model-card">
+        <h4>Linear Regression</h4>
+        <p style="font-size:0.88rem;">Standard OLS regression predicting spread_change from 31 features. No regularization. Fits instantly.</p>
+        <div class="arch">Input(31 features) &#8594; LinearLayer(31, 1) &#8594; spread_change</div>
+        <div class="params">
+          <span class="param-tag">No hyperparameters</span>
+          <span class="param-tag">Closed-form solution</span>
+          <span class="param-tag">scikit-learn</span>
+        </div>
+        <p style="margin-top:12px;font-size:0.85rem;color:var(--success);">Best model after fees in live trading: +$5.83 net @2pp over 27 hours</p>
+      </div>
+
+      <div class="model-card">
+        <h4>XGBoost</h4>
+        <p style="font-size:0.88rem;">Gradient-boosted decision trees. Strong tabular baseline that captures non-linear feature interactions automatically.</p>
+        <div class="arch">Input(31 features) &#8594; XGBRegressor(n_estimators, max_depth, ...) &#8594; spread_change</div>
+        <div class="params">
+          <span class="param-tag">n_estimators=100</span>
+          <span class="param-tag">max_depth=6</span>
+          <span class="param-tag">learning_rate=0.1</span>
+          <span class="param-tag">subsample=0.8</span>
+        </div>
+        <p style="margin-top:12px;font-size:0.85rem;color:var(--accent);">Best RMSE overall: 0.286 | Best per-trade Sharpe: 0.52</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIER 2 -->
+  <div class="model-tier-section" style="border-color: var(--tier2);" id="tier2-detail">
+    <div class="model-tier-header" style="background: var(--tier2-bg);">
+      <span class="tier-badge tier-2">Tier 2</span>
+      <h3>Time Series Models</h3>
+    </div>
+    <div class="model-tier-body">
+      <p>Recurrent neural networks that process sequences of 6 bars (24 hours at 4h resolution). Use warm-up stitching to give test rows full lookback context by concatenating training data tail.</p>
+
+      <div class="model-card">
+        <h4>GRU (Gated Recurrent Unit)</h4>
+        <p style="font-size:0.88rem;">Single-layer GRU with input dropout and linear output head. Simpler than LSTM, fewer parameters, comparable performance.</p>
+        <div class="arch">Input(lookback=6, features=31)
+  &#8594; Dropout(0.3)
+  &#8594; GRU(hidden=64, layers=1)
+  &#8594; Linear(64, 1)
+  &#8594; spread_change</div>
+        <div class="params">
+          <span class="param-tag">hidden_size=64</span>
+          <span class="param-tag">lookback=6</span>
+          <span class="param-tag">dropout=0.3</span>
+          <span class="param-tag">AdamW lr=1e-3</span>
+          <span class="param-tag">grad_clip=1.0</span>
+          <span class="param-tag">patience=10</span>
+        </div>
+      </div>
+
+      <div class="model-card">
+        <h4>LSTM (Long Short-Term Memory)</h4>
+        <p style="font-size:0.88rem;">Single-layer LSTM with input dropout. Has separate cell state and hidden state (more parameters than GRU). Slightly better RMSE but more selective in trading.</p>
+        <div class="arch">Input(lookback=6, features=31)
+  &#8594; Dropout(0.3)
+  &#8594; LSTM(hidden=32, layers=1)
+  &#8594; Linear(32, 1)
+  &#8594; spread_change</div>
+        <div class="params">
+          <span class="param-tag">hidden_size=32</span>
+          <span class="param-tag">lookback=6</span>
+          <span class="param-tag">dropout=0.3</span>
+          <span class="param-tag">AdamW lr=1e-3</span>
+          <span class="param-tag">patience=10</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:20px;">Warm-Up Stitching</h3>
+      <p style="font-size:0.88rem;">Sequence models need lookback context. For the first few test rows, there's no preceding test data. We concatenate the <strong>tail of training data</strong> before the test data for each pair, so every test row gets a full 6-bar window.</p>
+      <div class="code-block">
+<span class="comment"># For each pair_id:</span>
+train_rows = cached_train[pair_id]   <span class="comment"># tail of training set</span>
+stitched = concat(train_rows, test_rows)
+<span class="keyword">for</span> each test_row:
+    window = stitched[pos-lookback : pos]  <span class="comment"># always 6 bars</span>
+    prediction = model(window)
+      </div>
+    </div>
+  </div>
+
+  <!-- TIER 3 -->
+  <div class="model-tier-section" style="border-color: var(--tier3);" id="tier3-detail">
+    <div class="model-tier-header" style="background: var(--tier3-bg);">
+      <span class="tier-badge tier-3">Tier 3</span>
+      <h3>Reinforcement Learning (PPO-Raw)</h3>
+    </div>
+    <div class="model-tier-body">
+      <p>PPO agent acts directly on features without preprocessing. Tests whether RL itself adds value over regression&mdash;per Professor KG's feedback: "Could RL act directly on features?"</p>
+
+      <div class="model-card">
+        <h4>PPO-Raw (Proximal Policy Optimization)</h4>
+        <p style="font-size:0.88rem;">Uses Stable-Baselines3 PPO with a custom Gymnasium environment. The agent observes a window of features and chooses hold/long/short. Reward includes 2pp transaction cost penalty.</p>
+        <div class="arch">SpreadTradingEnv(Gymnasium):
+  State:  flattened (198,) = 6 bars x 33 channels
+          (31 features + current_position + time_fraction)
+  Action: Discrete(3) = {hold, long, short}
+  Reward: clip(position * spread_change - 0.02*|pos_change|, -0.5, 0.5)
+
+PPO Agent (Stable-Baselines3):
+  Policy: MlpPolicy (default 2x64 hidden layers)
+  Training: 100k timesteps across all pairs</div>
+        <div class="params">
+          <span class="param-tag">SB3 PPO</span>
+          <span class="param-tag">MlpPolicy</span>
+          <span class="param-tag">lookback=6</span>
+          <span class="param-tag">tx_cost=0.02</span>
+          <span class="param-tag">reward_clip=0.5</span>
+          <span class="param-tag">100k steps</span>
+        </div>
+        <p style="margin-top:12px;font-size:0.85rem;color:var(--warning);">RMSE: 0.319 &mdash; worse than all Tier 1 and Tier 2 models. RL adds no value at this dataset scale.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIER 4 -->
+  <div class="model-tier-section" style="border-color: var(--tier4);" id="tier4-detail">
+    <div class="model-tier-header" style="background: var(--tier4-bg);">
+      <span class="tier-badge tier-4">Tier 4</span>
+      <h3>RL + Anomaly Detection (PPO-Filtered)</h3>
+    </div>
+    <div class="model-tier-body">
+      <p>Adds an autoencoder signal filter before PPO. The autoencoder flags anomalous spread patterns, and the RL agent only trades on flagged bars. Tests whether anomaly pre-filtering helps RL.</p>
+
+      <div class="model-card">
+        <h4>Autoencoder (Signal Filter)</h4>
+        <p style="font-size:0.88rem;">Symmetric autoencoder trained on normal spread features. Bars with reconstruction error above the 95th percentile of training errors are flagged as anomalous.</p>
+        <div class="arch">Encoder: Linear(31&#8594;16, ReLU, BN)
+         &#8594; Linear(16&#8594;8, ReLU, BN)
+         &#8594; Linear(8&#8594;4)         &lt;-- bottleneck
+
+Decoder: Linear(4&#8594;8, ReLU, BN)
+         &#8594; Linear(8&#8594;16, ReLU, BN)
+         &#8594; Linear(16&#8594;31)
+
+Loss: MSE(input, reconstruction)
+Threshold: 95th percentile of training errors</div>
+        <div class="params">
+          <span class="param-tag">bottleneck=4</span>
+          <span class="param-tag">Adam lr=1e-3</span>
+          <span class="param-tag">batch=32</span>
+          <span class="param-tag">patience=20</span>
+          <span class="param-tag">threshold=95th pctl</span>
+        </div>
+      </div>
+
+      <div class="model-card">
+        <h4>PPO-Filtered</h4>
+        <p style="font-size:0.88rem;">Same PPO agent as Tier 3, but only receives bars that the autoencoder flagged as anomalous. Hypothesis: anomalous spreads represent better trading opportunities.</p>
+        <div class="arch">All bars &#8594; Autoencoder &#8594; flag anomalous (top 5%)
+Anomalous bars &#8594; PPO Agent &#8594; {hold, long, short}
+Normal bars &#8594; HOLD (no action)</div>
+        <p style="margin-top:12px;font-size:0.85rem;color:var(--danger);">Worst model: RMSE 0.327, per-trade Sharpe 0.01, lost money in bootstrap CI. The autoencoder filters out too many good trades and the RL agent can't learn from the reduced data.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAIVE -->
+  <div class="model-tier-section" style="border-color: var(--naive-color);" id="naive-detail">
+    <div class="model-tier-header" style="background: rgba(139,148,158,0.06);">
+      <span class="tier-badge tier-naive">Baselines</span>
+      <h3>Naive Baselines (Lower Bound)</h3>
+    </div>
+    <div class="model-tier-body">
+      <div class="comparison">
+        <div class="comp-side">
+          <h4>Naive: Spread Always Closes</h4>
+          <p style="font-size:0.85rem;">Predicts spread_change = -current_spread. Assumes prices always converge to zero spread by resolution. RMSE: 0.500.</p>
+        </div>
+        <div class="comp-side">
+          <h4>Volume: Higher Volume Correct</h4>
+          <p style="font-size:0.85rem;">Predicts the higher-volume platform has the correct price. Direction of convergence follows volume. RMSE: 0.457.</p>
+        </div>
+      </div>
+      <div class="insight insight-warning">
+        <div class="insight-icon">&#9888;</div>
+        <div class="insight-text"><strong>Concerning finding:</strong> In live trading, the Naive baseline nearly matches XGBoost on gross P&L (+$14.32 vs +$16.59). This suggests the edge is primarily in the spread itself (prices DO converge), not in sophisticated prediction. The ML models add marginal value through better selectivity and timing.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HISTORICAL RESULTS ===== -->
+<section id="historical-results">
+  <h2>Historical Backtest Results</h2>
+  <p>144 matched pairs, 4-hour bars, 6,802 training rows, 1,673 test rows. Walk-forward backtesting with $10k starting capital, $100/position, 5pp round-trip transaction costs.</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Tier</th>
+          <th>Model</th>
+          <th>RMSE</th>
+          <th>Dir. Acc.</th>
+          <th>Per-Trade Sharpe</th>
+          <th>Backtested Sharpe (5pp)</th>
+          <th>Win Rate</th>
+          <th>Total P&L</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="winner-row">
+          <td><span class="tier-badge tier-1">T1</span></td>
+          <td><strong>XGBoost</strong></td>
+          <td class="val-best">0.286</td>
+          <td class="val-best">67.8%</td>
+          <td class="val-best">0.52</td>
+          <td>8.30</td>
+          <td>58.2%</td>
+          <td class="val-positive">$238.41</td>
+        </tr>
+        <tr>
+          <td><span class="tier-badge tier-2">T2</span></td>
+          <td>LSTM</td>
+          <td>0.292</td>
+          <td>65.5%</td>
+          <td>0.47</td>
+          <td>8.38</td>
+          <td>56.5%</td>
+          <td class="val-positive">$221.84</td>
+        </tr>
+        <tr>
+          <td><span class="tier-badge tier-2">T2</span></td>
+          <td>GRU</td>
+          <td>0.293</td>
+          <td>64.3%</td>
+          <td>0.46</td>
+          <td>8.29</td>
+          <td>55.8%</td>
+          <td class="val-positive">$212.50</td>
+        </tr>
+        <tr>
+          <td><span class="tier-badge tier-1">T1</span></td>
+          <td>Linear Regression</td>
+          <td>0.308</td>
+          <td>65.9%</td>
+          <td>0.50</td>
+          <td class="val-best">8.70</td>
+          <td>57.3%</td>
+          <td class="val-positive">$230.14</td>
+        </tr>
+        <tr>
+          <td><span class="tier-badge tier-3">T3</span></td>
+          <td>PPO-Raw</td>
+          <td>0.319</td>
+          <td>60.5%</td>
+          <td>0.31</td>
+          <td>5.96</td>
+          <td>52.2%</td>
+          <td class="val-positive">$158.15</td>
+        </tr>
+        <tr>
+          <td><span class="tier-badge tier-4">T4</span></td>
+          <td>PPO-Filtered</td>
+          <td class="val-negative">0.327</td>
+          <td class="val-negative">27.2%</td>
+          <td class="val-negative">0.01</td>
+          <td class="val-negative">1.99</td>
+          <td class="val-negative">43.2%</td>
+          <td class="val-muted">$4.61</td>
+        </tr>
+        <tr>
+          <td><span class="tier-badge tier-naive">--</span></td>
+          <td class="val-muted">Volume</td>
+          <td class="val-muted">0.457</td>
+          <td class="val-muted">53.3%</td>
+          <td class="val-muted">0.13</td>
+          <td class="val-negative">-2.26</td>
+          <td class="val-muted">48.1%</td>
+          <td class="val-muted">$59.81</td>
+        </tr>
+        <tr>
+          <td><span class="tier-badge tier-naive">--</span></td>
+          <td class="val-muted">Naive</td>
+          <td class="val-muted">0.500</td>
+          <td class="val-muted">53.3%</td>
+          <td class="val-muted">0.13</td>
+          <td class="val-negative">-2.25</td>
+          <td class="val-muted">47.9%</td>
+          <td class="val-muted">$58.12</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- RMSE Bar Chart -->
+  <h3>RMSE Comparison (lower is better)</h3>
+  <div class="bar-chart">
+    <div class="bar-row">
+      <div class="bar-label">XGBoost</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width: 57.2%; background: var(--tier1);">0.286</div>
+      </div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">LSTM</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width: 58.4%; background: var(--tier2);">0.292</div>
+      </div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">GRU</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width: 58.6%; background: var(--tier2);">0.293</div>
+      </div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Linear Reg</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width: 61.6%; background: var(--tier1);">0.308</div>
+      </div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">PPO-Raw</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width: 63.8%; background: var(--tier3);">0.319</div>
+      </div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">PPO-Filtered</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width: 65.4%; background: var(--tier4);">0.327</div>
+      </div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label" style="color:var(--naive-color);">Volume</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width: 91.3%; background: var(--naive-color);">0.457</div>
+      </div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label" style="color:var(--naive-color);">Naive</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width: 100%; background: var(--naive-color);">0.500</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== EQUITY CURVE ===== -->
+<section id="equity-curve">
+  <h2>Equity Curve: XGBoost Walk-Forward Backtest</h2>
+  <p>$10,000 starting capital, $100 per position, 5pp round-trip costs, 4-hour bars across 144 matched pairs.</p>
+
+  <div class="equity-curve-container">
+    <span class="equity-label eq-title">XGBoost Portfolio Value</span>
+    <span class="equity-label eq-value">$257,425 (+2,474%)</span>
+    <div class="equity-line"></div>
+    <span class="equity-label eq-start">$10,000 start</span>
+    <span class="equity-label eq-end">78 trading days</span>
+  </div>
+
+  <div class="card-grid-3">
+    <div class="stat-card">
+      <span class="stat-value" style="color:var(--success);">8.30</span>
+      <span class="stat-label">Annualized Sharpe</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value" style="color:var(--success);">2.8%</span>
+      <span class="stat-label">Max Drawdown</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value" style="color:var(--success);">17.5pp</span>
+      <span class="stat-label">Break-Even Fee</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LIVE RESULTS ===== -->
+<section id="live-results">
+  <h2>Live Paper Trading Results</h2>
+  <p>598 matched pairs, 1-hour bars, 27 hours of live data. Contracts filtered to mid-price &ge; $0.10 (penny contract filter).</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Trades</th>
+          <th>Win Rate</th>
+          <th>W/L Ratio</th>
+          <th>Gross P&L</th>
+          <th>Net @2pp</th>
+          <th>Net @3pp</th>
+          <th>Per-Trade Sharpe</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="winner-row">
+          <td><strong>Linear Regression</strong> <span class="tier-badge tier-1">T1</span></td>
+          <td>1,748</td>
+          <td>51.5%</td>
+          <td class="val-best">2.26x</td>
+          <td class="val-positive">+$17.18</td>
+          <td class="val-positive">+$5.83</td>
+          <td class="val-positive">+$0.15</td>
+          <td>0.120</td>
+        </tr>
+        <tr>
+          <td>XGBoost <span class="tier-badge tier-1">T1</span></td>
+          <td>1,776</td>
+          <td>51.4%</td>
+          <td>2.11x</td>
+          <td class="val-positive">+$16.59</td>
+          <td class="val-positive">+$5.11</td>
+          <td class="val-negative">-$0.63</td>
+          <td>0.114</td>
+        </tr>
+        <tr>
+          <td>Naive <span class="tier-badge tier-naive">--</span></td>
+          <td>1,745</td>
+          <td>51.9%</td>
+          <td>1.88x</td>
+          <td class="val-positive">+$14.32</td>
+          <td class="val-positive">+$3.04</td>
+          <td class="val-negative">-$2.60</td>
+          <td>0.103</td>
+        </tr>
+        <tr>
+          <td>GRU <span class="tier-badge tier-2">T2</span></td>
+          <td>1,739</td>
+          <td>51.8%</td>
+          <td>1.80x</td>
+          <td class="val-positive">+$12.41</td>
+          <td class="val-positive">+$1.14</td>
+          <td class="val-negative">-$4.49</td>
+          <td>0.090</td>
+        </tr>
+        <tr>
+          <td>LSTM <span class="tier-badge tier-2">T2</span></td>
+          <td>1,175</td>
+          <td>51.7%</td>
+          <td>1.60x</td>
+          <td class="val-positive">+$6.29</td>
+          <td class="val-negative">-$2.27</td>
+          <td class="val-negative">-$6.55</td>
+          <td>0.073</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight insight-success">
+    <div class="insight-icon">&#10003;</div>
+    <div class="insight-text"><strong>All models show statistically significant edge</strong> &mdash; 95% confidence intervals on mean P&L per trade exclude zero. Winners are 1.6-2.3x larger than losers. Linear Regression is the <strong>only model profitable after 3pp fees</strong>. Simplest model wins again.</div>
+  </div>
+</section>
+
+<!-- ===== EXPERIMENTS ===== -->
+<section id="experiments">
+  <h2>Experiment Suite</h2>
+
+  <!-- SHAP -->
+  <div id="shap">
+    <details open>
+      <summary>SHAP Feature Importance (XGBoost)</summary>
+      <div class="detail-content">
+        <p>SHAP values reveal which features drive XGBoost's predictions. One feature dominates everything else by an order of magnitude.</p>
+
+        <h3>Top Features by Mean |SHAP Value|</h3>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <div class="bar-label" style="font-weight:700;color:var(--accent);">polymarket_vwap</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 100%; background: var(--accent);">0.138</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">kalshi_vwap</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 10.1%; background: var(--tier2);">0.014</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">spread</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 8.7%; background: var(--tier2);">0.012</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">polymarket_close</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 7.2%; background: var(--tier3);">0.010</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">kalshi_close</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 5.8%; background: var(--tier3);">0.008</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">spread_momentum</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 4.3%; background: var(--text-muted);">0.006</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight insight-key">
+          <div class="insight-icon">&#9733;</div>
+          <div class="insight-text"><strong>polymarket_vwap</strong> is <strong>10x more important</strong> than any other feature. The model primarily uses Polymarket's volume-weighted average price to predict spread direction. This makes intuitive sense: Polymarket is generally the more liquid platform, so its VWAP is a better estimate of true probability.</div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- Bootstrap CIs -->
+  <div id="bootstrap">
+    <details open>
+      <summary>Bootstrap Confidence Intervals (1,000 resamples)</summary>
+      <div class="detail-content">
+        <p>1,000 bootstrap resamples of the test set with 95% confidence intervals. Key finding: <strong>XGBoost, GRU, and LSTM have overlapping RMSE CIs</strong>&mdash;their prediction quality is statistically indistinguishable.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>RMSE (mean)</th>
+                <th>95% CI Lower</th>
+                <th>95% CI Upper</th>
+                <th>Sharpe (mean)</th>
+                <th>Sharpe CI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="winner-row">
+                <td><strong>XGBoost</strong></td>
+                <td class="val-best">0.286</td>
+                <td>0.275</td>
+                <td>0.296</td>
+                <td>15.06</td>
+                <td>[13.40, 16.92]</td>
+              </tr>
+              <tr>
+                <td>GRU</td>
+                <td>0.287</td>
+                <td>0.276</td>
+                <td>0.298</td>
+                <td>14.62</td>
+                <td>[12.87, 16.40]</td>
+              </tr>
+              <tr>
+                <td>LSTM</td>
+                <td>0.291</td>
+                <td>0.279</td>
+                <td>0.302</td>
+                <td>14.36</td>
+                <td>[12.63, 16.26]</td>
+              </tr>
+              <tr>
+                <td>Linear Reg</td>
+                <td>0.308</td>
+                <td>0.280</td>
+                <td>0.349</td>
+                <td>14.85</td>
+                <td>[13.13, 16.70]</td>
+              </tr>
+              <tr>
+                <td>PPO-Raw</td>
+                <td>0.321</td>
+                <td>0.305</td>
+                <td>0.337</td>
+                <td>11.87</td>
+                <td>[9.52, 14.41]</td>
+              </tr>
+              <tr>
+                <td>PPO-Filtered</td>
+                <td class="val-negative">0.327</td>
+                <td>0.310</td>
+                <td>0.342</td>
+                <td class="val-negative">-0.88</td>
+                <td class="val-negative">[-3.72, 1.75]</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="insight insight-key">
+          <div class="insight-icon">&#8596;</div>
+          <div class="insight-text"><strong>XGBoost CI: [0.275, 0.296] overlaps with GRU CI: [0.276, 0.298]</strong>. At this dataset scale (1,673 test rows, 144 pairs), the three best models cannot be statistically distinguished. This supports the thesis: complexity is not justified when simpler models are statistically equivalent.</div>
+        </div>
+
+        <div class="insight insight-danger">
+          <div class="insight-icon">&#10007;</div>
+          <div class="insight-text"><strong>PPO-Filtered is the only model whose Sharpe CI includes zero</strong> (and goes negative). This means we cannot reject the null hypothesis that PPO-Filtered has no edge&mdash;it may genuinely be unprofitable. The autoencoder filter hurts rather than helps.</div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- Transaction Costs -->
+  <div id="transaction-costs">
+    <details open>
+      <summary>Transaction Cost Sensitivity Analysis</summary>
+      <div class="detail-content">
+        <p>Binary search for the break-even round-trip fee where the annualized Sharpe drops to zero. XGBoost remains profitable at up to 15.5pp&mdash;realistic fees are 3-5pp.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Gross P&L (0pp)</th>
+                <th>Net @5pp</th>
+                <th>Net @10pp</th>
+                <th>Break-Even Fee</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="winner-row">
+                <td><strong>XGBoost</strong></td>
+                <td class="val-positive">$238.41</td>
+                <td class="val-positive">$161.51</td>
+                <td class="val-positive">$84.61</td>
+                <td class="val-best">15.5pp</td>
+              </tr>
+              <tr>
+                <td>Linear Reg</td>
+                <td class="val-positive">$230.14</td>
+                <td class="val-positive">$153.04</td>
+                <td class="val-positive">$75.94</td>
+                <td>14.9pp</td>
+              </tr>
+              <tr>
+                <td>LSTM</td>
+                <td class="val-positive">$221.84</td>
+                <td class="val-positive">$144.49</td>
+                <td class="val-positive">$67.14</td>
+                <td>14.3pp</td>
+              </tr>
+              <tr>
+                <td>GRU</td>
+                <td class="val-positive">$212.50</td>
+                <td class="val-positive">$136.65</td>
+                <td class="val-positive">$60.80</td>
+                <td>14.0pp</td>
+              </tr>
+              <tr>
+                <td>PPO-Raw</td>
+                <td class="val-positive">$158.15</td>
+                <td class="val-positive">$75.35</td>
+                <td class="val-negative">-$7.45</td>
+                <td>9.6pp</td>
+              </tr>
+              <tr>
+                <td>Volume</td>
+                <td class="val-positive">$59.81</td>
+                <td class="val-negative">-$12.19</td>
+                <td class="val-negative">-$84.19</td>
+                <td>4.2pp</td>
+              </tr>
+              <tr>
+                <td>Naive</td>
+                <td class="val-positive">$58.12</td>
+                <td class="val-negative">-$14.88</td>
+                <td class="val-negative">-$87.88</td>
+                <td>4.0pp</td>
+              </tr>
+              <tr>
+                <td>PPO-Filtered</td>
+                <td class="val-muted">$4.61</td>
+                <td class="val-negative">-$40.34</td>
+                <td class="val-negative">-$85.29</td>
+                <td class="val-negative">0.5pp</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Profitability Across Fee Levels</h3>
+        <p style="font-size:0.88rem;">XGBoost stays positive all the way to 15pp. Naive baselines break even around 4pp&mdash;barely above realistic fee levels. PPO-Filtered is essentially unprofitable at any fee.</p>
+
+        <div class="bar-chart">
+          <div class="bar-row">
+            <div class="bar-label" style="font-weight:700;">XGBoost</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 100%; background: var(--tier1);">15.5pp</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Linear Reg</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 96.1%; background: var(--tier1);">14.9pp</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">LSTM</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 92.3%; background: var(--tier2);">14.3pp</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">GRU</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 90.3%; background: var(--tier2);">14.0pp</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">PPO-Raw</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 61.9%; background: var(--tier3);">9.6pp</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label" style="color:var(--naive-color);">Volume</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 27.1%; background: var(--naive-color);">4.2pp</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label" style="color:var(--naive-color);">Naive</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 25.8%; background: var(--naive-color);">4.0pp</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label" style="color:var(--danger);">PPO-Filtered</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 3.2%; background: var(--tier4);">0.5pp</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- Ablations -->
+  <div id="ablations">
+    <details>
+      <summary>Ablation Studies: Lookback Windows & Spread Thresholds</summary>
+      <div class="detail-content">
+        <h3>Lookback Window Ablation (GRU & LSTM)</h3>
+        <p style="font-size:0.88rem;">Tested 2, 6, 12, and 18 bar lookback windows (8h, 24h, 48h, 72h). Shorter windows marginally outperform&mdash;dataset is too small for long-range dependencies.</p>
+
+        <div class="comparison">
+          <div class="comp-side">
+            <h4>GRU Lookback</h4>
+            <p style="font-size:0.82rem;font-family:monospace;">
+              2 bars (8h):  RMSE ~0.290<br>
+              6 bars (24h): RMSE ~0.293 (default)<br>
+              12 bars (48h): RMSE ~0.295<br>
+              18 bars (72h): RMSE ~0.298
+            </p>
+          </div>
+          <div class="comp-side">
+            <h4>LSTM Lookback</h4>
+            <p style="font-size:0.82rem;font-family:monospace;">
+              2 bars (8h):  RMSE ~0.289<br>
+              6 bars (24h): RMSE ~0.292 (default)<br>
+              12 bars (48h): RMSE ~0.294<br>
+              18 bars (72h): RMSE ~0.297
+            </p>
+          </div>
+        </div>
+
+        <h3 style="margin-top:24px;">Spread Threshold Ablation</h3>
+        <p style="font-size:0.88rem;">Tested 0pp, 2pp, 5pp, and 10pp minimum prediction magnitude to trigger a trade. XGBoost dominates at every threshold. Higher thresholds increase per-trade quality but decrease total P&L due to fewer trades.</p>
+
+        <div class="insight insight-warning">
+          <div class="insight-icon">&#9888;</div>
+          <div class="insight-text"><strong>PPO limitation:</strong> PPO models produce discrete actions (hold/long/short), not continuous predictions. Threshold-based filtering doesn't work well&mdash;there's no prediction magnitude to threshold on. This is a fundamental design mismatch.</div>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ===== KEY INSIGHTS ===== -->
+<section id="key-insights">
+  <h2>Key Insights</h2>
+
+  <div class="card" id="penny-filter">
+    <h3 style="color: var(--success); margin-top:0;">The Penny Contract Filter</h3>
+    <p>The single most impactful engineering decision: filtering out contracts priced below $0.10 flips the strategy from losing to profitable at realistic fee levels.</p>
+
+    <div class="comparison">
+      <div class="comp-side" style="border-color: var(--danger);">
+        <h4 style="color: var(--danger);">Before Filter (All Contracts)</h4>
+        <p style="font-size:0.85rem;">
+          2,919 trades | Gross P&L: +$12.61<br>
+          Net @2pp: +$3.17<br>
+          <strong style="color:var(--danger);">Net @3pp: -$1.55 (LOSING)</strong><br>
+          Win Rate: 46.9% | W/L Ratio: 2.03x
+        </p>
+      </div>
+      <div class="comp-side" style="border-color: var(--success);">
+        <h4 style="color: var(--success);">After Filter (>= $0.10)</h4>
+        <p style="font-size:0.85rem;">
+          1,271 trades | Gross P&L: +$17.09<br>
+          Net @2pp: +$8.67 (+174%)<br>
+          <strong style="color:var(--success);">Net @3pp: +$4.46 (PROFITABLE)</strong><br>
+          Win Rate: 48.8% | W/L Ratio: 2.92x
+        </p>
+      </div>
+    </div>
+
+    <p style="font-size:0.88rem; color: var(--text-muted);">Why: Penny contracts ($0.01-$0.09) are near-certain outcomes (probability ~3% or ~97%). Spreads on these are noise, not signal. Fees eat 37% of gross on cheap contracts vs 10% on $0.50 contracts. 56% of all trades were on penny contracts.</p>
+  </div>
+
+  <div class="card" id="edge-source">
+    <h3 style="color: var(--tier3); margin-top:0;">Where The Edge Comes From</h3>
+    <p>The trading edge is concentrated in a small number of contract categories.</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Trades</th>
+            <th>P&L</th>
+            <th>Win Rate</th>
+            <th>P&L/Trade</th>
+            <th>% of Total Profit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="winner-row">
+            <td><strong>Oil / Commodities</strong></td>
+            <td>259 (15%)</td>
+            <td class="val-positive">+$18.65</td>
+            <td class="val-best">66.0%</td>
+            <td class="val-positive">+$0.072</td>
+            <td class="val-best">112%</td>
+          </tr>
+          <tr>
+            <td>Sports</td>
+            <td>355</td>
+            <td class="val-muted">+$0.26</td>
+            <td>36.6%</td>
+            <td class="val-muted">+$0.001</td>
+            <td class="val-muted">~0%</td>
+          </tr>
+          <tr>
+            <td>Crypto</td>
+            <td>94</td>
+            <td class="val-negative">-$0.03</td>
+            <td>36.2%</td>
+            <td class="val-negative">-$0.000</td>
+            <td>~0%</td>
+          </tr>
+          <tr>
+            <td>Politics</td>
+            <td>70</td>
+            <td class="val-negative">-$0.40</td>
+            <td>35.7%</td>
+            <td class="val-negative">-$0.006</td>
+            <td class="val-negative">-2%</td>
+          </tr>
+          <tr>
+            <td>Other</td>
+            <td>998</td>
+            <td class="val-negative">-$1.88</td>
+            <td>23.4%</td>
+            <td class="val-negative">-$0.002</td>
+            <td class="val-negative">-10%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="insight insight-success">
+      <div class="insight-icon">&#9650;</div>
+      <div class="insight-text"><strong>15% of trades generate 112% of profit.</strong> Oil/commodity contracts show large, persistent platform disagreements (Kalshi prices 30-50pp higher than Polymarket). When these converge, the payoff is substantial. A specialist strategy focused only on oil/commodities would be far more profitable.</div>
+    </div>
+  </div>
+
+  <!-- Additional Insights -->
+  <div class="card-grid">
+    <div class="card">
+      <h3 style="margin-top:0;">Naive Baseline Implication</h3>
+      <p style="font-size:0.88rem;">The Naive baseline (spread always closes) nearly matches XGBoost on gross P&L. This means the edge is primarily in the <strong>spread itself</strong>&mdash;prices DO converge&mdash;not in sophisticated prediction. ML models add marginal value through better selectivity and timing of entry.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0;">Statistical Significance</h3>
+      <p style="font-size:0.88rem;">All models (except PPO-Filtered) show statistically significant edge. 95% confidence intervals on mean P&L per trade exclude zero. But XGBoost/GRU/LSTM are <strong>statistically indistinguishable</strong> from each other&mdash;overlapping CIs on both RMSE and Sharpe.</p>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3 style="margin-top:0;">Live vs Historical</h3>
+      <p style="font-size:0.88rem;">In historical backtesting, XGBoost is the best model. In live paper trading, <strong>Linear Regression overtakes XGBoost</strong>. This is consistent with the thesis: simpler models generalize better to unseen data. XGBoost may be slightly overfitting to historical patterns.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0;">Win Rate vs W/L Ratio</h3>
+      <p style="font-size:0.88rem;">Win rates are only 51-52%, barely better than a coin flip. The strategy is profitable because <strong>winners are 1.6-2.3x larger than losers</strong>. This is a classic statistical arbitrage profile: low win rate, high payoff ratio, edge from positive expected value per trade.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LIVE ARCHITECTURE ===== -->
+<section id="architecture">
+  <h2>Live System Architecture</h2>
+  <p>Automated hourly pipeline running on GitHub Actions. Collects prices, trains models, generates signals, and paper trades&mdash;all committed back to the repository.</p>
+
+  <div class="arch-diagram">
+    <div class="arch-row">
+      <div class="arch-node" style="background: var(--tier1-bg); border: 1px solid var(--tier1); color: var(--tier1);">
+        GitHub Actions<br><span style="font-size:0.7rem;">Hourly Cron</span>
+      </div>
+    </div>
+    <div class="arch-connector">&#8595;</div>
+    <div class="arch-row">
+      <div class="arch-node" style="background: var(--tier2-bg); border: 1px solid var(--tier2); color: var(--tier2);">
+        collector.py<br><span style="font-size:0.7rem;">Poll Kalshi + Polymarket</span>
+      </div>
+      <div class="arch-node" style="background: rgba(139,148,158,0.1); border: 1px solid var(--naive-color); color: var(--text-muted);">
+        615 Matched Pairs<br><span style="font-size:0.7rem;">Semantic Similarity</span>
+      </div>
+    </div>
+    <div class="arch-connector">&#8595;</div>
+    <div class="arch-row">
+      <div class="arch-node" style="background: var(--tier3-bg); border: 1px solid var(--tier3); color: var(--tier3);">
+        paper_trader.py<br><span style="font-size:0.7rem;">Train &rarr; Predict &rarr; Log</span>
+      </div>
+    </div>
+    <div class="arch-connector">&#8595;</div>
+    <div class="arch-row">
+      <div class="arch-node" style="background: var(--tier1-bg); border: 1px solid var(--tier1); color: var(--tier1); min-width:80px;">
+        LR
+      </div>
+      <div class="arch-node" style="background: var(--tier1-bg); border: 1px solid var(--tier1); color: var(--tier1); min-width:80px;">
+        XGB
+      </div>
+      <div class="arch-node" style="background: var(--tier2-bg); border: 1px solid var(--tier2); color: var(--tier2); min-width:80px;">
+        GRU
+      </div>
+      <div class="arch-node" style="background: var(--tier2-bg); border: 1px solid var(--tier2); color: var(--tier2); min-width:80px;">
+        LSTM
+      </div>
+      <div class="arch-node" style="background: rgba(139,148,158,0.1); border: 1px solid var(--naive-color); color: var(--text-muted); min-width:80px;">
+        Naive
+      </div>
+    </div>
+    <div class="arch-connector">&#8595;</div>
+    <div class="arch-row">
+      <div class="arch-node" style="background: var(--bg); border: 1px solid var(--border); color: var(--text-muted);">
+        bars.parquet<br><span style="font-size:0.7rem;">Growing Dataset</span>
+      </div>
+      <div class="arch-node" style="background: var(--bg); border: 1px solid var(--border); color: var(--text-muted);">
+        paper_trades.jsonl<br><span style="font-size:0.7rem;">Trade Log</span>
+      </div>
+    </div>
+    <div class="arch-connector">&#8595;</div>
+    <div class="arch-row">
+      <div class="arch-node" style="background: var(--tier2-bg); border: 1px solid var(--tier2); color: var(--tier2);">
+        git commit + push<br><span style="font-size:0.7rem;">Auto-commit results</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-grid-3">
+    <div class="stat-card">
+      <span class="stat-value">598</span>
+      <span class="stat-label">Active Pairs</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">~600</span>
+      <span class="stat-label">New Bars / Hour</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">5</span>
+      <span class="stat-label">Models per Cycle</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section id="features">
+  <h2>Feature Set (31 Aligned + 6 Derived)</h2>
+
+  <h3>Aligned Features (from both platforms)</h3>
+  <div class="feature-grid">
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_vwap</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_open</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_high</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_low</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_close</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_volume</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_trade_count</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_dollar_volume</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_buy_volume</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_sell_volume</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_realized_spread</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_max_trade_size</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_has_trade</div>
+    <div class="feature-item" style="border-color: var(--tier1);">kalshi_hours_since_last</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_vwap</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_open</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_high</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_low</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_close</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_volume</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_trade_count</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_dollar_volume</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_buy_volume</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_sell_volume</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_realized_spread</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_max_trade_size</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_has_trade</div>
+    <div class="feature-item" style="border-color: var(--tier2);">polymarket_hours_since_last</div>
+    <div class="feature-item" style="border-color: var(--accent);">spread</div>
+    <div class="feature-item" style="border-color: var(--text-muted);">pair_id</div>
+    <div class="feature-item" style="border-color: var(--text-muted);">timestamp</div>
+  </div>
+
+  <h3>Derived Features (computed by engineering.py)</h3>
+  <div class="feature-grid">
+    <div class="feature-item" style="border-color: var(--purple);">price_velocity</div>
+    <div class="feature-item" style="border-color: var(--purple);">volume_ratio</div>
+    <div class="feature-item" style="border-color: var(--purple);">spread_momentum</div>
+    <div class="feature-item" style="border-color: var(--purple);">spread_volatility</div>
+    <div class="feature-item" style="border-color: var(--purple);">kalshi_order_flow_imbalance</div>
+    <div class="feature-item" style="border-color: var(--purple);">polymarket_order_flow_imbalance</div>
+  </div>
+
+  <details style="margin-top:16px;">
+    <summary>Derived Feature Formulas</summary>
+    <div class="detail-content">
+      <div class="code-block">
+<span class="comment"># All computed per pair_id (groupby) to prevent cross-pair contamination</span>
+
+<span class="func">price_velocity</span>       = spread[t] - spread[t-1]                <span class="comment"># diff(1)</span>
+<span class="func">volume_ratio</span>        = kalshi_volume / polymarket_volume         <span class="comment"># inf -> NaN</span>
+<span class="func">spread_momentum</span>     = spread.rolling(3, min_periods=1).mean()   <span class="comment"># 3-bar SMA</span>
+<span class="func">spread_volatility</span>   = spread.rolling(3, min_periods=2).std()    <span class="comment"># 3-bar vol</span>
+<span class="func">order_flow_imbalance</span> = (buy_vol - sell_vol) / (buy_vol + sell_vol) <span class="comment"># per platform</span>
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- ===== TECHNICAL DETAILS ===== -->
+<section id="technical">
+  <h2>Technical Details</h2>
+
+  <details open>
+    <summary>BasePredictor Contract (All Models Implement This)</summary>
+    <div class="detail-content">
+      <p style="font-size:0.88rem;">Every model inherits from <code>BasePredictor</code> and plugs into the shared evaluation pipeline. This ensures apples-to-apples comparison across all 8 models.</p>
+      <div class="code-block">
+<span class="keyword">class</span> <span class="type">BasePredictor</span>(ABC):
+    <span class="string">"""Abstract base class for all spread-change predictors."""</span>
+
+    @<span class="keyword">property</span>
+    @<span class="keyword">abstractmethod</span>
+    <span class="keyword">def</span> <span class="func">name</span>(self) -> <span class="type">str</span>: ...
+
+    @<span class="keyword">abstractmethod</span>
+    <span class="keyword">def</span> <span class="func">predict</span>(self, X: pd.DataFrame) -> np.ndarray: ...
+
+    <span class="keyword">def</span> <span class="func">fit</span>(self, X_train, y_train) -> <span class="string">"BasePredictor"</span>:
+        <span class="keyword">return</span> self  <span class="comment"># no-op for baselines</span>
+
+    <span class="keyword">def</span> <span class="func">evaluate</span>(self, X_test, y_test, threshold=0.02, timestamps=None):
+        predictions = self.<span class="func">predict</span>(X_test)
+        metrics = <span class="func">compute_regression_metrics</span>(y_test, predictions)
+        profit = <span class="func">simulate_profit</span>(predictions, y_test, threshold, timestamps)
+        <span class="keyword">return</span> {**metrics, **profit}
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Profit Simulation (simulate_profit)</summary>
+    <div class="detail-content">
+      <p style="font-size:0.88rem;">Threshold-based directional trading simulator used by all models. Computes per-bar returns, cumulative P&L, and annualized Sharpe ratio.</p>
+      <div class="code-block">
+<span class="comment"># Strategy per timestep i:</span>
+<span class="keyword">if</span> |predictions[i]| > threshold:
+    position = sign(predictions[i])  <span class="comment"># +1 long or -1 short</span>
+    profit = actuals[i] * position   <span class="comment"># realized P&L</span>
+<span class="keyword">else</span>:
+    profit = 0  <span class="comment"># no trade (bar counted as 0 return)</span>
+
+<span class="comment"># Sharpe: annualized from daily returns</span>
+<span class="comment"># Panel-aware: aggregate by timestamp before computing</span>
+<span class="comment"># daily_returns = sum of bar_returns per calendar day</span>
+sharpe = mean(daily_returns) / std(daily_returns) * sqrt(365)
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Walk-Forward Backtester (Realistic Sharpe)</summary>
+    <div class="detail-content">
+      <p style="font-size:0.88rem;">Steps through test bars chronologically with dollar-denominated positions and percentage-of-capital returns. Produces honest, paper-ready Sharpe ratios.</p>
+      <div class="code-block">
+<span class="comment"># Configuration:</span>
+initial_capital = $10,000
+position_size   = $100 per trade
+entry_cost      = 3pp of contract price
+exit_cost       = 2pp of contract price  <span class="comment"># 5pp round-trip</span>
+
+<span class="comment"># For each bar:</span>
+<span class="keyword">if</span> |prediction| > threshold:
+    num_contracts = $100 / mid_price
+    gross_pnl = num_contracts * actual_change * direction
+    net_pnl   = gross_pnl - entry_cost - exit_cost
+
+<span class="comment"># Daily return = sum(daily_pnl) / portfolio_value</span>
+<span class="comment"># Sharpe = mean(daily_pct) / std(daily_pct, ddof=1) * sqrt(365)</span>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>SpreadTradingEnv (Gymnasium for PPO)</summary>
+    <div class="detail-content">
+      <p style="font-size:0.88rem;">Custom Gymnasium environment where the RL agent trades per-pair spread sequences.</p>
+      <div class="code-block">
+<span class="type">SpreadTradingEnv</span>(gymnasium.Env):
+  <span class="comment"># Observation: flattened window</span>
+  observation_space = Box(shape=(198,))  <span class="comment"># 6 bars x 33 channels</span>
+  <span class="comment"># 33 = 31 features + current_position + time_fraction</span>
+
+  action_space = Discrete(3)
+  <span class="comment"># 0 = hold (position 0)</span>
+  <span class="comment"># 1 = long  (position +1)</span>
+  <span class="comment"># 2 = short (position -1)</span>
+
+  <span class="comment"># Reward per step:</span>
+  raw_reward = position * spread_change - 0.02 * |position_change|
+  reward = clip(raw_reward, -0.5, +0.5)
+
+  <span class="comment"># Episodes: each pair is one episode</span>
+  <span class="comment"># Reset cycles through pairs in order</span>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Contract Matching Pipeline</summary>
+    <div class="detail-content">
+      <p style="font-size:0.88rem;">Four-stage pipeline to match the same real-world event across platforms that share no common identifiers.</p>
+
+      <div class="flow-horizontal" style="flex-wrap: wrap;">
+        <div class="flow-box" style="border-color: var(--tier1);">
+          <div class="flow-title">Stage 1</div>
+          <div class="flow-value">Keyword Filter</div>
+          <div style="font-size:0.7rem;color:var(--text-muted);">Narrow candidates</div>
+        </div>
+        <div class="flow-arrow">&#8594;</div>
+        <div class="flow-box" style="border-color: var(--tier2);">
+          <div class="flow-title">Stage 2</div>
+          <div class="flow-value">Semantic Similarity</div>
+          <div style="font-size:0.7rem;color:var(--text-muted);">MiniLM-L6-v2</div>
+        </div>
+        <div class="flow-arrow">&#8594;</div>
+        <div class="flow-box" style="border-color: var(--tier3);">
+          <div class="flow-title">Stage 3</div>
+          <div class="flow-value">Metadata Enrichment</div>
+          <div style="font-size:0.7rem;color:var(--text-muted);">Date / category</div>
+        </div>
+        <div class="flow-arrow">&#8594;</div>
+        <div class="flow-box" style="border-color: var(--purple);">
+          <div class="flow-title">Stage 4</div>
+          <div class="flow-value">Quality Filter</div>
+          <div style="font-size:0.7rem;color:var(--text-muted);">Min trades, liquidity</div>
+        </div>
+      </div>
+
+      <div class="code-block">
+<span class="comment"># all-MiniLM-L6-v2: 384-dimensional sentence embeddings</span>
+<span class="comment"># Cosine similarity between Kalshi question and Polymarket question</span>
+similarity = dot(embed_kalshi, embed_polymarket)
+             / (norm(embed_kalshi) * norm(embed_polymarket))
+
+<span class="comment"># Threshold: similarity >= 0.85 for match</span>
+<span class="comment"># Quality filter: >= 20 trades per platform per pair</span>
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- ===== CODE ORGANIZATION ===== -->
+<section id="code-org">
+  <h2>Code Organization</h2>
+
+  <div class="code-block" style="font-size:0.85rem; line-height: 1.8;">
+<span style="color:var(--accent);font-weight:700;">DS340 Project/</span>
+<span style="color:var(--tier1);">  src/</span>
+<span style="color:var(--text-muted);">    data/</span>           kalshi.py, polymarket.py, aligner.py, schemas.py
+<span style="color:var(--text-muted);">    matching/</span>       keyword_matcher.py, semantic_matcher.py, quality_filter.py
+<span style="color:var(--text-muted);">    features/</span>       engineering.py (6 derived features), schemas.py, dataset.py
+<span style="color:var(--text-muted);">    models/</span>         base.py, linear_regression.py, xgboost_model.py,
+                    gru.py, lstm.py, ppo_raw.py, ppo_filtered.py,
+                    autoencoder.py, trading_env.py, naive.py, volume.py
+<span style="color:var(--text-muted);">    evaluation/</span>     metrics.py, profit_sim.py, backtester.py, results_store.py
+<span style="color:var(--text-muted);">    live/</span>           collector.py, paper_trader.py, retrain.py, dashboard.py
+<span style="color:var(--tier2);">  experiments/</span>
+<span style="color:var(--text-muted);">    results/</span>        tier1/, tier2/, tier3/, backtest/, bootstrap_ci/,
+                    ablation_lookback/, ablation_threshold/, transaction_costs/
+<span style="color:var(--tier3);">  data/</span>
+<span style="color:var(--text-muted);">    processed/</span>      aligned_pairs.parquet, features.parquet, train/test splits
+<span style="color:var(--text-muted);">    live/</span>           bars.parquet, paper_trades.jsonl
+<span style="color:var(--tier4);">  tests/</span>             91 tests mirroring src/ structure
+<span style="color:var(--purple);">  .github/</span>
+<span style="color:var(--text-muted);">    workflows/</span>     Automated hourly collection + paper trading
+  </div>
+
+  <div class="card-grid-3" style="margin-top:20px;">
+    <div class="stat-card">
+      <span class="stat-value" style="font-size:1.4rem;">53</span>
+      <span class="stat-label">Python Files</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value" style="font-size:1.4rem;">91</span>
+      <span class="stat-label">Tests</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value" style="font-size:1.4rem;">8</span>
+      <span class="stat-label">Model Classes</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SUMMARY / CHEAT SHEET ===== -->
+<section id="summary" style="margin-bottom:40px;">
+  <h2>Quick Reference: What To Tell The TA</h2>
+
+  <div class="card" style="border-color: var(--accent);">
+    <h3 style="margin-top:0; color: var(--accent);">The One-Paragraph Summary</h3>
+    <p style="font-size:0.95rem; line-height: 1.8;">We built a cross-platform prediction market arbitrage system that matches contracts between Kalshi and Polymarket using NLP semantic similarity, computes price spreads, and predicts spread convergence using 8 models across 4 complexity tiers. We tested Linear Regression, XGBoost, GRU, LSTM, PPO-Raw, and PPO-Filtered (with autoencoder) on 144 matched pairs (6,802 training rows). <strong>The central finding is that model complexity does not improve performance</strong>: XGBoost (Tier 1) achieves the best RMSE (0.286) and Sharpe ratio (8.30), while PPO-Filtered (Tier 4) is the worst (RMSE 0.327, Sharpe -0.88 in bootstrap). We validated this with live paper trading on 598 pairs, where Linear Regression was the only model profitable after 3pp fees. The trading edge comes from oil/commodity contracts (15% of trades, 112% of profit) and is amplified by filtering out penny contracts (&lt;$0.10).</p>
+  </div>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--success);">
+      <h3 style="margin-top:0; color: var(--success);">What Worked</h3>
+      <ul style="font-size:0.88rem; padding-left: 18px;">
+        <li>Simple models (LR, XGBoost) consistently outperform complex ones</li>
+        <li>Penny contract filter: single biggest improvement to P&L</li>
+        <li>Semantic matching pipeline: 615 live pairs from two disjoint APIs</li>
+        <li>Walk-forward backtester with honest Sharpe calculation</li>
+        <li>Bootstrap CIs proving statistical significance</li>
+        <li>Live paper trading validating historical results</li>
+        <li>Oil/commodity specialization: 66% win rate</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--danger);">
+      <h3 style="margin-top:0; color: var(--danger);">What Did Not Work (And Why)</h3>
+      <ul style="font-size:0.88rem; padding-left: 18px;">
+        <li>PPO-Filtered: autoencoder filters too aggressively, RL can't learn</li>
+        <li>PPO-Raw: RL adds no value over regression at this dataset scale</li>
+        <li>Long lookback windows: dataset too small for long-range dependencies</li>
+        <li>LSTM selectivity: fewer trades but worse per-trade quality</li>
+        <li>Penny contracts: noise drowns signal, fees eat profits</li>
+        <li>TFT (Temporal Fusion Transformer): deferred, too complex for data size</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <h3 style="margin-top:0; color: var(--accent);">Key Numbers To Remember</h3>
+    <div class="card-grid-3">
+      <div style="text-align:center;">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--tier1);">0.286</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">Best RMSE (XGBoost)</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--success);">8.70</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">Best Sharpe (Linear Reg)</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--tier3);">15.5pp</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">XGBoost Break-Even Fee</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--success);">66%</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">Oil/Commodity Win Rate</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--accent);">144</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">Historical Matched Pairs</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--accent);">615</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">Live Matched Pairs</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer style="text-align:center; padding: 40px 0 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem;">
+  <p>DS340 Final Project &mdash; Ian Sabia &amp; Alvin Jang &mdash; Spring 2026</p>
+  <p>Cross-Platform Prediction Market Arbitrage: Complexity vs. Performance</p>
+</footer>
+
+</div><!-- end .main -->
+
+<!-- ===== SIDEBAR SCROLL HIGHLIGHT ===== -->
+<script>
+// Highlight sidebar link on scroll
+const sections = document.querySelectorAll('section[id], div[id]');
+const navLinks = document.querySelectorAll('.sidebar nav a');
+
+function highlightNav() {
+  let current = '';
+  sections.forEach(section => {
+    const top = section.offsetTop - 80;
+    if (window.scrollY >= top) {
+      current = section.getAttribute('id');
+    }
+  });
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === '#' + current) {
+      link.classList.add('active');
+    }
+  });
+}
+
+window.addEventListener('scroll', highlightNav);
+window.addEventListener('load', highlightNav);
+</script>
+
+</body>
+</html>

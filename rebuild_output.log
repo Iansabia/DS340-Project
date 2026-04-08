@@ -1,0 +1,518 @@
+2026-04-04 18:11:03 INFO __main__: ============================================================
+2026-04-04 18:11:03 INFO __main__: Stage 1: Loading accepted pairs
+2026-04-04 18:11:03 INFO __main__: ============================================================
+2026-04-04 18:11:03 INFO __main__: Loaded 77 accepted pairs from data/processed/accepted_pairs.json
+2026-04-04 18:11:03 INFO __main__: Stage 1 complete in 0.0s
+2026-04-04 18:11:03 INFO __main__: ============================================================
+2026-04-04 18:11:03 INFO __main__: Stage 2: Fetching raw trades
+2026-04-04 18:11:03 INFO __main__: ============================================================
+2026-04-04 18:11:10 INFO src.data.trade_fetcher: Processed 10/77 pairs
+2026-04-04 18:11:16 INFO src.data.trade_fetcher: Processed 20/77 pairs
+2026-04-04 18:11:29 INFO src.data.trade_fetcher: Processed 30/77 pairs
+2026-04-04 18:11:50 INFO src.data.trade_fetcher: Processed 40/77 pairs
+2026-04-04 18:12:06 INFO src.data.trade_fetcher: Processed 50/77 pairs
+2026-04-04 18:12:13 INFO src.data.trade_fetcher: Processed 60/77 pairs
+2026-04-04 18:12:32 INFO src.data.trade_fetcher: Processed 70/77 pairs
+2026-04-04 18:12:38 INFO src.data.trade_fetcher: Trade fetch complete. Stats: {'kalshi_fetched': 74, 'kalshi_cached': 0, 'kalshi_empty': 3, 'polymarket_fetched': 77, 'polymarket_cached': 0, 'polymarket_empty': 0}
+2026-04-04 18:12:38 INFO __main__: Trade fetch stats: {
+  "kalshi_fetched": 74,
+  "kalshi_cached": 0,
+  "kalshi_empty": 3,
+  "polymarket_fetched": 77,
+  "polymarket_cached": 0,
+  "polymarket_empty": 0
+}
+2026-04-04 18:12:38 INFO __main__: Stage 2 complete in 95.0s
+2026-04-04 18:12:38 INFO __main__: ============================================================
+2026-04-04 18:12:38 INFO __main__: Stage 3: Reconstructing candles from raw trades
+2026-04-04 18:12:38 INFO __main__: ============================================================
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 3 candles from 4 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 2 candles from 3 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 11 candles from 16 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 16 candles from 31 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 133 candles from 1105 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 82 candles from 351 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 91 candles from 417 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 47 candles from 213 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 3 candles from 4 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 24 candles from 104 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 59 candles from 367 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 48 candles from 325 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 25 candles from 140 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 64 candles from 221 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 31 candles from 83 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 6 candles from 8 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 1 candles from 1 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 3 candles from 4 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 4 candles from 6 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 94 candles from 341 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 29 candles from 58 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 33 candles from 110 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 15 candles from 25 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 1 candles from 1 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 49 candles from 181 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 61 candles from 331 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 40 candles from 211 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 33 candles from 85 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 84 candles from 287 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 148 candles from 1649 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 165 candles from 2778 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 169 candles from 1631 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 137 candles from 731 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 71 candles from 258 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 62 candles from 204 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 93 candles from 528 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 162 candles from 1877 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 177 candles from 4751 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 180 candles from 3593 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 168 candles from 2311 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 63 candles from 248 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 41 candles from 133 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 20 candles from 23 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 191 candles from 19607 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 191 candles from 5647 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 55 candles from 206 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 139 candles from 763 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 116 candles from 513 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 25 candles from 97 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 25 candles from 158 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 12 candles from 161 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 7 candles from 13 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 7 candles from 12 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 9 candles from 19 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 20 candles from 41 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 66 candles from 1150 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 76 candles from 1950 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 75 candles from 1194 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 73 candles from 715 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 7 candles from 14 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 118 candles from 942 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 104 candles from 800 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 61 candles from 191 trades (bar_seconds=14400)
+2026-04-04 18:12:39 INFO src.data.trade_reconstructor: Reconstructed 48 candles from 169 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 184 candles from 1892 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 151 candles from 922 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 103 candles from 384 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 57 candles from 110 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 1 candles from 1 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 4 candles from 4 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 3 candles from 3 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 1 candles from 1 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 2 candles from 2 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 2 candles from 2 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 91 candles from 867 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 27 candles from 142 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 6 candles from 31 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 9 candles from 74 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 45 candles from 257 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 145 candles from 1844 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 663 candles from 1089 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 127 candles from 1611 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 136 candles from 451 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 2 candles from 5 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 120 candles from 364 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 31 candles from 127 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 64 candles from 161 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 34 candles from 198 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 12 candles from 74 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 19 candles from 157 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 55 candles from 150 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 59 candles from 185 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 16 candles from 70 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 50 candles from 132 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 30 candles from 155 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 449 candles from 1080 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 133 candles from 417 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 52 candles from 281 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 112 candles from 1281 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 139 candles from 2102 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 1009 candles from 2663 trades (bar_seconds=14400)
+2026-04-04 18:12:40 INFO src.data.trade_reconstructor: Reconstructed 132 candles from 1855 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 866 candles from 3392 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 45 candles from 282 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 36 candles from 111 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 125 candles from 1658 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 152 candles from 673 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 118 candles from 1096 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 80 candles from 226 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 122 candles from 1543 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 106 candles from 772 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 24 candles from 228 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 72 candles from 284 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 13 candles from 74 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 26 candles from 168 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 28 candles from 165 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 7 candles from 21 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 121 candles from 1528 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 110 candles from 761 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 94 candles from 345 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 144 candles from 953 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 8 candles from 10 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 115 candles from 1073 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 147 candles from 1112 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 162 candles from 729 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 120 candles from 1568 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 344 candles from 1443 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 44 candles from 119 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 71 candles from 249 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 20 candles from 69 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 127 candles from 1894 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 114 candles from 1548 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 134 candles from 808 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 65 candles from 243 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 119 candles from 1314 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 134 candles from 730 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 120 candles from 1613 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 100 candles from 1000 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 125 candles from 1593 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 56 candles from 152 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 93 candles from 413 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 15 candles from 44 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 63 candles from 232 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 105 candles from 468 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 23 candles from 186 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 40 candles from 229 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 69 candles from 186 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 23 candles from 65 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 86 candles from 766 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 121 candles from 835 trades (bar_seconds=14400)
+2026-04-04 18:12:41 INFO src.data.trade_reconstructor: Reconstructed 68 candles from 237 trades (bar_seconds=14400)
+2026-04-04 18:12:42 INFO __main__: Reconstructed candles for 74 Kalshi markets, 77 Polymarket markets
+2026-04-04 18:12:42 INFO __main__: Stage 3 complete in 3.0s
+2026-04-04 18:12:42 INFO __main__: ============================================================
+2026-04-04 18:12:42 INFO __main__: Stage 4: Aligning cross-platform pairs and validating
+2026-04-04 18:12:42 INFO __main__: ============================================================
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxuejpn26feb2.1-0x4f0e5c99: excluded (insufficient trades: kalshi=1, poly=70)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu326febt4.3-0x89655f46: included (136 bars, staleness=0.11, mean_|spread|=0.170)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu326jant4.4-0x9fec3f27: included (198 bars, staleness=0.05, mean_|spread|=0.142)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu325dect4.5-0x62069242: included (141 bars, staleness=0.37, mean_|spread|=0.113)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu326jant4.6-0xd20abdc5: excluded (mean |spread| 0.425)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu326febt4.4-0x40df1e1b: excluded (mean |spread| 0.310)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu325dect4.6-0x7455bf3c: included (141 bars, staleness=0.43, mean_|spread|=0.287)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu326febt4.5-0x90593b84: excluded (mean |spread| 0.522)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxuecan26feb6.3-0x0e5014c8: excluded (insufficient trades: kalshi=4, poly=31)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu325dect4.7-0xe8a62d31: excluded (mean |spread| 0.440)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu326jant4.5-0x4d574088: excluded (mean |spread| 0.341)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu326febt4.6-0xd9c772f9: excluded (mean |spread| 0.503)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu325dect4.4-0x113339c0: excluded (mean |spread| 0.368)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu326jant4.7-0xb9aec21e: excluded (mean |spread| 0.675)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxeconstatu326f-0x75ec8fe9: excluded (missing candle files)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxbrazilinf25de-0x52bcacee: excluded (insufficient trades: kalshi=16, poly=1080)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxjoblessclaims-0xb3379f94: excluded (mean |spread| 0.449)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxjoblessclaims-0xa21a234e: excluded (insufficient trades: kalshi=13, poly=10)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxjoblessclaims-0x90a5b05f: excluded (insufficient trades: kalshi=12, poly=21)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxuebr26feb4.7-0x237f2d52: excluded (missing candle files)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxeconstatu326j-0xb1a6cfa6: excluded (mean |spread| 0.501)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxjoblessclaims-0x48bb91fb: included (84 bars, staleness=0.56, mean_|spread|=nan)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxacpi20250.6-0x1bed9a77: excluded (insufficient trades: kalshi=4, poly=1089)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxlcpimaxyoy25p-0xac51bd52: excluded (staleness ratio 0.82)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxuemex26feb2.0-0x5204329d: excluded (insufficient trades: kalshi=2, poly=155)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxlargecut25-0x735a2a98: excluded (insufficient trades: kalshi=19, poly=3392)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxjoblessclaims-0x10a8a1aa: excluded (mean |spread| 0.427)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxgdp26jan30t5-0xa115bcf8: included (436 bars, staleness=0.40, mean_|spread|=nan)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxgdp26jan30t.5-0x5151a53a: excluded (mean |spread| 0.386)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxfeddecision26-0x2663a13f: included (798 bars, staleness=0.61, mean_|spread|=nan)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxgdp26jan30t4.-0xbc224978: included (437 bars, staleness=0.38, mean_|spread|=nan)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26febt2-0x64f5c2c1: excluded (mean |spread| 0.341)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26jant2-0xca2af3d5: excluded (mean |spread| 0.383)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxu326febt3.8-0x907063f6: excluded (insufficient trades: kalshi=14, poly=165)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26febt2-0xbfec8cb0: excluded (mean |spread| 0.386)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26jant2-0x84ba652d: excluded (mean |spread| 0.337)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26jant2-0xb6cf5131: included (184 bars, staleness=0.01, mean_|spread|=0.148)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26febt2-0x7de39259: included (284 bars, staleness=0.41, mean_|spread|=0.078)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26jant2-0x679d1b3c: included (186 bars, staleness=0.01, mean_|spread|=0.242)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy25dect2-0x9ecab459: excluded (mean |spread| 0.476)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26febt2-0xb9f2a360: excluded (mean |spread| 0.489)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26jant2-0xe9a7113e: excluded (mean |spread| 0.457)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26jant2-0x1d9e6979: excluded (mean |spread| 0.362)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26febt2-0xb7c99634: excluded (mean |spread| 0.375)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy25dect3-0xffe14667: excluded (mean |spread| 0.716)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26febt2-0x98d494b1: excluded (mean |spread| 0.386)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26jant2-0x19a88083: excluded (mean |spread| 0.332)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxueaus26feb3.7-0x498b9553: excluded (insufficient trades: kalshi=1, poly=157)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxbrazilgdp26fe-0xe9eaf47f: excluded (insufficient trades: kalshi=3, poly=65)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy25dect3-0x66dc31c8: excluded (mean |spread| 0.387)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy26jant3-0xcc5e396c: excluded (mean |spread| 0.382)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxuechn26feb4.6-0x8c32142e: excluded (insufficient trades: kalshi=3, poly=74)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpiyoy25dect2-0x83436ced: excluded (mean |spread| 0.420)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcbdecisionchi-0xa849ee57: excluded (mean |spread| 0.421)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpi26febt0.1-0xfbe0226b: excluded (mean |spread| 0.398)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxuerus26feb1.8-0xd193ef85: excluded (insufficient trades: kalshi=2, poly=44)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy25d-0x7e4f7c7d: excluded (mean |spread| 0.405)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpi26jant0.4-0x892231e7: excluded (mean |spread| 0.568)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy25d-0x8ab7acf5: excluded (insufficient trades: kalshi=4, poly=284)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy25d-0x405e5c63: excluded (mean |spread| 0.357)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy26j-0xb00d8f43: excluded (staleness ratio 0.83)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:128: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  merged[ffill_cols] = merged[ffill_cols].ffill(limit=FFILL_LIMIT)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy26j-0x668fb702: included (178 bars, staleness=0.20, mean_|spread|=0.294)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy26j-0x1de351e4: excluded (mean |spread| 0.558)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy26j-0x4d5ffebe: excluded (insufficient trades: kalshi=1, poly=185)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxfeddecision26-0x5a1eb362: included (798 bars, staleness=0.59, mean_|spread|=nan)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy26f-0xa9dc73df: excluded (insufficient trades: kalshi=6, poly=1568)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy26j-0xcefccdef: included (180 bars, staleness=0.24, mean_|spread|=0.117)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicore26jant-0x8253528e: included (326 bars, staleness=0.59, mean_|spread|=0.263)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicore26jant-0xff8bf331: included (253 bars, staleness=0.48, mean_|spread|=0.192)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicore26febt-0xa3e39811: included (181 bars, staleness=0.24, mean_|spread|=0.117)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicore26febt-0xc1691f09: excluded (mean |spread| 0.386)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy25d-0xd94b503e: excluded (insufficient trades: kalshi=8, poly=468)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicore26jant-0xa7e1a756: excluded (mean |spread| 0.358)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy25d-0x3787a6bb: excluded (missing candle files)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicoreyoy25d-0x0ad16dad: excluded (insufficient trades: kalshi=1, poly=142)
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+/Users/iansabia/Desktop/DS340 Project/src/data/aligner.py:124: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  original_has_trade = merged[has_trade_col].fillna(False).astype(bool).copy()
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicore26jant-0xb83cf6cd: excluded (mean |spread| 0.624)
+2026-04-04 18:12:42 INFO src.data.aligner: Pair kxcpicore26febt-0x07b9b55d: excluded (insufficient trades: kalshi=4, poly=867)
+2026-04-04 18:12:42 INFO src.data.aligner: Alignment complete: 17 included, 60 excluded out of 77 total pairs
+2026-04-04 18:12:42 INFO __main__: Saved aligned dataset: data/processed/aligned_pairs.parquet (4941 rows, 31 columns)
+2026-04-04 18:12:42 INFO __main__: Saved quality report: data/processed/data_quality_report.json
+2026-04-04 18:12:42 INFO __main__: Aligned 17 pairs, excluded 60 pairs. Output: 4941 rows, 31 columns
+2026-04-04 18:12:42 INFO __main__: Exclusion breakdown: {"missing_candles": 3, "insufficient_trades": 19, "too_stale": 2, "spread_not_mean_reverting": 36, "alignment_failed": 0}
+2026-04-04 18:12:42 INFO __main__: Stage 4 complete in 0.6s
+2026-04-04 18:12:42 INFO __main__: ============================================================
+2026-04-04 18:12:42 INFO __main__: PIPELINE COMPLETE
+2026-04-04 18:12:42 INFO __main__: ============================================================
+2026-04-04 18:12:42 INFO __main__: Total duration: 98.6s (1.6m)
+2026-04-04 18:12:42 INFO __main__: Pairs: 17/77 passed filters
+2026-04-04 18:12:42 INFO __main__: Output: data/processed/aligned_pairs.parquet
+2026-04-04 18:12:42 INFO __main__: Report: data/processed/data_quality_report.json
