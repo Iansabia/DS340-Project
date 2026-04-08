@@ -21,6 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Experiments and Interpretability** - Run cross-tier comparison, ablation experiments, SHAP analysis, bootstrap CIs (completed 2026-04-06)
 - [x] **Phase 7.1: Walk-Forward Backtesting** - Produce honest backtested Sharpe ratios via walk-forward portfolio simulator with realistic transaction costs (completed 2026-04-06)
 - [ ] **Phase 7.2: Live Paper Trading** - Deploy models on live data via pmxt SDK, paper trade all 8 models, retrain on growing dataset
+- [ ] **Phase 7.3: Adaptive Trading System** - Multi-bar position management with contract-horizon-based bar intervals and rule-based exit strategy, deployed on Oracle Cloud VM
 - [ ] **Phase 8: Paper and Presentation** - Write final paper and lightning talk slides
 
 ## Phase Details
@@ -177,6 +178,19 @@ Plans:
 - [ ] 07.2-02-PLAN.md -- Paper trading engine: loads all 8 trained models, runs inference on live bars, logs trades to JSONL, CLI dashboard for P&L tracking
 - [ ] 07.2-03-PLAN.md -- Auto-retrain pipeline: combines train.parquet + live bars, retrains all 8 models, reports metric deltas (did more data help?)
 
+### Phase 07.3: Adaptive Trading System (INSERTED)
+
+**Goal:** Build an adaptive trading system with multi-bar position management, contract-horizon-based bar intervals (4h/1h/15min/5min), and rule-based exit strategy (take-profit, stop-loss, trailing stop, momentum, time-stop, resolution proximity). Deploy on Oracle Cloud VM for 5-minute cron collection.
+**Requirements**: CLASSIFY-TICKERS, CLASSIFY-TIERS, POSITION-TRACK, EXIT-RULES, STRATEGY-ENTRY, STRATEGY-EXIT, STRATEGY-INTEGRATION, MODEL-SAVE-LOAD, ORACLE-DEPLOY, ORACLE-CRON, ORACLE-MEMORY
+**Depends on:** Phase 7.2
+**Plans:** 4 plans
+
+Plans:
+- [ ] 07.3-01-PLAN.md -- Contract classifier: parse Kalshi tickers to extract resolution dates, classify into tiers (TDD)
+- [ ] 07.3-02-PLAN.md -- Position manager: JSON-backed position tracking with 6 exit rules (TDD)
+- [ ] 07.3-03-PLAN.md -- Trading strategy: combines classifier + position manager + model inference, save/load for BasePredictor
+- [ ] 07.3-04-PLAN.md -- Oracle Cloud deployment: memory-optimized trading cycle, setup script, 5-min cron
+
 ### Phase 8: Paper and Presentation
 **Goal**: The final paper and lightning talk slides are complete, presenting the complexity-vs-performance findings as an empirical contribution
 **Depends on**: Phase 7
@@ -199,7 +213,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 
 ```
 1 -> 2 -> 2.1 -> 3 -> 4 -> 5 ─┐
-                           └─> 6 ─┤-> 7 -> 7.1 -> 7.2 -> 8
+                           └─> 6 ─┤-> 7 -> 7.1 -> 7.2 -> 7.3 -> 8
 ```
 
 **Milestone Deadlines:**
@@ -217,9 +231,10 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 | 6. RL and Autoencoder | 3/5 | In Progress|  |
 | 7. Experiments and Interpretability | 5/5 | Complete   | 2026-04-06 |
 | 7.1. Walk-Forward Backtesting | 2/2 | Complete   | 2026-04-06 |
-| 7.2. Live Paper Trading | 2/3 | In Progress|  |
+| 7.2. Live Paper Trading | 3/3 | Complete |  |
+| 7.3. Adaptive Trading System | 0/4 | Planning complete | - |
 | 8. Paper and Presentation | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-04-01*
-*Last updated: 2026-04-06*
+*Last updated: 2026-04-08*
