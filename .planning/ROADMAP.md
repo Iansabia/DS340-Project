@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Experiments and Interpretability** - Run cross-tier comparison, ablation experiments, SHAP analysis, bootstrap CIs (completed 2026-04-06)
 - [x] **Phase 7.1: Walk-Forward Backtesting** - Produce honest backtested Sharpe ratios via walk-forward portfolio simulator with realistic transaction costs (completed 2026-04-06)
 - [ ] **Phase 7.2: Live Paper Trading** - Deploy models on live data via pmxt SDK, paper trade all 8 models, retrain on growing dataset
-- [ ] **Phase 7.3: Adaptive Trading System** - Multi-bar position management with contract-horizon-based bar intervals and rule-based exit strategy, deployed on Oracle Cloud VM
+- [x] **Phase 7.3: Adaptive Trading System** - Multi-bar position management with contract-horizon-based bar intervals and rule-based exit strategy, deployed on Oracle Cloud VM (completed 2026-04-08)
 - [ ] **Phase 8: Paper and Presentation** - Write final paper and lightning talk slides
 
 ## Phase Details
@@ -232,7 +232,7 @@ Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be pa
 | 7. Experiments and Interpretability | 5/5 | Complete   | 2026-04-06 |
 | 7.1. Walk-Forward Backtesting | 2/2 | Complete   | 2026-04-06 |
 | 7.2. Live Paper Trading | 3/3 | Complete |  |
-| 7.3. Adaptive Trading System | 3/4 | In Progress|  |
+| 7.3. Adaptive Trading System | 4/4 | Complete   | 2026-04-08 |
 | 8. Paper and Presentation | 0/0 | Not started | - |
 
 ---
