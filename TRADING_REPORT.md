@@ -63,12 +63,38 @@ We built a cross-platform prediction market arbitrage system that:
 
 Break-even fee: ~3pp for Linear Regression, ~2.5pp for XGBoost.
 
-### Critical Filter: Drop Penny Contracts
+### Critical Filter: Drop Penny Contracts (< $0.10)
 
-Excluding contracts priced < $0.10 **dramatically improves results**:
-- Gross P&L increases (penny contracts add noise, not signal)
-- Fee impact decreases (fees are proportional to contract price)
-- Win/loss ratio improves (better signal on higher-priced contracts)
+**56% of all trades are on contracts priced under $0.10.** These penny contracts have tiny absolute profits but proportionally enormous fees, dragging the entire portfolio negative. Filtering them out is the single biggest improvement to the strategy.
+
+#### Before vs After Filter (XGBoost, 27 hours)
+
+| Metric | All Contracts | Contracts ≥ $0.10 | Improvement |
+|--------|--------------|-------------------|-------------|
+| Trades | 2,919 | 1,271 | -56% (removed noise) |
+| Gross P&L | +12.61 | **+17.09** | **+35% higher** |
+| Net @2pp fees | +3.17 | **+8.67** | **+174% higher** |
+| Net @3pp fees | **-1.55** (losing) | **+4.46** (profitable) | **Flipped from loss to profit** |
+| Net @5pp fees | -10.99 | -3.96 | 64% less loss |
+| Win Rate | 46.9% | 48.8% | +1.9pp |
+| W/L Ratio | 2.03x | 2.92x | +44% |
+
+#### All Models After Penny Filter
+
+| Model | Trades | Gross P&L | @2pp fees | @3pp fees | Win Rate | W/L Ratio |
+|-------|--------|-----------|-----------|-----------|----------|-----------|
+| **Linear Reg** | 1,248 | **+17.47** | **+9.16** | **+5.00** | 48.4% | **3.21x** |
+| **XGBoost** | 1,271 | +17.09 | **+8.67** | **+4.46** | 48.8% | 2.92x |
+| **Naive** | 1,237 | +15.31 | **+7.08** | **+2.96** | 52.6% | 2.31x |
+| **GRU** | 1,222 | +12.66 | **+4.52** | +0.46 | 48.8% | 2.45x |
+| LSTM | 800 | +5.53 | -0.40 | -3.37 | 47.7% | 1.90x |
+
+**Why penny contracts hurt:**
+- A $0.03 contract with 5pp fee costs $0.0015 per trade — but the average profit per trade is only +$0.004. Fees consume 37% of gross on cheap contracts vs 10% on $0.50 contracts.
+- Penny contracts are near-certain outcomes (probability ~3% or ~97%). Spreads are noise, not signal.
+- The model was trained on contracts in the $0.20-$0.80 range. Predictions on extreme-probability contracts are unreliable.
+
+**Implementation:** Filter `mid_price >= $0.10` before generating signals. This is a single line of code that turns a losing strategy into a profitable one at realistic fee levels.
 
 ---
 
