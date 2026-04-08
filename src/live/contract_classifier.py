@@ -159,6 +159,9 @@ POLITICS_DEFAULTS: dict[str, tuple[int, int] | None] = {
     "KXSECSTATEVISIT": (12, 31),
     "KXFEDGOVNOM": (12, 31),
     "KXLARGECUT": (12, 31),
+    # Congressional district primaries (KX + state + district + party)
+    "KXNY7D": (11, 5),
+    "KXME02D": (11, 5),
 }
 
 
@@ -528,7 +531,7 @@ class ContractClassifier:
             Dict mapping pair_id (live_NNNN) to classification dict.
         """
         if now is None:
-            now = datetime.utcnow()
+            now = datetime.now()
 
         results: dict[str, dict] = {}
         api_lookups = 0
