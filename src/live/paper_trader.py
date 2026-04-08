@@ -380,6 +380,11 @@ def main(argv: list[str] | None = None) -> int:
         prog="python -m src.live.paper_trader",
     )
     parser.add_argument(
+        "--adaptive",
+        action="store_true",
+        help="Use adaptive multi-bar position management (Phase 7.3)",
+    )
+    parser.add_argument(
         "--collect-and-trade",
         action="store_true",
         help="Run collector first (demo mode), then trade",
@@ -413,6 +418,20 @@ def main(argv: list[str] | None = None) -> int:
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
+
+    # Adaptive mode: delegate to TradingStrategy (Phase 7.3)
+    if args.adaptive:
+        from src.live.strategy import TradingStrategy
+
+        print("=== Adaptive Trading (Phase 7.3) ===")
+        strategy = TradingStrategy(live_dir=Path(args.live_dir))
+        summary = strategy.run_cycle()
+        print(
+            f"\nAdaptive cycle: {summary['entries']} entries, "
+            f"{summary['exits']} exits, "
+            f"{summary['open_positions']} open positions"
+        )
+        return 0
 
     # Optionally collect first
     if args.collect_and_trade:
