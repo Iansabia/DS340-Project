@@ -7,7 +7,9 @@ simulation) via ``BasePredictor.evaluate``.
 """
 from __future__ import annotations
 
+import pickle
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -80,3 +82,43 @@ class BasePredictor(ABC):
             predictions, y_test, threshold=threshold, timestamps=timestamps
         )
         return {**metrics, **profit}
+
+    # ------------------------------------------------------------------
+    # Persistence
+    # ------------------------------------------------------------------
+
+    def save(self, path: str | Path) -> None:
+        """Save trained model to pickle file.
+
+        Creates parent directories if they do not exist.
+
+        Args:
+            path: Destination file path (e.g. ``models/deployed/lr.pkl``).
+        """
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "wb") as f:
+            pickle.dump(self, f)
+
+    @classmethod
+    def load(cls, path: str | Path) -> "BasePredictor":
+        """Load a trained model from a pickle file.
+
+        Args:
+            path: Path to the pickle file.
+
+        Returns:
+            The deserialized ``BasePredictor`` subclass instance.
+
+        Raises:
+            FileNotFoundError: If *path* does not exist.
+            TypeError: If the loaded object is not a ``BasePredictor``.
+        """
+        path = Path(path)
+        with open(path, "rb") as f:
+            model = pickle.load(f)
+        if not isinstance(model, BasePredictor):
+            raise TypeError(
+                f"Loaded object is {type(model).__name__}, not BasePredictor"
+            )
+        return model
