@@ -794,8 +794,12 @@ class TestDynamicReclassification:
 class TestAPIFallback:
     """Test API fallback for unparseable tickers with mocked HTTP."""
 
-    def setup_method(self):
-        self.classifier = ContractClassifier()
+    def setup_method(self, tmp_path=None):
+        # Use a non-existent cache path so no disk cache interferes
+        import tempfile
+        self._tmp = tempfile.mkdtemp()
+        cache_path = Path(self._tmp) / "test_cache.json"
+        self.classifier = ContractClassifier(cache_path=cache_path)
 
     @patch("src.live.contract_classifier.requests.get")
     def test_fetch_resolution_from_api_success(self, mock_get):
@@ -861,7 +865,10 @@ class TestClassifyAllPairs:
     """Test classify_all_pairs on a mock matches list."""
 
     def setup_method(self):
-        self.classifier = ContractClassifier()
+        import tempfile
+        self._tmp = tempfile.mkdtemp()
+        cache_path = Path(self._tmp) / "test_cache.json"
+        self.classifier = ContractClassifier(cache_path=cache_path)
 
     def test_classify_all_basic(self):
         """Small mock list returns correct structure."""
