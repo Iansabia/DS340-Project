@@ -18,15 +18,30 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          # Need full history for data files
+          # Need full history for data files and Oracle VM check
           fetch-depth: 0
 
+      - name: Check Oracle VM health
+        id: oracle_check
+        run: |
+          # Check if Oracle VM has auto-committed in the last 30 minutes
+          LAST_AUTO=$(git log --oneline --since="30 minutes ago" --grep="auto: trading" | head -1)
+          if [ -n "$LAST_AUTO" ]; then
+            echo "Oracle VM is active: $LAST_AUTO"
+            echo "oracle_active=true" >> $GITHUB_OUTPUT
+          else
+            echo "Oracle VM inactive, running fallback collection"
+            echo "oracle_active=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set up Python 3.12
+        if: steps.oracle_check.outputs.oracle_active == 'false'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Cache pip packages
+        if: steps.oracle_check.outputs.oracle_active == 'false'
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -35,11 +50,13 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Install dependencies
+        if: steps.oracle_check.outputs.oracle_active == 'false'
         run: |
           pip install --upgrade pip
           pip install -r requirements-ci.txt
 
       - name: Collect live prices
+        if: steps.oracle_check.outputs.oracle_active == 'false'
         run: |
           echo "=== Collecting live prices from 615 matched pairs ==="
           python -m src.live.collector --live-pairs
@@ -60,6 +77,7 @@ jobs:
           "
 
       - name: Paper trade (Tier 1 + 2 only)
+        if: steps.oracle_check.outputs.oracle_active == 'false'
         run: |
           echo "=== Training models and running inference ==="
           python -m src.live.paper_trader --skip-tier3
@@ -67,6 +85,7 @@ jobs:
           echo "=== Paper trading complete ==="
 
       - name: Show dashboard
+        if: steps.oracle_check.outputs.oracle_active == 'false'
         run: |
           python -m src.live.dashboard
 
