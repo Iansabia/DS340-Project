@@ -180,16 +180,16 @@ Plans:
 
 ### Phase 07.3: Adaptive Trading System (INSERTED)
 
-**Goal:** Build an adaptive trading system with multi-bar position management, contract-horizon-based bar intervals (4h/1h/15min/5min), and rule-based exit strategy (take-profit, stop-loss, trailing stop, momentum, time-stop, resolution proximity). Deploy on Oracle Cloud VM for 5-minute cron collection.
-**Requirements**: CLASSIFY-TICKERS, CLASSIFY-TIERS, POSITION-TRACK, EXIT-RULES, STRATEGY-ENTRY, STRATEGY-EXIT, STRATEGY-INTEGRATION, MODEL-SAVE-LOAD, ORACLE-DEPLOY, ORACLE-CRON, ORACLE-MEMORY
+**Goal:** Build an adaptive trading system with multi-bar position management, contract-horizon-based bar intervals that ramp up frequency as resolution approaches (daily/15min/1h/4h tiers), and 5 rule-based exit rules (50% TP, 130% SL, 3-bar momentum, tier-based time stops, 24h resolution proximity). Deploy on Oracle Cloud VM for 15-minute cron collection with SQLite-backed position persistence.
+**Requirements**: CLASSIFY-TICKERS, CLASSIFY-TIERS, CLASSIFY-RECLASSIFY, POSITION-TRACK, EXIT-RULES, STRATEGY-ENTRY, STRATEGY-EXIT, STRATEGY-INTEGRATION, MODEL-SAVE-LOAD, TRADING-CYCLE, ORACLE-DEPLOY, ORACLE-CRON, ORACLE-KEEPALIVE, ORACLE-AUTOCOMMIT
 **Depends on:** Phase 7.2
 **Plans:** 4 plans
 
 Plans:
-- [ ] 07.3-01-PLAN.md -- Contract classifier: parse Kalshi tickers to extract resolution dates, classify into tiers (TDD)
-- [ ] 07.3-02-PLAN.md -- Position manager: JSON-backed position tracking with 6 exit rules (TDD)
-- [ ] 07.3-03-PLAN.md -- Trading strategy: combines classifier + position manager + model inference, save/load for BasePredictor
-- [ ] 07.3-04-PLAN.md -- Oracle Cloud deployment: memory-optimized trading cycle, setup script, 5-min cron
+- [ ] 07.3-01-PLAN.md -- Contract classifier: parse 8+ Kalshi ticker formats, API fallback for 374 year-only tickers, 4-tier classification with dynamic reclassification (TDD)
+- [ ] 07.3-02-PLAN.md -- Position manager: SQLite-backed position tracking with 5 exit rules (50% TP, 130% SL, 3-bar momentum, tier-based time stops, resolution proximity) (TDD)
+- [ ] 07.3-03-PLAN.md -- Trading strategy + trading_cycle.py: combines classifier + position manager + model inference, save/load for BasePredictor, LR+XGBoost pickle export
+- [ ] 07.3-04-PLAN.md -- Oracle Cloud deployment: setup script, 15-min cron, keep-alive, hourly auto-commit to GitHub
 
 ### Phase 8: Paper and Presentation
 **Goal**: The final paper and lightning talk slides are complete, presenting the complexity-vs-performance findings as an empirical contribution
