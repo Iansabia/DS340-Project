@@ -2,8 +2,8 @@ name: Collect & Paper Trade
 
 on:
   schedule:
-    # Run every hour for higher-resolution data on short-term contracts
-    - cron: '0 * * * *'
+    # Run every 15 minutes for high-resolution data on short-term contracts
+    - cron: '*/15 * * * *'
   workflow_dispatch:  # Allow manual trigger from GitHub UI
 
 permissions:
