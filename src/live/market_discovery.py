@@ -157,6 +157,76 @@ POLY_GAMMA_MARKETS_URL = "https://gamma-api.polymarket.com/markets"
 # Politics (for nomination / election markets) and Climate.
 KALSHI_DISCOVERY_CATEGORIES = ("Economics", "Crypto", "Financials", "Politics", "Climate")
 
+# Rate-limit handling for Kalshi /events.
+# Kalshi throttles aggressively when we hit /events ~200 times in a row
+# during discovery (Financials has 265 series, Politics 1800+). A blanket
+# 100ms delay is not enough — observed ~40% of /events calls returning
+# HTTP 429 in the middle of a discovery run. We retry each throttled
+# request up to KALSHI_MAX_RETRIES times with exponential backoff.
+KALSHI_MAX_RETRIES = 4
+KALSHI_RETRY_BASE_DELAY = 1.0  # seconds; doubles on each retry
+KALSHI_EVENTS_BASE_DELAY = 0.25  # per-series pacing between /events calls
+
+
+def _kalshi_events_get_with_retry(
+    session,
+    url: str,
+    params: dict,
+    series_ticker: str,
+) -> dict | None:
+    """GET Kalshi /events with 429-aware exponential backoff.
+
+    Returns the parsed JSON dict on success, or ``None`` if all retries
+    are exhausted. A None return should be treated as "skip this series"
+    by the caller — it is ALWAYS logged at WARNING so gaps are visible.
+    """
+    for attempt in range(KALSHI_MAX_RETRIES + 1):
+        try:
+            r = session.get(url, params=params, timeout=30)
+        except Exception as e:
+            logger.warning(
+                "Kalshi /events network error for %s (attempt %d/%d): %s",
+                series_ticker, attempt + 1, KALSHI_MAX_RETRIES + 1, e,
+            )
+            if attempt >= KALSHI_MAX_RETRIES:
+                return None
+            time.sleep(KALSHI_RETRY_BASE_DELAY * (2 ** attempt))
+            continue
+
+        status = getattr(r, "status_code", 200)
+        if status == 429:
+            if attempt >= KALSHI_MAX_RETRIES:
+                logger.warning(
+                    "Kalshi /events 429 for %s after %d retries — skipping",
+                    series_ticker, KALSHI_MAX_RETRIES,
+                )
+                return None
+            backoff = KALSHI_RETRY_BASE_DELAY * (2 ** attempt)
+            logger.info(
+                "Kalshi /events 429 for %s (attempt %d) — sleeping %.1fs",
+                series_ticker, attempt + 1, backoff,
+            )
+            time.sleep(backoff)
+            continue
+
+        if status >= 400:
+            logger.warning(
+                "Kalshi /events HTTP %d for %s — skipping",
+                status, series_ticker,
+            )
+            return None
+
+        try:
+            return r.json() or {}
+        except Exception as e:
+            logger.warning(
+                "Kalshi /events JSON decode failed for %s: %s",
+                series_ticker, e,
+            )
+            return None
+
+    return None
+
 
 def fetch_active_kalshi_markets(
     categories: tuple[str, ...] | list[str] = KALSHI_DISCOVERY_CATEGORIES,
@@ -209,6 +279,11 @@ def fetch_active_kalshi_markets(
             if not series_ticker:
                 continue
 
+            # Per-series pacing: keeps us under Kalshi's /events rate
+            # limit when iterating 200+ series in a row. The retry
+            # helper handles spikes that still get throttled.
+            time.sleep(KALSHI_EVENTS_BASE_DELAY)
+
             cursor: str | None = None
             while True:
                 params: dict[str, Any] = {
@@ -219,16 +294,14 @@ def fetch_active_kalshi_markets(
                 }
                 if cursor:
                     params["cursor"] = cursor
-                try:
-                    r = session.get(
-                        f"{KALSHI_BASE_URL}/events", params=params, timeout=30
-                    )
-                    r.raise_for_status()
-                    data = r.json() or {}
-                except Exception as e:
-                    logger.debug(
-                        "Kalshi /events failed for %s: %s", series_ticker, e
-                    )
+                data = _kalshi_events_get_with_retry(
+                    session,
+                    f"{KALSHI_BASE_URL}/events",
+                    params,
+                    series_ticker,
+                )
+                if data is None:
+                    # Retry helper already logged; skip this series.
                     break
 
                 events = data.get("events") or []

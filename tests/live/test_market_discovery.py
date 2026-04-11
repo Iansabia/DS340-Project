@@ -131,6 +131,170 @@ class TestFetchKalshiNullSeriesHandling:
         assert result == []
 
 
+class TestFetchKalshi429Retry:
+    """Regression: Kalshi's /events endpoint rate-limits aggressively.
+
+    Hitting it ~265 times back-to-back (Financials series list) used to
+    trigger HTTP 429 on roughly half the series. The original fetch
+    swallowed the exception at DEBUG level and silently dropped every
+    market from the throttled series, producing non-deterministic output
+    (different commodity series in active_matches.json on each run).
+
+    The fix: retry 429s with exponential backoff, and log at WARNING
+    level when retries are exhausted so the gap is visible."""
+
+    def _make_fake_module(self, events_responses):
+        """Build a fake requests module.
+
+        ``events_responses`` is a dict {series_ticker: list-of-status-codes}.
+        Each /events call for that series pops the next status code from
+        the list — once exhausted, returns 200 with real data.
+        """
+        import src.live.market_discovery as md  # noqa: F401
+
+        class HTTPError(Exception):
+            pass
+
+        class FakeResp:
+            def __init__(self, status_code, payload):
+                self.status_code = status_code
+                self._payload = payload
+
+            def raise_for_status(self):
+                if self.status_code >= 400:
+                    err = HTTPError(f"{self.status_code} Error")
+                    err.response = self
+                    raise err
+
+            def json(self):
+                return self._payload
+
+        series_payload = {
+            "series": [
+                {"ticker": "KXWTIMIN"},
+                {"ticker": "KXWTIMINM"},
+            ]
+        }
+
+        def events_payload_for(ticker):
+            return {
+                "events": [
+                    {
+                        "event_ticker": f"{ticker}-EVT",
+                        "markets": [
+                            {
+                                "ticker": f"{ticker}-26DEC31-T85",
+                                "title": f"Will {ticker} hit $85?",
+                            }
+                        ],
+                    }
+                ]
+            }
+
+        class FakeSession:
+            def __init__(self, _responses):
+                self.headers = {}
+                self._responses = {k: list(v) for k, v in _responses.items()}
+                self.call_log = []
+
+            def get(self, url, params=None, timeout=None):
+                params = params or {}
+                self.call_log.append((url, dict(params)))
+                if "/series" in url:
+                    return FakeResp(200, series_payload)
+                # /events
+                st = params.get("series_ticker")
+                queue = self._responses.get(st, [])
+                if queue:
+                    code = queue.pop(0)
+                    if code != 200:
+                        return FakeResp(code, {})
+                return FakeResp(200, events_payload_for(st))
+
+        session_instance = {"s": None}
+
+        def _session_factory():
+            s = FakeSession(events_responses)
+            session_instance["s"] = s
+            return s
+
+        fake_http_error = HTTPError
+
+        class FakeExceptions:
+            pass
+        FakeExceptions.HTTPError = fake_http_error
+
+        class FakeRequests:
+            Session = _session_factory
+            exceptions = FakeExceptions
+
+        return FakeRequests, session_instance
+
+    def test_429_on_events_is_retried_and_recovers(self, monkeypatch):
+        """First /events call for KXWTIMIN returns 429, retry succeeds."""
+        import src.live.market_discovery as md
+
+        fake_requests, session_instance = self._make_fake_module(
+            {"KXWTIMIN": [429], "KXWTIMINM": []}
+        )
+        monkeypatch.setitem(
+            __import__("sys").modules, "requests", fake_requests
+        )
+        monkeypatch.setattr(md.time, "sleep", lambda *a, **k: None)
+
+        markets = md.fetch_active_kalshi_markets(
+            categories=("Financials",),
+            max_series_per_category=10,
+        )
+
+        tickers = sorted(m["ticker"] for m in markets)
+        # Both series must produce a market (no silent drop)
+        assert tickers == ["KXWTIMIN-26DEC31-T85", "KXWTIMINM-26DEC31-T85"]
+
+        # KXWTIMIN's /events should have been called at least twice
+        # (first 429 + retry). The series list call + 2 events calls for
+        # KXWTIMIN + 1 for KXWTIMINM + 1 series call = 4+ total.
+        s = session_instance["s"]
+        events_for_min = [
+            c for c in s.call_log
+            if "/events" in c[0] and c[1].get("series_ticker") == "KXWTIMIN"
+        ]
+        assert len(events_for_min) >= 2, (
+            f"expected retry for KXWTIMIN, got {len(events_for_min)} call(s)"
+        )
+
+    def test_persistent_429_logs_warning_and_continues(
+        self, monkeypatch, caplog
+    ):
+        """If /events returns 429 on every retry, skip the series with a
+        WARNING (not silent DEBUG) so the gap is visible in logs."""
+        import logging as _logging
+        import src.live.market_discovery as md
+
+        # Return 429 many times — more than any sane retry count.
+        fake_requests, _ = self._make_fake_module(
+            {"KXWTIMIN": [429] * 20, "KXWTIMINM": []}
+        )
+        monkeypatch.setitem(
+            __import__("sys").modules, "requests", fake_requests
+        )
+        monkeypatch.setattr(md.time, "sleep", lambda *a, **k: None)
+
+        with caplog.at_level(_logging.WARNING, logger="src.live.market_discovery"):
+            markets = md.fetch_active_kalshi_markets(
+                categories=("Financials",),
+                max_series_per_category=10,
+            )
+
+        # KXWTIMINM still works
+        tickers = {m["ticker"] for m in markets}
+        assert "KXWTIMINM-26DEC31-T85" in tickers
+        # KXWTIMIN was silently dropped — but we must have logged the failure
+        messages = " ".join(r.getMessage() for r in caplog.records)
+        assert "KXWTIMIN" in messages
+        assert "429" in messages or "rate" in messages.lower()
+
+
 class TestIsMatchableKalshiMarket:
     def test_accepts_simple_title(self):
         m = {
