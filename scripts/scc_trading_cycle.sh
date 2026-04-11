@@ -106,6 +106,14 @@ else
     TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
     if git commit -q -m "auto: scc update ${TIMESTAMP}"; then
         log "committed"
+        # Rebase onto anything that landed while we were running
+        # (common case: a developer pushed to master mid-cycle, or
+        # the discovery batch job pushed its own commit). Without
+        # this, our push gets rejected as non-fast-forward and we
+        # silently skip the cycle's result.
+        if ! git pull --rebase -q --autostash; then
+            log "WARN: pre-push rebase failed"
+        fi
         if git push -q; then
             log "pushed successfully"
         else
