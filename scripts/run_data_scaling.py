@@ -110,12 +110,18 @@ def _slice_train_by_bars_per_pair(train_df, bars_per_pair: int):
     )
 
 
-def _load_train_test(data_dir: Path):
+def _load_train_test(data_dir: Path, include_category: bool = False):
     """Load train.parquet + test.parquet and compute the spread-change target.
 
     Mirrors experiments/run_baselines.py::_build_split without the torch
     dependency chain: per-pair next-bar minus current-bar spread, drop
     rows where the target or spread is NaN, fill remaining NaNs with 0.
+
+    If ``include_category`` is True, derives a ``category`` column from
+    each pair_id and one-hot encodes it. The resulting category indicator
+    columns are prefixed ``cat_`` so the feature selector can pick them
+    up with no extra config. Empty strings fall back to a dedicated
+    ``cat_other`` column so models always see a complete one-hot.
     """
     import pandas as pd  # lazy
 
@@ -136,6 +142,29 @@ def _load_train_test(data_dir: Path):
 
     train = _build_split(pd.read_parquet(train_path))
     test = _build_split(pd.read_parquet(test_path))
+
+    if include_category:
+        from src.features.category import (
+            CATEGORIES,
+            derive_category_from_pair_id,
+        )
+
+        train["category"] = train["pair_id"].apply(derive_category_from_pair_id)
+        test["category"] = test["pair_id"].apply(derive_category_from_pair_id)
+
+        # One-hot encode so linear models get per-category intercepts.
+        # Tree models handle this fine too (they just learn splits on each
+        # indicator). Force ALL categories into the column set even if
+        # some are absent from this slice — makes columns identical
+        # between train and test.
+        for cat in CATEGORIES:
+            col = f"cat_{cat}"
+            train[col] = (train["category"] == cat).astype(float)
+            test[col] = (test["category"] == cat).astype(float)
+        # Drop the string column — only the one-hot indicators are used.
+        train = train.drop(columns=["category"])
+        test = test.drop(columns=["category"])
+
     return train, test
 
 
@@ -268,12 +297,22 @@ def run_checkpoint(
     bars_per_pair: int,
     data_dir: Path = Path("data/processed"),
     include_tier2: bool | None = None,
+    include_category: bool = False,
 ) -> dict:
-    """Execute one checkpoint: slice data, train all eligible models, log."""
+    """Execute one checkpoint: slice data, train all eligible models, log.
+
+    Args:
+        bars_per_pair: Slice to first N bars per pair.
+        data_dir: Where to find train.parquet / test.parquet.
+        include_tier2: If True, also train GRU/LSTM. Default auto-enables
+            at 100+ bars/pair (see retraining_policy).
+        include_category: If True, derive a ``category`` column from
+            pair_id and add one-hot indicator features. Task #25.
+    """
     if include_tier2 is None:
         include_tier2 = bars_per_pair >= 100  # from retraining_policy
 
-    train_df, test_df = _load_train_test(data_dir)
+    train_df, test_df = _load_train_test(data_dir, include_category=include_category)
     full_rows = len(train_df)
 
     train_sub = _slice_train_by_bars_per_pair(train_df, bars_per_pair)
@@ -309,6 +348,8 @@ def run_checkpoint(
         "full_training_rows": full_rows,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "include_tier2": include_tier2,
+        "include_category": include_category,
+        "n_features": len(feature_cols),
         "metrics_by_model": metrics,
     }
     _append_log(row)
@@ -347,6 +388,15 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Force tier-2 (GRU/LSTM) training even below 100 bars/pair",
     )
+    parser.add_argument(
+        "--include-category",
+        action="store_true",
+        help=(
+            "Task #25: add one-hot category features derived from "
+            "pair_id (crypto, oil, inflation, ...). Use to A/B test "
+            "whether category-conditional rules lift performance."
+        ),
+    )
     args = parser.parse_args(argv)
 
     logging.basicConfig(
@@ -364,6 +414,7 @@ def main(argv: list[str] | None = None) -> int:
             args.bars_per_pair,
             data_dir=data_dir,
             include_tier2=True if args.include_tier2 else None,
+            include_category=args.include_category,
         )
         return 0
 
@@ -374,7 +425,7 @@ def main(argv: list[str] | None = None) -> int:
         last = state.get("last_checkpoint_ran", 0)
 
         # Determine current bars-per-pair from live data + train slice
-        train_df, _ = _load_train_test(data_dir)
+        train_df, _ = _load_train_test(data_dir, include_category=args.include_category)
         bars_per_pair_now = int(train_df.groupby("pair_id").size().median())
         logger.info("Current median bars/pair in training set: %d", bars_per_pair_now)
 
@@ -385,7 +436,7 @@ def main(argv: list[str] | None = None) -> int:
             if cp > bars_per_pair_now:
                 logger.info("Checkpoint %d > current %d — stopping", cp, bars_per_pair_now)
                 break
-            run_checkpoint(cp, data_dir=data_dir)
+            run_checkpoint(cp, data_dir=data_dir, include_category=args.include_category)
             state["last_checkpoint_ran"] = cp
             _save_state(state)
             ran_any = True
