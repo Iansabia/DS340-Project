@@ -213,6 +213,74 @@ _RANKING_KEYWORDS = (
     "ranked first",
 )
 
+# Keywords that indicate a discrete POLICY/EVENT market: will some
+# one-time action happen? These are structurally incompatible with
+# numeric threshold contracts on continuous statistics:
+#
+#   Kalshi: "Will Argentina monthly inflation be above 2.5%?"
+#   Poly:   "Will Argentina dollarize by June 30, 2026?"
+#
+# Both mention Argentina, but one is a continuous statistic with a
+# numeric threshold and the other is a one-time policy decision.
+_POLICY_EVENT_KEYWORDS = (
+    "dollarize",
+    "legalize",
+    "adopt as legal tender",
+    "adopt bitcoin",
+    "enact",
+    "ratify",
+    "impeach",
+    "resign",
+    "be fired",
+    "declare war",
+    "invade",
+    "sign the",
+    "sign into law",
+    "pass the bill",
+    "overturn",
+    "repeal",
+    "ceasefire",
+)
+
+# Map 3-letter month codes in Kalshi tickers -> month number.
+_MONTH_CODES = {
+    "JAN": 1, "FEB": 2, "MAR": 3, "APR": 4, "MAY": 5, "JUN": 6,
+    "JUL": 7, "AUG": 8, "SEP": 9, "OCT": 10, "NOV": 11, "DEC": 12,
+}
+
+# Full month names we look for inside Polymarket titles.
+_MONTH_NAMES = {
+    "january": 1, "february": 2, "march": 3, "april": 4, "may": 5,
+    "june": 6, "july": 7, "august": 8, "september": 9, "october": 10,
+    "november": 11, "december": 12,
+}
+
+
+def _extract_month_from_kalshi_ticker(ticker: str) -> int | None:
+    """Return the month number encoded in a Kalshi ticker, or None.
+
+    Looks for patterns like ``-26DEC-`` or ``-26JUN`` and returns 12 or
+    6 respectively.
+    """
+    if not ticker:
+        return None
+    m = re.search(r"-\d{2}(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)", ticker.upper())
+    if m:
+        return _MONTH_CODES[m.group(1)]
+    return None
+
+
+def _extract_month_from_text(text: str) -> int | None:
+    """Return the first month number mentioned in a free-text title."""
+    if not text:
+        return None
+    t = text.lower()
+    for name, num in _MONTH_NAMES.items():
+        # Word-boundary check so "march" doesn't match "marcher" etc.
+        if re.search(rf"\b{name}\b", t):
+            return num
+    return None
+
 
 def _kalshi_is_threshold_contract(ticker: str, title: str) -> bool:
     """Return True if this looks like a numeric-threshold Kalshi contract.
@@ -343,6 +411,16 @@ def filter_active_match(match: dict) -> tuple[bool, str | None]:
             # The Poly market is almost certainly the near-term Fed decision
             if "fed" in p_title_l and ("april" in p_title_l or "june" in p_title_l or "july" in p_title_l):
                 return False, f"fed_year_mismatch (kalshi={k_year}, poly=implicit-2026)"
+        # Month mismatch within the same year: KXFEDDECISION-26DEC vs
+        # "Fed decision after the June meeting" — both 2026 but different
+        # meetings, so the contracts don't overlap.
+        k_month = _extract_month_from_kalshi_ticker(ticker)
+        p_month = _extract_month_from_text(p_title)
+        if k_month is not None and p_month is not None and k_month != p_month:
+            return False, (
+                f"fed_month_mismatch (kalshi_month={k_month}, "
+                f"poly_month={p_month})"
+            )
 
     # --- Rule 3: cross-topic cabinet vs nomination/election ---
     if _has_any(k_title_l, _CABINET_KEYWORDS) and _has_any(p_title_l, _NOMINATION_KEYWORDS):
@@ -357,6 +435,15 @@ def filter_active_match(match: dict) -> tuple[bool, str | None]:
     if _has_any(p_title_l, _RANKING_KEYWORDS):
         if _kalshi_is_threshold_contract(ticker, k_title):
             return False, "threshold_vs_ranking"
+
+    # --- Rule 3c: numeric threshold contract vs policy/event market ---
+    # Kalshi "Argentina monthly inflation > 2.5%" vs Polymarket "Will
+    # Argentina dollarize?" — both mention Argentina but one is a
+    # continuous statistic and the other is a one-time policy action.
+    # Same structural pattern as 3b, different vocabulary.
+    if _has_any(p_title_l, _POLICY_EVENT_KEYWORDS):
+        if _kalshi_is_threshold_contract(ticker, k_title):
+            return False, "threshold_vs_policy_event"
 
     # Extract year from the Kalshi ticker itself (authoritative) and
     # from both titles (supplementary).

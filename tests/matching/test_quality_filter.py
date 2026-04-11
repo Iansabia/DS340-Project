@@ -315,7 +315,63 @@ class TestFilterActiveMatch:
         ok, reason = filter_active_match(match)
         assert ok is True
 
-    # ----- Bad pattern 6: Low similarity safety net -----
+    # ----- Bad pattern 6: Fed month mismatch within same year -----
+
+    def test_rejects_fed_december_vs_june_same_year(self):
+        """KXFEDDECISION-26DEC-* (December 2026) matched against a
+        Polymarket question about the June 2026 meeting. Same year so
+        fed_year_mismatch doesn't fire — need month awareness."""
+        match = {
+            "kalshi_ticker": "KXFEDDECISION-26DEC-C25",
+            "kalshi_title": "Will the Federal Reserve Cut rates by 25bps at their December 2026 meeting?",
+            "poly_title": "Will the Fed decrease interest rates by 25 bps after the June meeting?",
+            "similarity": 0.83,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+        assert "fed" in reason.lower() and ("month" in reason.lower() or "mismatch" in reason.lower())
+
+    def test_accepts_fed_same_month(self):
+        """Regression: KXFEDDECISION-26JUN-* vs a 'June meeting' question
+        is a LEGITIMATE match and must still pass."""
+        match = {
+            "kalshi_ticker": "KXFEDDECISION-26JUN-C25",
+            "kalshi_title": "Will the Federal Reserve Cut rates by 25bps at their June 2026 meeting?",
+            "poly_title": "Will the Fed decrease interest rates by 25 bps after the June meeting?",
+            "similarity": 0.85,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is True, f"Rejected same-month Fed pair: {reason}"
+
+    # ----- Bad pattern 7: threshold contract vs policy/event market -----
+
+    def test_rejects_argentina_inflation_vs_dollarize(self):
+        """KXARMOMINF (Argentina monthly inflation, numeric threshold)
+        matched against 'Will Argentina dollarize?'. They share the
+        word 'Argentina' but are totally different question types —
+        continuous statistic vs binary policy decision."""
+        match = {
+            "kalshi_ticker": "KXARMOMINF-26APR14-T2.5",
+            "kalshi_title": "Will Argentina monthly inflation be above 2.5% in April 2026?",
+            "poly_title": "Will Argentina dollarize by June 30, 2026?",
+            "similarity": 0.75,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+        # Accept either new reason wording
+        assert any(k in reason.lower() for k in ("threshold", "policy", "event", "ranking"))
+
+    def test_rejects_threshold_vs_adoption_event(self):
+        match = {
+            "kalshi_ticker": "KXBTC-26JUN30-T150000",
+            "kalshi_title": "Will Bitcoin be above $150000 on June 30, 2026?",
+            "poly_title": "Will any country adopt Bitcoin as legal tender in 2026?",
+            "similarity": 0.78,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+
+    # ----- Bad pattern 8: Low similarity safety net -----
 
     def test_rejects_low_similarity(self):
         """Anything under the similarity floor is rejected regardless of content."""
