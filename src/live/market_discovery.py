@@ -69,10 +69,25 @@ def make_match_key(match: dict) -> tuple[str, str]:
     )
 
 
+# Default pairs-not-seen-recently TTL. Discovery runs every 3 hours so
+# 7 days = 56 runs; a pair needs to miss 56 consecutive runs to get
+# tombstoned. Empirically this drops the 615 pre-upsert-era zombie
+# pairs (no last_seen at all) on the first post-fix discovery run
+# without touching any currently-active pair.
+DEFAULT_EVICTION_TTL_SECONDS = 7 * 24 * 3600
+
+
+def _is_tombstone(m: dict) -> bool:
+    """Return True if a merged entry is an evicted tombstone."""
+    return bool(m.get("evicted"))
+
+
 def upsert_active_matches(
     existing: list[dict],
     new_matches: list[dict],
     now_ts: int | None = None,
+    eviction_ttl_seconds: int = DEFAULT_EVICTION_TTL_SECONDS,
+    protected_indices: set[int] | None = None,
 ) -> tuple[list[dict], dict]:
     """Merge fresh discovery results into the existing match list.
 
@@ -82,23 +97,43 @@ def upsert_active_matches(
         new_matches: Matches from the most recent discovery run.
         now_ts: Unix timestamp for discovered_at/last_seen. Defaults to
             current time when omitted.
+        eviction_ttl_seconds: Pairs not seen in this many seconds get
+            tombstoned in place. Tombstones preserve array index so
+            pair_ids (live_NNNN derived from index) stay stable, but
+            are rejected by the collector's quality filter because
+            their kalshi_ticker is cleared.
+        protected_indices: Set of array indices that must never be
+            tombstoned, even if stale. Used by ``run_discovery`` to
+            pass in indices referenced by open positions so the
+            collector can keep pricing until the position closes.
 
     Returns:
         (merged, stats) where:
           - merged: updated list with existing indices preserved and
             new pairs appended.
-          - stats: {added, updated, stale, total} counts.
+          - stats: {added, updated, stale, evicted, total} counts.
     """
     if now_ts is None:
         now_ts = int(time.time())
 
-    # Index existing by stable key.
-    existing_by_key: dict[tuple[str, str], int] = {
-        make_match_key(m): i for i, m in enumerate(existing)
-    }
-
     # Start with a deep-ish copy of existing so we can update in place.
     merged: list[dict] = [dict(m) for m in existing]
+
+    # Build two indices:
+    #   active_by_key:     live (non-tombstone) pair key -> index
+    #   evicted_by_prev:   tombstone prev_key -> index (for revival)
+    active_by_key: dict[tuple[str, str], int] = {}
+    evicted_by_prev: dict[tuple[str, str], int] = {}
+    for i, m in enumerate(merged):
+        if _is_tombstone(m):
+            prev_key = (
+                (m.get("prev_kalshi_ticker") or "").strip(),
+                str(m.get("prev_poly_id") or "").strip(),
+            )
+            if prev_key != ("", ""):
+                evicted_by_prev[prev_key] = i
+        else:
+            active_by_key[make_match_key(m)] = i
 
     # Dedupe new_matches within this batch (last-write-wins on same key).
     new_by_key: dict[tuple[str, str], dict] = {}
@@ -107,11 +142,12 @@ def upsert_active_matches(
 
     added = 0
     updated = 0
+    revived = 0
 
     for key, nm in new_by_key.items():
-        if key in existing_by_key:
-            # Existing pair: refresh numeric + title fields, bump last_seen.
-            idx = existing_by_key[key]
+        if key in active_by_key:
+            # Existing live pair: refresh numeric + title fields, bump last_seen.
+            idx = active_by_key[key]
             target = merged[idx]
             for field in _REFRESHABLE_FIELDS:
                 if field in nm:
@@ -119,6 +155,16 @@ def upsert_active_matches(
             target["last_seen"] = now_ts
             target.setdefault("discovered_at", target.get("discovered_at", now_ts))
             updated += 1
+        elif key in evicted_by_prev:
+            # Tombstone for this exact pair is being rediscovered.
+            # Replace the tombstone with a fresh live entry at the
+            # same index so pair_id stays stable.
+            idx = evicted_by_prev[key]
+            revived_entry = dict(nm)
+            revived_entry["discovered_at"] = now_ts
+            revived_entry["last_seen"] = now_ts
+            merged[idx] = revived_entry
+            revived += 1
         else:
             # Brand-new pair: append with fresh timestamps.
             appended = dict(nm)
@@ -127,20 +173,64 @@ def upsert_active_matches(
             merged.append(appended)
             added += 1
 
-    # Count stale pairs (existing but not seen in this batch).
+    # --- Tombstone pairs that haven't been seen for > TTL ---
+    # Runs AFTER the update/add phase so pairs rediscovered this run
+    # can't be evicted (their last_seen was just refreshed).
+    protected = protected_indices or set()
+    newly_evicted = 0
+    protected_skipped = 0
+    for i, pair in enumerate(merged):
+        if _is_tombstone(pair):
+            continue
+        last_seen = pair.get("last_seen") or 0
+        # Zero or missing last_seen means the pair predates the upsert
+        # timestamping era — these are all zombies and should be evicted.
+        stale = last_seen == 0 or (now_ts - last_seen) > eviction_ttl_seconds
+        if not stale:
+            continue
+        if i in protected:
+            # Pair has an open position — keep it alive so the collector
+            # can price it until the position closes. Log so we can audit
+            # why a stale pair is still in the active set.
+            protected_skipped += 1
+            continue
+        merged[i] = {
+            "evicted": True,
+            "evicted_at": now_ts,
+            "kalshi_ticker": "",   # triggers missing_kalshi_ticker filter
+            "poly_id": "",
+            "prev_kalshi_ticker": pair.get("kalshi_ticker", ""),
+            "prev_poly_id": pair.get("poly_id", ""),
+        }
+        newly_evicted += 1
+
+    # Legacy: count stale pairs (existing but not seen in this batch)
+    # for backward-compatible stats consumers. "stale" predates
+    # eviction and just means "wasn't in the current new_matches batch";
+    # it's always >= newly_evicted.
     new_key_set = set(new_by_key.keys())
-    stale = sum(1 for k in existing_by_key if k not in new_key_set)
+    stale = sum(1 for k in active_by_key if k not in new_key_set)
+
+    active_count = sum(1 for m in merged if not _is_tombstone(m))
+    tombstone_count = len(merged) - active_count
 
     stats = {
         "total": len(merged),
+        "active": active_count,
+        "tombstones": tombstone_count,
         "added": added,
         "updated": updated,
+        "revived": revived,
         "stale": stale,
+        "evicted": newly_evicted,
+        "protected_skipped": protected_skipped,
         "run_ts": now_ts,
     }
     logger.info(
-        "upsert_active_matches: added=%d updated=%d stale=%d total=%d",
-        added, updated, stale, len(merged),
+        "upsert_active_matches: added=%d updated=%d revived=%d evicted=%d "
+        "protected=%d stale=%d active=%d tombstones=%d total=%d",
+        added, updated, revived, newly_evicted, protected_skipped,
+        stale, active_count, tombstone_count, len(merged),
     )
     return merged, stats
 
@@ -662,6 +752,51 @@ def match_markets(
 # ----------------------------------------------------------------------
 
 
+def _load_protected_indices(live_dir: Path) -> set[int]:
+    """Return the set of array indices that must not be evicted.
+
+    Reads open positions from ``positions.db`` and converts each
+    ``pair_id`` (``live_NNNN``) into its integer index. Missing DB or
+    missing table is not an error — discovery just has nothing to
+    protect.
+    """
+    import sqlite3
+
+    db_path = live_dir / "positions.db"
+    if not db_path.exists():
+        return set()
+    try:
+        conn = sqlite3.connect(str(db_path))
+        try:
+            cur = conn.cursor()
+            # The open-positions table is "positions" (closed rows live
+            # in "closed_positions"). Only live_NNNN pair_ids map to
+            # array indices; anything else (offline training pair_ids)
+            # is silently skipped.
+            cur.execute("SELECT pair_id FROM positions")
+            rows = cur.fetchall()
+        finally:
+            conn.close()
+    except sqlite3.Error as e:
+        logger.warning("Could not read positions.db for protection set: %s", e)
+        return set()
+
+    protected: set[int] = set()
+    for (pid,) in rows:
+        if not isinstance(pid, str) or not pid.startswith("live_"):
+            continue
+        try:
+            protected.add(int(pid.split("_", 1)[1]))
+        except (IndexError, ValueError):
+            continue
+    if protected:
+        logger.info(
+            "Loaded %d protected pair_ids (open positions) for eviction guard",
+            len(protected),
+        )
+    return protected
+
+
 def run_discovery(
     live_dir: Path = Path("data/live"),
     similarity_threshold: float = 0.70,
@@ -688,8 +823,14 @@ def run_discovery(
     else:
         existing = []
 
-    # 4. Upsert
-    merged, stats = upsert_active_matches(existing, new_matches)
+    # 4. Upsert (protecting indices referenced by open positions so
+    #    eviction can't pull the rug out from under live trading).
+    protected_indices = _load_protected_indices(live_dir)
+    merged, stats = upsert_active_matches(
+        existing,
+        new_matches,
+        protected_indices=protected_indices,
+    )
 
     # 5. Save
     with open(matches_path, "w") as f:
@@ -698,4 +839,5 @@ def run_discovery(
     stats["kalshi_fetched"] = len(kalshi)
     stats["poly_fetched"] = len(poly)
     stats["new_matches_this_run"] = len(new_matches)
+    stats["protected_indices_count"] = len(protected_indices)
     return stats

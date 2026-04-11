@@ -473,3 +473,178 @@ class TestUpsertActiveMatches:
         assert len(merged) == 2
         # Later duplicate wins (more recent data)
         assert merged[0]["similarity"] == 0.85
+
+
+class TestUpsertEviction:
+    """Task #30: stale pair eviction.
+
+    Pairs that haven't been re-discovered for N seconds (default 7 days)
+    should be TOMBSTONED in place so that:
+
+      1. The collector naturally skips them (the existing
+         missing_kalshi_ticker rule already rejects empty tickers).
+      2. The array index is preserved so open positions referencing
+         pair_id ``live_0100`` stay pointed at the same underlying pair.
+      3. Discovery can revive an evicted pair later if the same
+         (kalshi_ticker, poly_id) shows up again.
+
+    This is necessary because 615 pairs from the pre-upsert-era (no
+    last_seen field at all, plus legacy numeric poly_ids that don't
+    resolve in Gamma) were persisting indefinitely despite being
+    effectively dead.
+    """
+
+    TTL = 7 * 24 * 3600  # match the default
+
+    def test_evicts_pair_with_zero_last_seen(self):
+        """Legacy pairs from the pre-upsert era have last_seen=0 or missing."""
+        existing = [
+            # Missing last_seen entirely (ancient)
+            {"kalshi_ticker": "KXOLD-1", "poly_id": "OLD", "similarity": 0.8},
+            # Explicit last_seen=0
+            {"kalshi_ticker": "KXOLD-2", "poly_id": "ZERO", "similarity": 0.8, "last_seen": 0},
+        ]
+        # now_ts is well past any reasonable TTL boundary
+        merged, stats = upsert_active_matches(existing, [], now_ts=2_000_000)
+        assert len(merged) == 2, "array length must stay stable (tombstone in place)"
+        assert merged[0].get("evicted") is True
+        assert merged[1].get("evicted") is True
+        assert merged[0].get("kalshi_ticker") == ""  # so filter rejects
+        assert merged[1].get("kalshi_ticker") == ""
+        assert stats["evicted"] == 2
+
+    def test_evicts_pair_older_than_ttl(self):
+        """Pair last seen longer than TTL ago is tombstoned."""
+        last_seen_old = 1_000_000
+        now_ts = last_seen_old + self.TTL + 3600  # 1h past TTL
+        existing = [
+            {"kalshi_ticker": "KXSTALE-1", "poly_id": "S", "similarity": 0.8,
+             "last_seen": last_seen_old, "discovered_at": last_seen_old},
+        ]
+        merged, stats = upsert_active_matches(existing, [], now_ts=now_ts)
+        assert len(merged) == 1
+        assert merged[0].get("evicted") is True
+        assert stats["evicted"] == 1
+
+    def test_keeps_pair_within_ttl(self):
+        """Pair last seen within TTL is preserved even if not in new batch."""
+        last_seen = 1_000_000
+        now_ts = last_seen + self.TTL - 3600  # 1h before TTL boundary
+        existing = [
+            {"kalshi_ticker": "KXOK-1", "poly_id": "OK", "similarity": 0.8,
+             "last_seen": last_seen, "discovered_at": last_seen},
+        ]
+        merged, stats = upsert_active_matches(existing, [], now_ts=now_ts)
+        assert len(merged) == 1
+        assert merged[0].get("evicted") is not True
+        assert merged[0]["kalshi_ticker"] == "KXOK-1"
+        assert stats["evicted"] == 0
+
+    def test_newly_seen_pair_never_evicted(self):
+        """If a pair is in new_matches, its last_seen is refreshed first so
+        it can never be evicted in the same run."""
+        last_seen_ancient = 0  # would normally be evicted
+        existing = [
+            {"kalshi_ticker": "KXREV-1", "poly_id": "R", "similarity": 0.8,
+             "last_seen": last_seen_ancient},
+        ]
+        new = [
+            {"kalshi_ticker": "KXREV-1", "poly_id": "R", "similarity": 0.85},
+        ]
+        merged, stats = upsert_active_matches(existing, new, now_ts=2_000_000)
+        assert len(merged) == 1
+        assert merged[0].get("evicted") is not True
+        assert merged[0]["last_seen"] == 2_000_000
+        assert merged[0]["similarity"] == 0.85
+        assert stats["evicted"] == 0
+
+    def test_eviction_preserves_array_index(self):
+        """CRITICAL: open positions reference pair_ids (live_0000, live_0001...)
+        which are derived from the array index. Evicting entry 1 must NOT
+        shift entry 2 down to index 1."""
+        existing = [
+            {"kalshi_ticker": "KXFRESH-0", "poly_id": "F0", "similarity": 0.9,
+             "last_seen": 2_000_000},
+            {"kalshi_ticker": "KXSTALE-1", "poly_id": "S1", "similarity": 0.8,
+             "last_seen": 0},  # will be evicted
+            {"kalshi_ticker": "KXFRESH-2", "poly_id": "F2", "similarity": 0.9,
+             "last_seen": 2_000_000},
+        ]
+        merged, _ = upsert_active_matches(existing, [], now_ts=2_000_000)
+        assert len(merged) == 3
+        assert merged[0]["kalshi_ticker"] == "KXFRESH-0"
+        assert merged[1].get("evicted") is True
+        assert merged[2]["kalshi_ticker"] == "KXFRESH-2"
+
+    def test_evicted_pair_records_original_identity(self):
+        """For debugging: the tombstone should remember what it used to be."""
+        existing = [
+            {"kalshi_ticker": "KXWTI-OLD-1", "poly_id": "1712297",
+             "similarity": 0.82, "kalshi_title": "Will WTI settle > $100?",
+             "last_seen": 0},
+        ]
+        merged, _ = upsert_active_matches(existing, [], now_ts=2_000_000)
+        assert merged[0].get("evicted") is True
+        # Should preserve original identity so we can audit what was evicted
+        assert merged[0].get("prev_kalshi_ticker") == "KXWTI-OLD-1"
+        assert merged[0].get("prev_poly_id") == "1712297"
+        assert merged[0].get("evicted_at") == 2_000_000
+
+    def test_already_evicted_pair_stays_evicted(self):
+        """Tombstones are sticky — they don't get re-checked each run."""
+        existing = [
+            {"evicted": True, "evicted_at": 1_000_000,
+             "kalshi_ticker": "", "poly_id": "",
+             "prev_kalshi_ticker": "KXOLD-1", "prev_poly_id": "X"},
+        ]
+        merged, stats = upsert_active_matches(existing, [], now_ts=2_000_000)
+        assert len(merged) == 1
+        assert merged[0].get("evicted") is True
+        assert merged[0].get("evicted_at") == 1_000_000  # not overwritten
+        assert stats["evicted"] == 0  # already evicted doesn't count again
+
+    def test_protected_indices_skip_eviction(self):
+        """Open positions hold pair_id references derived from array
+        indices. If an index is listed in ``protected_indices``, even
+        an obviously-stale pair at that index must NOT be tombstoned,
+        so the collector can keep pricing the position until it closes."""
+        existing = [
+            {"kalshi_ticker": "KXSTALE-0", "poly_id": "S0", "similarity": 0.8,
+             "last_seen": 0},
+            {"kalshi_ticker": "KXSTALE-1", "poly_id": "S1", "similarity": 0.8,
+             "last_seen": 0},
+            {"kalshi_ticker": "KXSTALE-2", "poly_id": "S2", "similarity": 0.8,
+             "last_seen": 0},
+        ]
+        merged, stats = upsert_active_matches(
+            existing,
+            [],
+            now_ts=2_000_000,
+            protected_indices={1},  # index 1 has an open position
+        )
+        assert len(merged) == 3
+        assert merged[0].get("evicted") is True
+        # Index 1 must survive despite being stale
+        assert merged[1].get("evicted") is not True
+        assert merged[1]["kalshi_ticker"] == "KXSTALE-1"
+        assert merged[2].get("evicted") is True
+        assert stats["evicted"] == 2
+
+    def test_revive_evicted_pair_on_rediscovery(self):
+        """If an evicted pair's (kalshi_ticker, poly_id) matches a new
+        discovery, the tombstone is reanimated — its array index is
+        restored to an active pair. This lets us recover from false
+        evictions without a permanent hole."""
+        existing = [
+            {"evicted": True, "evicted_at": 1_000_000,
+             "kalshi_ticker": "", "poly_id": "",
+             "prev_kalshi_ticker": "KXREV-1", "prev_poly_id": "R"},
+        ]
+        new = [
+            {"kalshi_ticker": "KXREV-1", "poly_id": "R", "similarity": 0.85},
+        ]
+        merged, stats = upsert_active_matches(existing, new, now_ts=2_000_000)
+        assert len(merged) == 1
+        assert merged[0].get("evicted") is not True
+        assert merged[0]["kalshi_ticker"] == "KXREV-1"
+        assert merged[0]["last_seen"] == 2_000_000
