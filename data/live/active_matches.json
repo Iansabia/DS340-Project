@@ -8007,7 +8007,7 @@
     "similarity": 0.7180307507514954,
     "spread": 0.585,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXUE-CAN26APR-6.3",
@@ -8022,7 +8022,7 @@
     "similarity": 0.7180307507514954,
     "spread": 0.56,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXUE-CAN26APR-6.4",
@@ -8034,10 +8034,10 @@
     "poly_title": "Canada recession before 2027?",
     "poly_price": 0.365,
     "poly_vol": 57206.23857200004,
-    "similarity": 0.7180308103561401,
+    "similarity": 0.7180307507514954,
     "spread": 0.495,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXUE-CAN26APR-6.5",
@@ -8052,7 +8052,7 @@
     "similarity": 0.7180307507514954,
     "spread": 0.33,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXUE-CAN26APR-6.6",
@@ -8064,10 +8064,10 @@
     "poly_title": "Canada recession before 2027?",
     "poly_price": 0.365,
     "poly_vol": 57206.23857200004,
-    "similarity": 0.7180308103561401,
+    "similarity": 0.7180307507514954,
     "spread": 0.19,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXUE-CAN26APR-6.7",
@@ -8079,10 +8079,10 @@
     "poly_title": "Canada recession before 2027?",
     "poly_price": 0.365,
     "poly_vol": 57206.23857200004,
-    "similarity": 0.7180308103561401,
+    "similarity": 0.7180307507514954,
     "spread": 0.035,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXUE-CAN26APR-6.8",
@@ -8094,10 +8094,10 @@
     "poly_title": "Canada recession before 2027?",
     "poly_price": 0.365,
     "poly_vol": 57206.23857200004,
-    "similarity": 0.7180308103561401,
+    "similarity": 0.7180307507514954,
     "spread": -0.12,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXUE-CAN26APR-6.9",
@@ -8112,7 +8112,7 @@
     "similarity": 0.7180307507514954,
     "spread": -0.225,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXUE-CAN26APR-7.0",
@@ -8127,7 +8127,7 @@
     "similarity": 0.7180307507514954,
     "spread": -0.325,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXUE-CAN26APR-7.1",
@@ -8142,7 +8142,7 @@
     "similarity": 0.7180307507514954,
     "spread": -0.315,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXZERORATE-2026",
@@ -8812,12 +8812,12 @@
     "kalshi_vol": 0,
     "poly_id": "0x04a83249c976c072e7795b7a00e35ff42ab4c68cf55455ce14d61c2025ff4ddd",
     "poly_title": "Will inflation reach more than 8% in 2026?",
-    "poly_price": 0.1015,
-    "poly_vol": 35135.90798,
+    "poly_price": 0.101,
+    "poly_vol": 35042.81755,
     "similarity": 0.7720063924789429,
-    "spread": 0.8735,
+    "spread": 0.874,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T1.9",
@@ -8828,11 +8828,11 @@
     "poly_id": "0x024418fa74e0a95fe9102b5681b73fdc18b7729edbb6550f6322845084c74fea",
     "poly_title": "Will inflation reach more than 10% in 2026?",
     "poly_price": 0.079,
-    "poly_vol": 46342.73421,
-    "similarity": 0.7596146464347839,
+    "poly_vol": 48174.37025,
+    "similarity": 0.7596144676208496,
     "spread": 0.896,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T2",
@@ -8842,162 +8842,162 @@
     "kalshi_vol": 0,
     "poly_id": "0x1f61db83c47fc787f44997af53d517cc4775e813b169d0b8ae2ad3bff316d052",
     "poly_title": "Will inflation reach more than 4% in 2026?",
-    "poly_price": 0.505,
-    "poly_vol": 80395.04095599991,
-    "similarity": 0.7711700201034546,
-    "spread": 0.46,
+    "poly_price": 0.455,
+    "poly_vol": 81116.85493399992,
+    "similarity": 0.7711701393127441,
+    "spread": 0.51,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T2.1",
     "kalshi_title": "Will Canada inflation rate YoY for March 2026 be above 2.1%?",
     "kalshi_event": "KXCACPIYOY-26APR20",
-    "kalshi_mid": 0.94,
+    "kalshi_mid": 0.9450000000000001,
     "kalshi_vol": 0,
     "poly_id": "0x1f61db83c47fc787f44997af53d517cc4775e813b169d0b8ae2ad3bff316d052",
     "poly_title": "Will inflation reach more than 4% in 2026?",
-    "poly_price": 0.505,
-    "poly_vol": 80395.04095599991,
-    "similarity": 0.7587462067604065,
-    "spread": 0.435,
+    "poly_price": 0.455,
+    "poly_vol": 81116.85493399992,
+    "similarity": 0.7587464451789856,
+    "spread": 0.49,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T2.2",
     "kalshi_title": "Will Canada inflation rate YoY for March 2026 be above 2.2%?",
     "kalshi_event": "KXCACPIYOY-26APR20",
-    "kalshi_mid": 0.9199999999999999,
+    "kalshi_mid": 0.925,
     "kalshi_vol": 0,
     "poly_id": "0x1f61db83c47fc787f44997af53d517cc4775e813b169d0b8ae2ad3bff316d052",
     "poly_title": "Will inflation reach more than 4% in 2026?",
-    "poly_price": 0.505,
-    "poly_vol": 80395.04095599991,
-    "similarity": 0.7565621733665466,
-    "spread": 0.415,
+    "poly_price": 0.455,
+    "poly_vol": 81116.85493399992,
+    "similarity": 0.7565622329711914,
+    "spread": 0.47,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T2.3",
     "kalshi_title": "Will Canada inflation rate YoY for March 2026 be above 2.3%?",
     "kalshi_event": "KXCACPIYOY-26APR20",
-    "kalshi_mid": 0.9099999999999999,
+    "kalshi_mid": 0.915,
     "kalshi_vol": 0,
     "poly_id": "0x1f61db83c47fc787f44997af53d517cc4775e813b169d0b8ae2ad3bff316d052",
     "poly_title": "Will inflation reach more than 4% in 2026?",
-    "poly_price": 0.505,
-    "poly_vol": 80395.04095599991,
-    "similarity": 0.7601008415222168,
-    "spread": 0.405,
+    "poly_price": 0.455,
+    "poly_vol": 81116.85493399992,
+    "similarity": 0.7601010799407959,
+    "spread": 0.46,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T2.4",
     "kalshi_title": "Will Canada inflation rate YoY for March 2026 be above 2.4%?",
     "kalshi_event": "KXCACPIYOY-26APR20",
-    "kalshi_mid": 0.905,
+    "kalshi_mid": 0.9099999999999999,
     "kalshi_vol": 0,
     "poly_id": "0x1f61db83c47fc787f44997af53d517cc4775e813b169d0b8ae2ad3bff316d052",
     "poly_title": "Will inflation reach more than 4% in 2026?",
-    "poly_price": 0.505,
-    "poly_vol": 80395.04095599991,
+    "poly_price": 0.455,
+    "poly_vol": 81116.85493399992,
     "similarity": 0.7733769416809082,
-    "spread": 0.4,
+    "spread": 0.455,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T2.5",
     "kalshi_title": "Will Canada inflation rate YoY for March 2026 be above 2.5%?",
     "kalshi_event": "KXCACPIYOY-26APR20",
-    "kalshi_mid": 0.815,
+    "kalshi_mid": 0.8200000000000001,
     "kalshi_vol": 0,
     "poly_id": "0xa792f029046f2c926ee81c7d9802c21a4a651d33cf7e1bf991ba800ae002f59f",
     "poly_title": "Will inflation reach more than 5% in 2026?",
     "poly_price": 0.255,
-    "poly_vol": 47744.9043,
-    "similarity": 0.7666618227958679,
-    "spread": 0.56,
+    "poly_vol": 57390.275,
+    "similarity": 0.7666621208190918,
+    "spread": 0.565,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T2.6",
     "kalshi_title": "Will Canada inflation rate YoY for March 2026 be above 2.6%?",
     "kalshi_event": "KXCACPIYOY-26APR20",
-    "kalshi_mid": 0.685,
+    "kalshi_mid": 0.6799999999999999,
     "kalshi_vol": 0,
     "poly_id": "0xa7abe7ea40a00434c712a8e164a9fd0b2337110659ae1fe7333698d95ef2d657",
     "poly_title": "Will inflation reach more than 6% in 2026?",
-    "poly_price": 0.155,
-    "poly_vol": 36580.8938,
-    "similarity": 0.7750428318977356,
-    "spread": 0.53,
+    "poly_price": 0.145,
+    "poly_vol": 50557.3827,
+    "similarity": 0.7750428915023804,
+    "spread": 0.535,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T2.7",
     "kalshi_title": "Will Canada inflation rate YoY for March 2026 be above 2.7%?",
     "kalshi_event": "KXCACPIYOY-26APR20",
-    "kalshi_mid": 0.35,
+    "kalshi_mid": 0.355,
     "kalshi_vol": 0,
     "poly_id": "0x1f61db83c47fc787f44997af53d517cc4775e813b169d0b8ae2ad3bff316d052",
     "poly_title": "Will inflation reach more than 4% in 2026?",
-    "poly_price": 0.505,
-    "poly_vol": 80395.04095599991,
+    "poly_price": 0.455,
+    "poly_vol": 81116.85493399992,
     "similarity": 0.7541306018829346,
-    "spread": -0.155,
+    "spread": -0.1,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T2.8",
     "kalshi_title": "Will Canada inflation rate YoY for March 2026 be above 2.8%?",
     "kalshi_event": "KXCACPIYOY-26APR20",
-    "kalshi_mid": 0.225,
+    "kalshi_mid": 0.22999999999999998,
     "kalshi_vol": 0,
     "poly_id": "0x04a83249c976c072e7795b7a00e35ff42ab4c68cf55455ce14d61c2025ff4ddd",
     "poly_title": "Will inflation reach more than 8% in 2026?",
-    "poly_price": 0.1015,
-    "poly_vol": 35135.90798,
-    "similarity": 0.7714359164237976,
-    "spread": 0.1235,
+    "poly_price": 0.101,
+    "poly_vol": 35042.81755,
+    "similarity": 0.7714357972145081,
+    "spread": 0.129,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T2.9",
     "kalshi_title": "Will Canada inflation rate YoY for March 2026 be above 2.9%?",
     "kalshi_event": "KXCACPIYOY-26APR20",
-    "kalshi_mid": 0.125,
+    "kalshi_mid": 0.115,
     "kalshi_vol": 0,
     "poly_id": "0x024418fa74e0a95fe9102b5681b73fdc18b7729edbb6550f6322845084c74fea",
     "poly_title": "Will inflation reach more than 10% in 2026?",
     "poly_price": 0.079,
-    "poly_vol": 46342.73421,
-    "similarity": 0.7565157413482666,
-    "spread": 0.046,
+    "poly_vol": 48174.37025,
+    "similarity": 0.7565152049064636,
+    "spread": 0.036,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T3",
     "kalshi_title": "Will Canada inflation rate YoY for March 2026 be above 3%?",
     "kalshi_event": "KXCACPIYOY-26APR20",
-    "kalshi_mid": 0.08499999999999999,
+    "kalshi_mid": 0.08,
     "kalshi_vol": 0,
     "poly_id": "0x1f61db83c47fc787f44997af53d517cc4775e813b169d0b8ae2ad3bff316d052",
     "poly_title": "Will inflation reach more than 4% in 2026?",
-    "poly_price": 0.505,
-    "poly_vol": 80395.04095599991,
+    "poly_price": 0.455,
+    "poly_vol": 81116.85493399992,
     "similarity": 0.7602201700210571,
-    "spread": -0.42,
+    "spread": -0.375,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T3.1",
@@ -9007,12 +9007,12 @@
     "kalshi_vol": 0,
     "poly_id": "0x1f61db83c47fc787f44997af53d517cc4775e813b169d0b8ae2ad3bff316d052",
     "poly_title": "Will inflation reach more than 4% in 2026?",
-    "poly_price": 0.505,
-    "poly_vol": 80395.04095599991,
-    "similarity": 0.75095134973526,
-    "spread": -0.45,
+    "poly_price": 0.455,
+    "poly_vol": 81116.85493399992,
+    "similarity": 0.7509511113166809,
+    "spread": -0.4,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCACPIYOY-26APR20-T3.2",
@@ -9022,12 +9022,12 @@
     "kalshi_vol": 0,
     "poly_id": "0x1f61db83c47fc787f44997af53d517cc4775e813b169d0b8ae2ad3bff316d052",
     "poly_title": "Will inflation reach more than 4% in 2026?",
-    "poly_price": 0.505,
-    "poly_vol": 80395.04095599991,
-    "similarity": 0.7547506093978882,
-    "spread": -0.47,
+    "poly_price": 0.455,
+    "poly_vol": 81116.85493399992,
+    "similarity": 0.7547507882118225,
+    "spread": -0.42,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXLARGECUT-26",
@@ -9038,11 +9038,11 @@
     "poly_id": "0xdde06286a7b9464d344f410ab0b3d2ebc6469904e72c27fd982f65fdbf78768d",
     "poly_title": "Will the Fed decrease interest rates by 25 bps after the June 2026 meeting?",
     "poly_price": 0.065,
-    "poly_vol": 986143.5250200038,
-    "similarity": 0.8407847285270691,
+    "poly_vol": 988676.5081100038,
+    "similarity": 0.8407845497131348,
     "spread": 0.0745,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXRATECUT-26DEC31",
@@ -9052,12 +9052,12 @@
     "kalshi_vol": 0,
     "poly_id": "0xd4e77ba6f29fc093509d24f508631abd445ecf506bbdc9c4c80e60256a318527",
     "poly_title": "Will no Fed rate cuts happen in 2026?",
-    "poly_price": 0.3945,
-    "poly_vol": 3061516.8716610107,
-    "similarity": 0.8543333411216736,
-    "spread": 0.241,
+    "poly_price": 0.404,
+    "poly_vol": 3069002.1566230096,
+    "similarity": 0.8543332815170288,
+    "spread": 0.2315,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXCPI-26NOV-T0.0",
@@ -10044,10 +10044,10 @@
     "poly_title": "Will US GDP growth in 2026 be between 0.5% and 1.0%?",
     "poly_price": 0.0535,
     "poly_vol": 15045.392074,
-    "similarity": 0.7003906965255737,
+    "similarity": 0.7003907561302185,
     "spread": 0.8715,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXEZGDPQOQF-26APR30-T-0.1",
@@ -10059,10 +10059,10 @@
     "poly_title": "Will US GDP growth in 2026 be between 0.5% and 1.0%?",
     "poly_price": 0.0535,
     "poly_vol": 15045.392074,
-    "similarity": 0.7058337330818176,
+    "similarity": 0.7058336734771729,
     "spread": 0.8415,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXEZGDPQOQF-26APR30-T-0",
@@ -10074,25 +10074,25 @@
     "poly_title": "Will US GDP growth in 2026 be between 0.5% and 1.0%?",
     "poly_price": 0.0535,
     "poly_vol": 15045.392074,
-    "similarity": 0.7004357576370239,
+    "similarity": 0.7004352807998657,
     "spread": 0.7365,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXEZGDPQOQF-26APR30-T0.1",
     "kalshi_title": "Will Euro area GDP growth rate QoQ flash for Q1 2026 be above 0.1%?",
     "kalshi_event": "KXEZGDPQOQF-26APR30",
-    "kalshi_mid": 0.635,
+    "kalshi_mid": 0.625,
     "kalshi_vol": 0,
     "poly_id": "0x88d5a8b1269b10cee37d493545be2c57ba335afb82e0d66eadea2c8db6758021",
     "poly_title": "Will US GDP growth in 2026 be between 0.5% and 1.0%?",
     "poly_price": 0.0535,
     "poly_vol": 15045.392074,
-    "similarity": 0.7068002223968506,
-    "spread": 0.5815,
+    "similarity": 0.7068005800247192,
+    "spread": 0.5715,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXEZGDPQOQF-26APR30-T0.2",
@@ -10104,40 +10104,40 @@
     "poly_title": "Will US GDP growth in 2026 be between 0.5% and 1.0%?",
     "poly_price": 0.0535,
     "poly_vol": 15045.392074,
-    "similarity": 0.7010779976844788,
+    "similarity": 0.7010778188705444,
     "spread": 0.3915,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXEZGDPQOQF-26APR30-T0.5",
     "kalshi_title": "Will Euro area GDP growth rate QoQ flash for Q1 2026 be above 0.5%?",
     "kalshi_event": "KXEZGDPQOQF-26APR30",
-    "kalshi_mid": 0.095,
+    "kalshi_mid": 0.09,
     "kalshi_vol": 0,
     "poly_id": "0x88d5a8b1269b10cee37d493545be2c57ba335afb82e0d66eadea2c8db6758021",
     "poly_title": "Will US GDP growth in 2026 be between 0.5% and 1.0%?",
     "poly_price": 0.0535,
     "poly_vol": 15045.392074,
-    "similarity": 0.7030865550041199,
-    "spread": 0.0415,
+    "similarity": 0.7030864357948303,
+    "spread": 0.0365,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXEZGDPQOQF-26APR30-T0.6",
     "kalshi_title": "Will Euro area GDP growth rate QoQ flash for Q1 2026 be above 0.6%?",
     "kalshi_event": "KXEZGDPQOQF-26APR30",
-    "kalshi_mid": 0.08,
+    "kalshi_mid": 0.07500000000000001,
     "kalshi_vol": 0,
     "poly_id": "0x88d5a8b1269b10cee37d493545be2c57ba335afb82e0d66eadea2c8db6758021",
     "poly_title": "Will US GDP growth in 2026 be between 0.5% and 1.0%?",
     "poly_price": 0.0535,
     "poly_vol": 15045.392074,
-    "similarity": 0.7026262879371643,
-    "spread": 0.0265,
+    "similarity": 0.7026259899139404,
+    "spread": 0.0215,
     "discovered_at": 1775929773,
-    "last_seen": 1775929773
+    "last_seen": 1775945749
   },
   {
     "kalshi_ticker": "KXFRGDPQOQP-26APR30-T-0.5",
@@ -25753,5 +25753,80 @@
     "spread": 0.0085,
     "discovered_at": 1775935473,
     "last_seen": 1775935473
+  },
+  {
+    "kalshi_ticker": "KXSYRIA-26-27",
+    "kalshi_title": "Will the US reopen its embassy in Syria before Jan 1, 2027?",
+    "kalshi_event": "KXSYRIA-26",
+    "kalshi_mid": 0.5,
+    "kalshi_vol": 0,
+    "poly_id": "0x33fb07add905d9a65176839cda7faf7844924c211b4366c62d4b51e85131fbf9",
+    "poly_title": "U.S. Embassy in Damascus reopened by June 30, 2026?",
+    "poly_price": 0.085,
+    "poly_vol": 392375.4508250005,
+    "similarity": 0.8636636734008789,
+    "spread": 0.415,
+    "discovered_at": 1775945749,
+    "last_seen": 1775945749
+  },
+  {
+    "kalshi_ticker": "KXLEAVESTARMER-26MAR01",
+    "kalshi_title": "Will Keir Starmer leave Prime Minister of the United Kingdom before Mar 1, 2026?",
+    "kalshi_event": "KXLEAVESTARMER",
+    "kalshi_mid": 0.5,
+    "kalshi_vol": 0,
+    "poly_id": "0x16f8fc62c90a5fd7ff053fd23b1900884e59ad677b68c01f4df7a780c4081cc5",
+    "poly_title": "Will Trump meet with Keir Starmer in 2026?",
+    "poly_price": 0.5865,
+    "poly_vol": 10315.82035,
+    "similarity": 0.7135974168777466,
+    "spread": -0.0865,
+    "discovered_at": 1775945749,
+    "last_seen": 1775945749
+  },
+  {
+    "kalshi_ticker": "KXLEAVESTARMER-26APR01",
+    "kalshi_title": "Will Keir Starmer leave Prime Minister of the United Kingdom before Apr 1, 2026?",
+    "kalshi_event": "KXLEAVESTARMER",
+    "kalshi_mid": 0.5,
+    "kalshi_vol": 0,
+    "poly_id": "0x16f8fc62c90a5fd7ff053fd23b1900884e59ad677b68c01f4df7a780c4081cc5",
+    "poly_title": "Will Trump meet with Keir Starmer in 2026?",
+    "poly_price": 0.5865,
+    "poly_vol": 10315.82035,
+    "similarity": 0.7100188732147217,
+    "spread": -0.0865,
+    "discovered_at": 1775945749,
+    "last_seen": 1775945749
+  },
+  {
+    "kalshi_ticker": "KXLEAVESTARMER-26JUL01",
+    "kalshi_title": "Will Keir Starmer leave Prime Minister of the United Kingdom before Jul 1, 2026?",
+    "kalshi_event": "KXLEAVESTARMER",
+    "kalshi_mid": 0.255,
+    "kalshi_vol": 0,
+    "poly_id": "0x16f8fc62c90a5fd7ff053fd23b1900884e59ad677b68c01f4df7a780c4081cc5",
+    "poly_title": "Will Trump meet with Keir Starmer in 2026?",
+    "poly_price": 0.5865,
+    "poly_vol": 10315.82035,
+    "similarity": 0.7084765434265137,
+    "spread": -0.3315,
+    "discovered_at": 1775945749,
+    "last_seen": 1775945749
+  },
+  {
+    "kalshi_ticker": "KXLEAVESTARMER-26SEP01",
+    "kalshi_title": "Will Keir Starmer leave Prime Minister of the United Kingdom before Sep 1, 2026?",
+    "kalshi_event": "KXLEAVESTARMER",
+    "kalshi_mid": 0.355,
+    "kalshi_vol": 0,
+    "poly_id": "0x16f8fc62c90a5fd7ff053fd23b1900884e59ad677b68c01f4df7a780c4081cc5",
+    "poly_title": "Will Trump meet with Keir Starmer in 2026?",
+    "poly_price": 0.5865,
+    "poly_vol": 10315.82035,
+    "similarity": 0.7024800777435303,
+    "spread": -0.2315,
+    "discovered_at": 1775945749,
+    "last_seen": 1775945749
   }
 ]
