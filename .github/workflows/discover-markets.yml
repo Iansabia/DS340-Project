@@ -46,6 +46,13 @@ jobs:
           pip install -r requirements-ci.txt
 
       - name: Run market discovery
+        env:
+          # scripts/discover_markets.py does `from src.live.market_discovery
+          # import run_discovery`. When python is invoked on a raw script
+          # file (not via `python -m`), the CWD is NOT automatically added
+          # to sys.path, so that import fails with ModuleNotFoundError.
+          # PYTHONPATH=. fixes it.
+          PYTHONPATH: .
         run: |
           echo "=== Discovering new Kalshi <-> Polymarket pairs ==="
           python scripts/discover_markets.py --live-dir data/live --similarity-threshold 0.70
@@ -68,15 +75,17 @@ jobs:
           "
 
       - name: Run data-scaling experiment if we've crossed a new checkpoint
+        env:
+          PYTHONPATH: .
         run: |
           echo "=== Data scaling experiment (auto mode) ==="
           # Runs every checkpoint we've crossed since the last run.
           # Cheap for Tier 1, skipped automatically if we haven't hit
           # the next boundary yet. Tier 2 (GRU/LSTM) auto-includes
           # above 100 bars/pair.
-          PYTHONPATH=. python scripts/run_data_scaling.py --auto || echo "(scaling runner reported no new checkpoints)"
+          python scripts/run_data_scaling.py --auto || echo "(scaling runner reported no new checkpoints)"
           echo ""
-          PYTHONPATH=. python scripts/plot_data_scaling.py || echo "(plotter reported no data yet)"
+          python scripts/plot_data_scaling.py || echo "(plotter reported no data yet)"
 
       - name: Commit and push new pairs + scaling results
         run: |
