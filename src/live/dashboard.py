@@ -60,6 +60,32 @@ def load_trade_log(path: Path) -> list[dict]:
     return trades
 
 
+def load_all_trade_logs(live_dir: Path) -> list[dict]:
+    """Load trades from every ``paper_trades*.jsonl`` file in ``live_dir``.
+
+    Covers both the legacy frozen archive (``paper_trades.jsonl``) and
+    all per-UTC-day rotated files (``paper_trades_YYYY-MM-DD.jsonl``)
+    created after task #27's size-fix rollout.
+
+    Args:
+        live_dir: Directory to scan.
+
+    Returns:
+        Concatenated list of trade dicts across all matching files.
+        Empty list if the directory does not exist or has no matching
+        files.
+    """
+    live_dir = Path(live_dir)
+    if not live_dir.exists():
+        return []
+
+    trades: list[dict] = []
+    # sorted() so tests and humans see deterministic ordering
+    for p in sorted(live_dir.glob("paper_trades*.jsonl")):
+        trades.extend(load_trade_log(p))
+    return trades
+
+
 def compute_paper_pnl(
     trades: list[dict],
     resolution_data: pd.DataFrame | None = None,
@@ -288,13 +314,13 @@ def print_dashboard(live_dir: Path = Path("data/live")) -> None:
     """Load trade log and print the dashboard.
 
     Args:
-        live_dir: Directory containing paper_trades.jsonl and bars.parquet.
+        live_dir: Directory containing paper_trades*.jsonl + bars.parquet.
     """
     live_dir = Path(live_dir)
-    trades_path = live_dir / "paper_trades.jsonl"
     bars_path = live_dir / "bars.parquet"
 
-    trades = load_trade_log(trades_path)
+    # Covers both the legacy archive and all daily-rotated files.
+    trades = load_all_trade_logs(live_dir)
 
     # Load bars for resolution matching (if available)
     resolution_data = None
@@ -314,13 +340,12 @@ def print_dashboard_json(live_dir: Path = Path("data/live")) -> None:
     """Load trade log and print the dashboard as JSON.
 
     Args:
-        live_dir: Directory containing paper_trades.jsonl and bars.parquet.
+        live_dir: Directory containing paper_trades*.jsonl + bars.parquet.
     """
     live_dir = Path(live_dir)
-    trades_path = live_dir / "paper_trades.jsonl"
     bars_path = live_dir / "bars.parquet"
 
-    trades = load_trade_log(trades_path)
+    trades = load_all_trade_logs(live_dir)
 
     resolution_data = None
     if bars_path.exists():

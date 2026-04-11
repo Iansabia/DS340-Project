@@ -14,8 +14,10 @@ data/processed/
 !data/processed/test.parquet
 !data/processed/aligned_pairs.parquet
 !data/processed/all_pairs_v2.json
-# Live data managed by GitHub Actions (force-added in workflow)
+# Live data managed by GitHub Actions (force-added in workflow).
+# paper_trades*.jsonl covers both the legacy archive and per-UTC-day
+# rotated files (task #27). Force-added in collect-and-trade workflow.
 data/live/bars.parquet
-data/live/paper_trades.jsonl
+data/live/paper_trades*.jsonl
 data/live/retrain_log.json
 data/pmxt/

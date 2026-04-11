@@ -96,9 +96,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Force-add the gitignored live data files
+          # Force-add the gitignored live data files.
+          # paper_trades*.jsonl matches both the legacy archive and all
+          # per-UTC-day rotated files (task #27).
           git add -f data/live/bars.parquet 2>/dev/null || true
-          git add -f data/live/paper_trades.jsonl 2>/dev/null || true
+          git add -f data/live/paper_trades*.jsonl 2>/dev/null || true
 
           # Normal-tracked files from the new trading system
           git add data/live/positions.db 2>/dev/null || true

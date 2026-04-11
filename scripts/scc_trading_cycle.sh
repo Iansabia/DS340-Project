@@ -86,9 +86,12 @@ fi
 
 # Step 5: stage live data files.
 # These are gitignored for local dev but force-added for collection runs.
+# paper_trades*.jsonl covers BOTH the legacy archive (paper_trades.jsonl,
+# frozen at ~81MB) and all per-UTC-day rotated files
+# (paper_trades_YYYY-MM-DD.jsonl). Task #27.
 log "staging data/live files"
 git add -f data/live/bars.parquet 2>/dev/null || true
-git add -f data/live/paper_trades.jsonl 2>/dev/null || true
+git add -f data/live/paper_trades*.jsonl 2>/dev/null || true
 git add data/live/positions.db 2>/dev/null || true
 git add data/live/position_history.jsonl 2>/dev/null || true
 git add data/live/pair_classifications.json 2>/dev/null || true

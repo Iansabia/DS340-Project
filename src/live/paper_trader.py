@@ -23,19 +23,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from experiments.run_baselines import (
-    NON_FEATURE_COLUMNS,
-    _build_split,
-    _feature_columns,
-    build_models,
-    load_train_test,
-    prepare_xy,
-    prepare_xy_for_seq,
-)
-from src.models.autoencoder import AnomalyDetectorAutoencoder
-from src.models.base import BasePredictor
-from src.models.ppo_filtered import PPOFilteredPredictor
-from src.models.ppo_raw import PPORawPredictor
+# NOTE: torch-dependent imports (src.models.gru, src.models.lstm, ppo_raw,
+# ppo_filtered, autoencoder, experiments.run_baselines) are LAZY — they only
+# load when run_cycle()/train_all_models() is actually called. This lets
+# ``append_trades`` and the daily-rotation helpers be imported and unit-tested
+# without needing torch installed in the caller's environment.
+from src.models.base import BasePredictor  # no torch dependency
 
 logger = logging.getLogger(__name__)
 
@@ -68,12 +61,28 @@ class PaperTrader:
         self.data_dir = Path(data_dir)
         self.live_dir = Path(live_dir)
         self.threshold = threshold
-        self.trades_path = self.live_dir / "paper_trades.jsonl"
 
         # Lazy-loaded state
         self.models: list[BasePredictor] | None = None
         self.feature_cols: list[str] | None = None
         self._train_df: pd.DataFrame | None = None
+
+    def _daily_trades_path(self) -> Path:
+        """Path to today's per-UTC-day trades file.
+
+        The pre-rotation ``paper_trades.jsonl`` archive (~81MB at the
+        time of rotation) stays frozen at the repo root; new writes
+        go to ``paper_trades_YYYY-MM-DD.jsonl`` so no single file ever
+        crosses GitHub's 100MB hard limit. Dashboard and any reader
+        must glob ``paper_trades*.jsonl`` to pick up both.
+        """
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        return self.live_dir / f"paper_trades_{today}.jsonl"
+
+    @property
+    def trades_path(self) -> Path:
+        """Back-compat alias for the current day's trades file."""
+        return self._daily_trades_path()
 
     def train_all_models(
         self, skip_tier3: bool = False
@@ -89,6 +98,19 @@ class PaperTrader:
         Returns:
             List of trained BasePredictor instances.
         """
+        # Lazy imports — torch only required when actually training.
+        from experiments.run_baselines import (
+            _build_split,
+            _feature_columns,
+            build_models,
+            load_train_test,
+            prepare_xy,
+            prepare_xy_for_seq,
+        )
+        from src.models.autoencoder import AnomalyDetectorAutoencoder
+        from src.models.ppo_filtered import PPOFilteredPredictor
+        from src.models.ppo_raw import PPORawPredictor
+
         logger.info("Loading training data from %s", self.data_dir)
         train_raw, _test_raw = load_train_test(self.data_dir)
         train = _build_split(train_raw)
@@ -315,22 +337,24 @@ class PaperTrader:
         return all_trades
 
     def append_trades(self, trades: list[dict]) -> None:
-        """Append trade log entries to paper_trades.jsonl.
+        """Append trade log entries to the current day's trades file.
 
-        Creates the file if it doesn't exist. Each trade is written
-        as a single JSON line.
+        Writes to ``paper_trades_YYYY-MM-DD.jsonl`` (UTC date). Never
+        touches the legacy ``paper_trades.jsonl`` archive — that file
+        stays frozen. Creates the day's file on first write.
 
         Args:
             trades: List of trade dicts to log.
         """
         self.live_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(self.trades_path, "a") as f:
+        daily_path = self._daily_trades_path()
+        with open(daily_path, "a") as f:
             for trade in trades:
                 f.write(json.dumps(trade) + "\n")
 
         logger.info(
-            "Appended %d trades to %s", len(trades), self.trades_path
+            "Appended %d trades to %s", len(trades), daily_path
         )
 
     def run_cycle(self, skip_tier3: bool = False) -> int:
