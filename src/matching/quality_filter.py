@@ -242,6 +242,17 @@ _POLICY_EVENT_KEYWORDS = (
     "ceasefire",
 )
 
+# Kalshi AAA gas ticker prefixes where the LAST two letters encode a
+# US state (California, Florida, New York, Texas). These state-specific
+# contracts must not match Polymarket's national "gas hit $X" markets.
+# Each entry is (ticker-prefix, state-name-as-it-appears-in-poly-titles).
+_AAA_GAS_STATE_SUFFIXES = (
+    ("CA", "california"),
+    ("FL", "florida"),
+    ("NY", "new york"),
+    ("TX", "texas"),
+)
+
 # Map 3-letter month codes in Kalshi tickers -> month number.
 _MONTH_CODES = {
     "JAN": 1, "FEB": 2, "MAR": 3, "APR": 4, "MAY": 5, "JUN": 6,
@@ -444,6 +455,45 @@ def filter_active_match(match: dict) -> tuple[bool, str | None]:
     if _has_any(p_title_l, _POLICY_EVENT_KEYWORDS):
         if _kalshi_is_threshold_contract(ticker, k_title):
             return False, "threshold_vs_policy_event"
+
+    # --- Rule 3d: AAA retail gas geography/date mismatch ---
+    # KXAAAGAS* is the Kalshi family for AAA-tracked US retail regular
+    # gasoline ($/gallon). After the task #29 commodity fix, 205 of
+    # these pairs were matched against Polymarket "Will gas hit $X by
+    # April 30?" — same underlying commodity but structurally wrong:
+    #
+    #   a) Geography: KXAAAGAS*CA/FL/NY/TX are state averages;
+    #      Polymarket gas markets are always national US. State and
+    #      national averages have persistent divergences and never
+    #      fully converge, so these are not arbitrage candidates.
+    #
+    #   b) Date: KXAAAGAS*MAX/MIN tickers resolve on Dec 31 (annual
+    #      max/min), Polymarket resolves April 30. Same year, 8-month
+    #      resolution gap → the Kalshi contract asks about the WHOLE
+    #      year while Polymarket only covers Jan-April.
+    #
+    # Rule scope is intentionally narrow (KXAAAGAS prefix only) so it
+    # can't false-positive on other commodity pairs. Same-month national
+    # pairs (KXAAAGASW-26APR13 vs Poly April) still pass.
+    if ticker_u.startswith("KXAAAGAS"):
+        # (a) Geography check: state-specific ticker vs non-state Poly title
+        for suffix, state_name in _AAA_GAS_STATE_SUFFIXES:
+            # Match against common families: MAX<ST>, MIN<ST>, M<ST>, etc.
+            if re.search(rf"KXAAAGAS[A-Z]*{suffix}(?:-|$)", ticker_u):
+                if state_name not in p_title_l:
+                    return False, f"aaa_gas_state_vs_national ({suffix})"
+                break
+
+        # (b) Month check: Kalshi ticker month vs Poly title month.
+        # Only fires when BOTH sides produce a month — if Polymarket
+        # title has no month word, we fall through and let similarity
+        # be the arbiter.
+        k_month = _extract_month_from_kalshi_ticker(ticker)
+        p_month = _extract_month_from_text(p_title)
+        if k_month is not None and p_month is not None and k_month != p_month:
+            return False, (
+                f"aaa_gas_month_mismatch (kalshi={k_month}, poly={p_month})"
+            )
 
     # Extract year from the Kalshi ticker itself (authoritative) and
     # from both titles (supplementary).

@@ -406,6 +406,98 @@ class TestFilterActiveMatch:
         ok, reason = filter_active_match(match)
         assert ok is False
 
+    # ----- Bad pattern: AAA retail gas date/geography mismatch -----
+    #
+    # Observed on 2026-04-11 after the commodity discovery fix (task #29)
+    # added 205 KXAAAGAS* pairs. The underlying commodity is actually the
+    # same (US retail regular gas, $/gallon) but the pairs fail on two
+    # structural axes:
+    #
+    #   a) Geography: Kalshi KXAAAGAS*CA/FL/NY/TX are state-specific
+    #      contracts, Polymarket "Will gas hit $X by April 30?" is
+    #      national. State and national averages don't converge.
+    #
+    #   b) Resolution date: Kalshi KXAAAGAS*MAX/MIN tickers encode
+    #      a year-end DEC31 resolution, Polymarket resolves April 30.
+    #      Same year, different months, the contracts don't overlap
+    #      in time.
+    #
+    # The semantic matcher scores all of these at 0.71-0.79 because
+    # both sides mention "gas", but they're structurally different
+    # questions.
+
+    def test_rejects_aaa_gas_state_vs_national(self):
+        """KXAAAGASMAXCA is California; Poly market is US national."""
+        match = {
+            "kalshi_ticker": "KXAAAGASMAXCA-26DEC31-4.30",
+            "kalshi_title": "Will average gas prices be above or below $4.30 by Dec 31, 2026?",
+            "poly_title": "Will gas hit (Low) $3.95 by April 30?",
+            "similarity": 0.763,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+        assert "aaa_gas" in (reason or "").lower() or "geography" in (reason or "").lower() or "state" in (reason or "").lower()
+
+    def test_rejects_aaa_gas_ny_vs_national(self):
+        """New York variant of the same geography mismatch."""
+        match = {
+            "kalshi_ticker": "KXAAAGASMAXNY-26DEC31-3.10",
+            "kalshi_title": "Will average gas prices be above or below $3.10 by Dec 31, 2026?",
+            "poly_title": "Will gas hit (Low) $3.95 by April 30?",
+            "similarity": 0.763,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+
+    def test_rejects_aaa_gas_min_texas_vs_national(self):
+        """Texas min variant."""
+        match = {
+            "kalshi_ticker": "KXAAAGASMINTX-26DEC31-2.30",
+            "kalshi_title": "Will average gas prices be above or below $2.30 by Dec 31, 2026?",
+            "poly_title": "Will gas hit (Low) $3.95 by April 30?",
+            "similarity": 0.762,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+
+    def test_rejects_aaa_gas_max_vs_april_national(self):
+        """KXAAAGASMAX is annual max (resolves Dec 31); Poly resolves April 30.
+        Different time windows → structurally different questions."""
+        match = {
+            "kalshi_ticker": "KXAAAGASMAX-26DEC31-4.00",
+            "kalshi_title": "Will average gas prices be above $4.00 by Dec 31, 2026?",
+            "poly_title": "Will gas hit (High) $4.50 by April 30?",
+            "similarity": 0.772,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+        assert "aaa_gas" in (reason or "").lower() or "month" in (reason or "").lower() or "date" in (reason or "").lower()
+
+    def test_rejects_aaa_gas_eoy_november_vs_april(self):
+        """KXAAAGASED November tickers vs April Poly."""
+        match = {
+            "kalshi_ticker": "KXAAAGASED-26NOV03-2.50",
+            "kalshi_title": "Will average gas prices be above $2.50?",
+            "poly_title": "Will gas hit (Low) $3.85 by April 30?",
+            "similarity": 0.711,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+
+    def test_aaa_gas_same_month_national_passes(self):
+        """Weekly national AAA gas with matching month should still pass.
+        The filter only enforces structural (date/geography) rules —
+        legitimate same-month same-national pairs remain tradable
+        even if strike prices differ."""
+        match = {
+            "kalshi_ticker": "KXAAAGASW-26APR13-4.000",
+            "kalshi_title": "Will average gas prices be above $4.000?",
+            "poly_title": "Will gas hit (High) $4.50 by April 30?",
+            "similarity": 0.724,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is True, f"same-month national AAA gas pair was rejected: {reason}"
+
 
 class TestFilterActiveMatchesBatch:
     def test_batch_returns_passed_and_stats(self):
