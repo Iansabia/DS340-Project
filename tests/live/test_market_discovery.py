@@ -131,6 +131,34 @@ class TestFetchKalshiNullSeriesHandling:
         assert result == []
 
 
+class TestFetchPolyPaginationDepth:
+    """Regression: Polymarket's Gamma API returns markets in approximate
+    volume-desc order. The commodity markets we need (WTI $X in April,
+    Crude Oil (CL) settle buckets) live at offsets 5,000-28,000. With
+    the old ``max_pages=10`` (5000 markets) these were completely
+    invisible to the matcher even though the matcher already handled
+    WTI text correctly — that's why active_matches.json had stale
+    KXWTI pairs that upsert kept alive but discovery never refreshed.
+
+    The default must reach at least offset ~15,000 where the high-volume
+    WTI markets sit.
+    """
+
+    def test_default_max_pages_reaches_wti_offset(self):
+        import inspect
+        from src.live.market_discovery import fetch_active_poly_markets
+
+        sig = inspect.signature(fetch_active_poly_markets)
+        max_pages_default = sig.parameters["max_pages"].default
+        page_size_default = sig.parameters["page_size"].default
+        reachable = max_pages_default * page_size_default
+        # WTI markets observed at offset 15,305+ on 2026-04-11
+        assert reachable >= 16000, (
+            f"default pagination only reaches offset {reachable}, "
+            "but Polymarket WTI markets sit at 15,305+"
+        )
+
+
 class TestFetchKalshi429Retry:
     """Regression: Kalshi's /events endpoint rate-limits aggressively.
 

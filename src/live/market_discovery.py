@@ -332,7 +332,7 @@ def fetch_active_kalshi_markets(
 
 
 def fetch_active_poly_markets(
-    max_pages: int = 10,
+    max_pages: int = 60,
     page_size: int = 500,
 ) -> list[dict]:
     """Fetch currently-tradeable Polymarket markets via Gamma API.
@@ -345,10 +345,13 @@ def fetch_active_poly_markets(
       - endDate
       - clobTokenIds
 
-    Note: Gamma API returns ~5k markets per 10 pages in approximate
-    volume-desc order. Polymarket has tens of thousands of low-volume
-    speculative markets; we cap at ``max_pages=10`` because match_markets
-    volume-filters out anything under $5k anyway.
+    Note: Gamma API returns markets in approximate volume-desc order.
+    Polymarket has tens of thousands of active markets; the commodity
+    markets we care about (WTI "hit $X in April", Crude Oil (CL) settle
+    buckets) land at offsets 5,000-28,000 — well past the old
+    ``max_pages=10`` cap. Bumped to 60 (30k markets) to reach them.
+    The volume filter still drops junk, so the candidate universe we
+    actually hand to the matcher stays manageable.
     """
     import requests  # lazy
 
