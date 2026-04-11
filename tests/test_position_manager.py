@@ -537,6 +537,23 @@ def test_exit_rule_resolution_no_date(pm):
     assert pm.check_exits("res_none", now) is None
 
 
+def test_exit_rule_resolution_naive_iso_string(pm):
+    """Regression: contract_classifier stores resolution dates as ISO strings
+    WITHOUT a timezone suffix (parse_resolution_date returns naive datetimes).
+    _check_resolution must tolerate those and assume UTC, otherwise we get
+    'can't subtract offset-naive and offset-aware datetimes' and the whole
+    exit-check loop crashes in production."""
+    _open_with_state(
+        pm, "res_naive",
+        current_spread=0.45,
+        # No Z, no +00:00 — naive ISO string, the bug's exact input
+        resolution_date="2026-04-10T00:00:00",
+    )
+    now = datetime(2026, 4, 9, 18, 0, tzinfo=timezone.utc)  # 6 hours before
+    # Must return RESOLUTION_EXIT, not raise TypeError
+    assert pm.check_exits("res_naive", now) == ExitReason.RESOLUTION_EXIT
+
+
 # ---------------------------------------------------------------------------
 # Priority ordering
 # ---------------------------------------------------------------------------

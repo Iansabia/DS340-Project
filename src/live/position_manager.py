@@ -422,7 +422,15 @@ class PositionManager:
             return all(d < 0 for d in diffs)
 
     def _check_resolution(self, pos: Position, now: datetime) -> bool:
-        """Resolution proximity: < 24 hours to resolution."""
+        """Resolution proximity: < 24 hours to resolution.
+
+        ``pos.resolution_date`` is an ISO 8601 string that MAY or MAY NOT
+        carry a timezone. Contract classifier's ``parse_resolution_date``
+        returns naive datetimes (year/month/day/23/59 with no tzinfo),
+        whose ``.isoformat()`` has no ``Z`` or ``+00:00`` suffix. When
+        parsed back here we need to force UTC so we can subtract it from
+        the aware ``now`` without a TypeError.
+        """
         if pos.resolution_date is None:
             return False
         try:
@@ -431,6 +439,12 @@ class PositionManager:
             )
         except (ValueError, AttributeError):
             return False
+        # Defensive: if the parsed date is naive, assume UTC.
+        if res_dt.tzinfo is None:
+            res_dt = res_dt.replace(tzinfo=timezone.utc)
+        # Same defensive treatment for 'now' if a caller ever passes naive.
+        if now.tzinfo is None:
+            now = now.replace(tzinfo=timezone.utc)
         hours_remaining = (res_dt - now).total_seconds() / 3600.0
         return hours_remaining < 24.0
 
