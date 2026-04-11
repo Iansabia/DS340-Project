@@ -336,6 +336,185 @@ def print_dashboard(live_dir: Path = Path("data/live")) -> None:
     print(_format_table(results, collection_stats=collection_stats))
 
 
+def _derive_pair_category(pair_id: str, active_matches: list[dict] | None = None) -> str:
+    """Return category for a live_NNNN pair by looking up its Kalshi
+    ticker in active_matches.json, then routing through
+    derive_category_from_ticker. Returns 'other' on any miss."""
+    from src.features.category import derive_category_from_ticker
+
+    if active_matches is None:
+        return "other"
+    try:
+        idx = int(pair_id.split("_", 1)[1])
+    except (IndexError, ValueError):
+        return "other"
+    if idx >= len(active_matches):
+        return "other"
+    return derive_category_from_ticker(active_matches[idx].get("kalshi_ticker", ""))
+
+
+def print_category_breakdown(
+    live_dir: Path = Path("data/live"),
+    min_price: float = 0.10,
+    min_spread: float = 0.30,
+    fees_pp: float = 0.02,
+) -> None:
+    """Print a per-category P&L table — the task #26 monitoring view.
+
+    When a single category materially outperforms the pooled model, it
+    is time to revisit Option B (per-category models). The trigger
+    heuristic from task #26's design notes:
+
+      * Category has at least 50 resolved trades (enough signal to
+        not be noise)
+      * Category fee-adjusted P&L > pooled-model fee-adjusted P&L
+        by > 15% (material edge)
+
+    This function does NOT train anything — it just prints the table
+    plus a flag line when the trigger fires.
+    """
+    import json as _json
+
+    live_dir = Path(live_dir)
+
+    # Load matches for pair_id -> ticker -> category lookup
+    matches_path = live_dir / "active_matches.json"
+    active_matches: list[dict] | None = None
+    if matches_path.exists():
+        try:
+            with open(matches_path) as f:
+                active_matches = _json.load(f)
+        except Exception:
+            active_matches = None
+
+    # Load trades + bars
+    trades = load_all_trade_logs(live_dir)
+    if not trades:
+        print("No trades in data/live/paper_trades*.jsonl — nothing to break down.")
+        return
+
+    bars_path = live_dir / "bars.parquet"
+    if not bars_path.exists():
+        print("No bars.parquet — can't compute realized P&L.")
+        return
+    bars = pd.read_parquet(bars_path).sort_values(["pair_id", "timestamp"])
+
+    # Build (pair_id, timestamp) -> next_spread lookup for resolution
+    next_spread: dict[tuple[str, int], float] = {}
+    for pid, g in bars.groupby("pair_id"):
+        ts = g["timestamp"].values
+        sp = g["spread"].values
+        for i in range(len(ts) - 1):
+            next_spread[(str(pid), int(ts[i]))] = float(sp[i + 1])
+
+    # Resolve each trade and tag with category
+    rows: list[dict] = []
+    for t in trades:
+        if not t.get("trade", False):
+            continue
+        k = (t["pair_id"], int(t["timestamp"]))
+        if k not in next_spread:
+            continue
+        # Trade-level filters (same as the live strategy)
+        if t.get("kalshi_price", 0) < min_price:
+            continue
+        if t.get("polymarket_price", 0) < min_price:
+            continue
+        if abs(t.get("spread", 0)) < min_spread:
+            continue
+
+        next_sp = next_spread[k]
+        delta = next_sp - t["spread"]
+        pnl = delta if t.get("direction") == "long_spread" else -delta
+
+        category = _derive_pair_category(t["pair_id"], active_matches)
+        rows.append({
+            "pair_id": t["pair_id"],
+            "model": t.get("model", "?"),
+            "category": category,
+            "pnl": pnl,
+        })
+
+    if not rows:
+        print("No resolved trades passing filters — cannot break down by category.")
+        return
+
+    df = pd.DataFrame(rows)
+    # Focus on Linear Regression (our current best fee-adjusted model)
+    lr = df[df["model"] == "Linear Regression"]
+    if lr.empty:
+        lr = df  # fall back to everything if LR absent
+
+    # Pooled stats
+    pooled_n = len(lr)
+    pooled_gross = float(lr["pnl"].sum())
+    pooled_fees = fees_pp * pooled_n
+    pooled_net = pooled_gross - pooled_fees
+    pooled_wr = float((lr["pnl"] > 0).mean())
+    pooled_per_trade_net = pooled_net / pooled_n if pooled_n > 0 else 0.0
+
+    # Per-category stats
+    by_cat = lr.groupby("category").agg(
+        trades=("pnl", "size"),
+        win_rate=("pnl", lambda s: (s > 0).mean()),
+        gross=("pnl", "sum"),
+    )
+    by_cat["fees"] = fees_pp * by_cat["trades"]
+    by_cat["net"] = by_cat["gross"] - by_cat["fees"]
+    by_cat["net_per_trade"] = by_cat["net"] / by_cat["trades"]
+    by_cat = by_cat.sort_values("net", ascending=False)
+
+    # Print
+    print("=" * 80)
+    print(f"Per-Category P&L Breakdown (Linear Regression, {pooled_n} resolved trades)")
+    print("=" * 80)
+    print(
+        f"{'category':<20} {'trades':>8} {'win%':>7} {'gross':>9} "
+        f"{'net@2pp':>9} {'$/trade':>9}"
+    )
+    print("-" * 80)
+    for cat, row in by_cat.iterrows():
+        print(
+            f"{cat:<20} {int(row['trades']):>8} {row['win_rate']:>6.1%} "
+            f"{row['gross']:>+9.2f} {row['net']:>+9.2f} {row['net_per_trade']:>+9.4f}"
+        )
+    print("-" * 80)
+    print(
+        f"{'POOLED':<20} {pooled_n:>8} {pooled_wr:>6.1%} "
+        f"{pooled_gross:>+9.2f} {pooled_net:>+9.2f} {pooled_per_trade_net:>+9.4f}"
+    )
+    print()
+
+    # Trigger check (task #26)
+    triggered = []
+    for cat, row in by_cat.iterrows():
+        if int(row["trades"]) < 50:
+            continue
+        if pooled_per_trade_net <= 0 and row["net_per_trade"] > 0:
+            edge_pct = float("inf")
+        elif pooled_per_trade_net <= 0:
+            continue
+        else:
+            edge_pct = (row["net_per_trade"] / pooled_per_trade_net) - 1.0
+        if edge_pct > 0.15:
+            triggered.append((cat, row["trades"], row["net_per_trade"], edge_pct))
+
+    if triggered:
+        print(">>> TASK #26 TRIGGER: category-specific models worth trying <<<")
+        for cat, n, ptr, edge in triggered:
+            edge_str = "inf" if edge == float("inf") else f"{edge:+.1%}"
+            print(
+                f"    {cat}: {int(n)} trades, ${ptr:+.4f}/trade, "
+                f"edge={edge_str} vs pooled"
+            )
+        print()
+        print("Next step: train a category-specific XGBoost on oil data only,")
+        print("A/B against the pooled model on the same subset, decide from delta.")
+    else:
+        print("Task #26 trigger: no category meets the criterion yet")
+        print("  (need >= 50 trades AND > 15% per-trade edge vs pooled)")
+
+
 def print_dashboard_json(live_dir: Path = Path("data/live")) -> None:
     """Load trade log and print the dashboard as JSON.
 
@@ -377,6 +556,16 @@ def main(argv: list[str] | None = None) -> int:
         help="Output as JSON (for programmatic consumption)",
     )
     parser.add_argument(
+        "--by-category",
+        action="store_true",
+        help=(
+            "Task #26 monitor: print per-category fee-adjusted P&L and "
+            "flag any category that materially outperforms the pooled "
+            "model (50+ trades, >15%% per-trade edge). Use to decide "
+            "when to train category-specific models (Option B)."
+        ),
+    )
+    parser.add_argument(
         "--live-dir",
         type=str,
         default="data/live",
@@ -391,7 +580,9 @@ def main(argv: list[str] | None = None) -> int:
 
     live_dir = Path(args.live_dir)
 
-    if args.json:
+    if args.by_category:
+        print_category_breakdown(live_dir)
+    elif args.json:
         print_dashboard_json(live_dir)
     else:
         print_dashboard(live_dir)
