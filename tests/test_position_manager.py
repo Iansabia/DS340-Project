@@ -537,6 +537,84 @@ def test_exit_rule_resolution_no_date(pm):
     assert pm.check_exits("res_none", now) is None
 
 
+def test_stop_loss_with_signed_negative_entry_spread(pm):
+    """Regression for task #28 (live_0237 KXFEDCOMBO-26APR-0-0).
+
+    A long_spread position was opened with signed entry_spread=-0.9645
+    (K=0.018, P=0.9825). After one bar with no price movement, the
+    stop-loss check compared raw current_spread to entry_spread * 1.3
+    and fired immediately because the math was wrong for the long
+    direction. Realized PnL came out as 2x the spread magnitude
+    (-1.929) — a complete position loss on a no-move bar.
+
+    Fix: stop-loss and take-profit now compare magnitudes
+    (abs(current) vs abs(entry) * k) which is correct for either
+    sign and any direction.
+
+    This test opens a long_spread with a negative entry, updates the
+    current_spread to the SAME value (simulating no movement), and
+    asserts that no exit fires.
+    """
+    _open_with_state(
+        pm,
+        "bug_regression",
+        current_spread=-0.9645,  # same as entry, no movement
+        entry_spread=-0.9645,
+        direction="long_spread",
+    )
+    now = datetime(2026, 4, 11, 16, 30, tzinfo=timezone.utc)
+    # MUST return None — no exit should fire on zero-movement bar
+    assert pm.check_exits("bug_regression", now) is None
+
+
+def test_stop_loss_with_signed_positive_entry_spread(pm):
+    """Symmetric check for the short_spread direction at positive entry.
+    No-movement bar must not trigger any exit."""
+    _open_with_state(
+        pm,
+        "bug_regression_short",
+        current_spread=0.65,
+        entry_spread=0.65,
+        direction="short_spread",
+    )
+    now = datetime(2026, 4, 11, 16, 30, tzinfo=timezone.utc)
+    assert pm.check_exits("bug_regression_short", now) is None
+
+
+def test_take_profit_fires_on_magnitude_halving_both_directions(pm):
+    """Take-profit must fire when magnitude halves, regardless of sign."""
+    # Short_spread entry +0.6 -> current +0.3 (50% narrowing)
+    _open_with_state(
+        pm, "tp_short",
+        current_spread=0.30, entry_spread=0.60, direction="short_spread",
+    )
+    # Long_spread entry -0.6 -> current -0.3 (50% narrowing toward 0)
+    _open_with_state(
+        pm, "tp_long",
+        current_spread=-0.30, entry_spread=-0.60, direction="long_spread",
+    )
+    now = datetime(2026, 4, 11, 16, 30, tzinfo=timezone.utc)
+    assert pm.check_exits("tp_short", now) == ExitReason.TAKE_PROFIT
+    assert pm.check_exits("tp_long", now) == ExitReason.TAKE_PROFIT
+
+
+def test_stop_loss_fires_on_magnitude_growth_both_directions(pm):
+    """Stop-loss must fire when magnitude grows >30%, regardless of sign."""
+    # Short_spread entry +0.5 -> current +0.70 (40% widening)
+    _open_with_state(
+        pm, "sl_short",
+        current_spread=0.70, entry_spread=0.50, direction="short_spread",
+    )
+    # Long_spread entry -0.5 -> current -0.70 (40% widening)
+    _open_with_state(
+        pm, "sl_long",
+        current_spread=-0.70, entry_spread=-0.50, direction="long_spread",
+    )
+    now = datetime(2026, 4, 11, 16, 30, tzinfo=timezone.utc)
+    assert pm.check_exits("sl_short", now) == ExitReason.STOP_LOSS
+    assert pm.check_exits("sl_long", now) == ExitReason.STOP_LOSS
+
+
 def test_exit_rule_resolution_naive_iso_string(pm):
     """Regression: contract_classifier stores resolution dates as ISO strings
     WITHOUT a timezone suffix (parse_resolution_date returns naive datetimes).

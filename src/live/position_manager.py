@@ -381,18 +381,17 @@ class PositionManager:
     # ------------------------------------------------------------------
 
     def _check_take_profit(self, pos: Position) -> bool:
-        """Take profit: spread narrowed > 50% from entry."""
-        if pos.direction == "short_spread":
-            return pos.current_spread <= pos.entry_spread * 0.5
-        else:  # long_spread
-            return abs(pos.current_spread) <= abs(pos.entry_spread) * 0.5
+        """Take profit: spread magnitude narrowed >= 50% from entry.
+
+        Compares MAGNITUDES so the check is correct regardless of
+        whether entry_spread is stored signed or (historically) as abs.
+        Protects against the Task #28 live_0237 bug class.
+        """
+        return abs(pos.current_spread) <= abs(pos.entry_spread) * 0.5
 
     def _check_stop_loss(self, pos: Position) -> bool:
-        """Stop loss: spread widened > 30% beyond entry."""
-        if pos.direction == "short_spread":
-            return pos.current_spread > pos.entry_spread * 1.3
-        else:  # long_spread
-            return pos.current_spread < pos.entry_spread * 1.3
+        """Stop loss: spread magnitude widened > 30% beyond entry."""
+        return abs(pos.current_spread) > abs(pos.entry_spread) * 1.3
 
     def _check_time_stop(self, pos: Position) -> bool:
         """Time stop: bars_held >= max_bars for tier."""

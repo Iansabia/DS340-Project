@@ -63,12 +63,20 @@ class TradingStrategy:
         model_dir: Path = Path("models/deployed"),
         min_price: float = 0.10,
         min_spread: float = 0.30,
+        max_spread: float = 0.85,
         prediction_threshold: float = 0.02,
     ) -> None:
         self.live_dir = Path(live_dir)
         self.model_dir = Path(model_dir)
         self.min_price = min_price
         self.min_spread = min_spread
+        # No convergence room above ~85pp — the max possible spread is
+        # 1.00 (one side near 0, the other near 1), so a spread of
+        # e.g. 0.96 has only 4pp to go before hitting the boundary.
+        # Filed as task #28 after live_0237 (KXFEDCOMBO-26APR-0-0) opened
+        # at |spread|=0.9645 and realized -$1.93 in a single bar due to
+        # a sign-convention bug that couldn't occur if we hadn't entered.
+        self.max_spread = max_spread
         self.prediction_threshold = prediction_threshold
 
         # Classifier
@@ -357,9 +365,16 @@ class TradingStrategy:
             if max(k_price, p_price) < self.min_price:
                 continue
 
-            # Spread filter
+            # Spread filter: reject both "too small to be worth trading"
+            # and "too big to have convergence room". An entry at
+            # |spread|=0.96 has effectively no upside because the max
+            # possible spread is 1.0 — we'd need the disagreement to
+            # grow AND then collapse, which is a losing setup.
             spread = k_price - p_price
-            if abs(spread) < self.min_spread:
+            spread_abs = abs(spread)
+            if spread_abs < self.min_spread:
+                continue
+            if spread_abs > self.max_spread:
                 continue
 
             # Build features and predict
@@ -386,13 +401,18 @@ class TradingStrategy:
             else:
                 direction = "long_spread"
 
-            # Open position
+            # Open position.
+            # Store entry_spread SIGNED (not abs) so it matches the
+            # signed `current_spread` that update_position writes at
+            # exit time. Storing one as abs and the other as signed
+            # produced the live_0237 bug where realized_pnl came out
+            # as 2x the spread magnitude. Task #28.
             if not dry_run:
                 self._pm.open_position(
                     pair_id=pair_id,
                     kalshi_ticker=k_ticker,
                     direction=direction,
-                    entry_spread=abs(spread),
+                    entry_spread=spread,
                     kalshi_price=k_price,
                     poly_price=p_price,
                     tier=cl["tier"],
