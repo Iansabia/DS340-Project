@@ -230,7 +230,51 @@ class TestFilterActiveMatch:
         ok, reason = filter_active_match(match)
         assert ok is False
 
-    # ----- Bad pattern 4: Low similarity safety net -----
+    # ----- Bad pattern 4: ticker-year vs title-year mismatch -----
+
+    def test_rejects_ticker_year_vs_title_year_mismatch(self):
+        """Brazil inflation case from real live data: Kalshi ticker encodes
+        '25DEC' (December 2025, already past) but Polymarket title explicitly
+        says '2026'. Filter should reject even though neither Kalshi title nor
+        Polymarket title would trigger the title-only year rule (the Kalshi
+        title may not mention the year at all, only the ticker does)."""
+        match = {
+            "kalshi_ticker": "KXBRAZILINF-25DEC-T3.25",
+            "kalshi_title": "Will Brazil inflation be above 3.25%?",
+            "poly_title": "Will inflation reach more than 5% in 2026?",
+            "similarity": 0.80,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+        assert "year" in reason.lower()
+
+    def test_rejects_stale_ticker_past_year(self):
+        """A Kalshi contract whose ticker-encoded year is already in the past
+        is meaningless to trade — the contract has (or should have) resolved.
+        Kalshi occasionally leaves past-dated markets status=open, and we
+        should never match against them."""
+        match = {
+            "kalshi_ticker": "KXSOMETHING-24DEC-T3.25",  # December 2024
+            "kalshi_title": "Will something happen in Dec 2024?",
+            "poly_title": "Will something happen in 2026?",
+            "similarity": 0.85,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+        assert "stale" in reason.lower() or "past" in reason.lower()
+
+    def test_accepts_same_year_contract(self):
+        """Sanity: ticker and title both indicate same year -> accept."""
+        match = {
+            "kalshi_ticker": "KXWTI-26APR10-T106.00",
+            "kalshi_title": "Will WTI be below $106 on April 10, 2026?",
+            "poly_title": "What will WTI Crude Oil hit in April 2026?",
+            "similarity": 0.82,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is True, f"Rejected good oil pair: {reason}"
+
+    # ----- Bad pattern 5: Low similarity safety net -----
 
     def test_rejects_low_similarity(self):
         """Anything under the similarity floor is rejected regardless of content."""

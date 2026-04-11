@@ -225,6 +225,12 @@ def _extract_year_from_text(text: str) -> int | None:
     return None
 
 
+def _current_year() -> int:
+    """Current year in UTC. Wrapped so tests can monkey-patch."""
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).year
+
+
 def _has_any(text: str, needles: tuple[str, ...]) -> bool:
     t = text.lower()
     return any(n in t for n in needles)
@@ -286,10 +292,36 @@ def filter_active_match(match: dict) -> tuple[bool, str | None]:
     if _has_any(k_title_l, _CABINET_KEYWORDS) and _has_any(p_title_l, _NOMINATION_KEYWORDS):
         return False, "cabinet_vs_nomination"
 
-    # General year-mismatch fallback: if both titles mention a 4-digit year
-    # and they differ by more than one year, reject.
+    # Extract year from the Kalshi ticker itself (authoritative) and
+    # from both titles (supplementary).
+    k_year_ticker = _extract_year_from_kalshi_ticker(ticker)
     k_year_title = _extract_year_from_text(k_title)
     p_year_title = _extract_year_from_text(p_title)
+
+    # --- Rule: stale ticker (contract year already in the past) ---
+    # Kalshi occasionally leaves past-dated markets as status=open; trading
+    # a contract whose resolution window is behind us is meaningless. This
+    # check uses the ticker-encoded year because the title may omit it.
+    if k_year_ticker is not None and k_year_ticker < _current_year():
+        return False, f"stale_ticker (kalshi ticker year={k_year_ticker}, now>={_current_year()})"
+
+    # --- Rule: ticker-year vs title-year mismatch ---
+    # Catches the Brazil inflation case: ticker '-25DEC-' (2025) but Poly
+    # title says '2026'. The Fed-specific rule above only fires for
+    # KXFED* tickers; this is the general case.
+    if k_year_ticker is not None and p_year_title is not None:
+        if k_year_ticker != p_year_title:
+            return False, (
+                f"ticker_year_mismatch (kalshi_ticker={k_year_ticker}, "
+                f"poly_title={p_year_title})"
+            )
+
+    # General year-mismatch fallback for cases where both TITLES mention a
+    # 4-digit year and they differ by more than one year. The >= 2 bound
+    # is a safety margin so we don't reject questions that happen to
+    # mention two adjacent years in passing (e.g. "2025 data, resolves
+    # 2026"). The authoritative ticker-based rule above handles the
+    # tighter cases.
     if k_year_title is not None and p_year_title is not None:
         if abs(k_year_title - p_year_title) >= 2:
             return False, f"year_mismatch ({k_year_title} vs {p_year_title})"
