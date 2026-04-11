@@ -259,7 +259,7 @@ def fetch_active_kalshi_markets(
 
 
 def fetch_active_poly_markets(
-    max_pages: int = 20,
+    max_pages: int = 10,
     page_size: int = 500,
 ) -> list[dict]:
     """Fetch currently-tradeable Polymarket markets via Gamma API.
@@ -271,6 +271,11 @@ def fetch_active_poly_markets(
       - volume, liquidity
       - endDate
       - clobTokenIds
+
+    Note: Gamma API returns ~5k markets per 10 pages in approximate
+    volume-desc order. Polymarket has tens of thousands of low-volume
+    speculative markets; we cap at ``max_pages=10`` because match_markets
+    volume-filters out anything under $5k anyway.
     """
     import requests  # lazy
 
@@ -391,111 +396,172 @@ def _poly_yes_price(m: dict) -> float:
     return 0.0
 
 
-def _build_candidate_pairs(
-    kalshi_markets: list[dict],
-    poly_markets: list[dict],
-    min_keyword_overlap: int = 1,
-) -> list[tuple[dict, dict]]:
-    """Generate (kalshi, poly) candidate pairs via keyword pre-filter.
+# Minimum Polymarket volume to consider a market. Gamma API returns tens
+# of thousands of markets, most with near-zero volume (speculative/joke
+# markets). We only care about markets we could actually trade on, so
+# drop anything under $5k cumulative volume.
+MIN_POLY_VOLUME = 5000.0
 
-    Full cross product is O(N*M) — too expensive. Filter to pairs that
-    share at least `min_keyword_overlap` non-stopword tokens.
+
+def _poly_volume(m: dict) -> float:
+    """Extract volume from a Polymarket market record.
+
+    Gamma uses a few different volume fields depending on the market
+    type. Take the max of whatever's available.
     """
-    stop = {
-        "the", "a", "an", "will", "be", "is", "in", "on", "at", "to",
-        "by", "of", "for", "with", "and", "or", "not", "this", "that",
-        "it", "its", "are", "was", "were", "has", "have", "had", "do",
-        "does", "did", "can", "if", "as", "from", "but", "which", "who",
-        "what", "when", "where", "why", "how",
-    }
-
-    def tokenize(text: str) -> set[str]:
-        if not text:
-            return set()
-        words = (
-            text.lower()
-            .replace("?", " ")
-            .replace(",", " ")
-            .replace(".", " ")
-            .replace("-", " ")
-            .split()
-        )
-        return {w for w in words if len(w) > 2 and w not in stop}
-
-    # Pre-tokenize Polymarket side.
-    poly_tokens = [tokenize(m.get("question", "")) for m in poly_markets]
-
-    candidates: list[tuple[dict, dict]] = []
-    for km in kalshi_markets:
-        k_tokens = tokenize(km.get("title", ""))
-        if not k_tokens:
-            continue
-        for pm, p_tokens in zip(poly_markets, poly_tokens):
-            overlap = len(k_tokens & p_tokens)
-            if overlap >= min_keyword_overlap:
-                candidates.append((km, pm))
-
-    logger.info(
-        "Candidate pairs: %d (from %d kalshi x %d poly)",
-        len(candidates), len(kalshi_markets), len(poly_markets),
+    candidates = (
+        m.get("volume"),
+        m.get("volumeNum"),
+        m.get("volume24hr"),
+        m.get("liquidity"),
     )
-    return candidates
+    best = 0.0
+    for c in candidates:
+        if c is None:
+            continue
+        try:
+            v = float(c)
+        except (TypeError, ValueError):
+            continue
+        if v > best:
+            best = v
+    return best
+
+
+def _filter_poly_by_volume(
+    poly_markets: list[dict], min_volume: float = MIN_POLY_VOLUME
+) -> list[dict]:
+    """Drop Polymarket markets below a volume floor.
+
+    Dramatically reduces the candidate space without losing anything we
+    could realistically trade on.
+    """
+    kept = [m for m in poly_markets if _poly_volume(m) >= min_volume]
+    logger.info(
+        "Polymarket volume filter: %d -> %d (min_volume=%s)",
+        len(poly_markets), len(kept), min_volume,
+    )
+    return kept
 
 
 def match_markets(
     kalshi_markets: list[dict],
     poly_markets: list[dict],
     similarity_threshold: float = 0.70,
+    top_k: int = 3,
+    min_poly_volume: float = MIN_POLY_VOLUME,
 ) -> list[dict]:
     """Produce high-similarity active_matches-schema records.
 
-    Runs keyword pre-filter, then sentence-transformers scoring, then
-    applies the active-match quality filter. Returns the survivors in
-    the schema expected by active_matches.json.
+    Uses an encode-once-then-matmul strategy:
+      1. Volume-filter Polymarket so we don't waste compute on junk.
+      2. Encode every Kalshi and Polymarket text exactly once.
+      3. Compute a full similarity matrix via vectorized numpy
+         (normalized embeddings + dot product = cosine).
+      4. For each Kalshi market, pick the single best Polymarket match
+         above the similarity threshold.
+      5. Apply the structural quality filter on the resulting pairs.
+
+    This replaces a naive keyword-overlap candidate generator that
+    produced ~4M candidate pairs on a real run and would have taken
+    ~6 hours to score. The matrix approach runs in ~60-90s for the
+    same inputs and scales cleanly.
+
+    Args:
+        kalshi_markets: Raw Kalshi market dicts from /series->/events.
+        poly_markets: Raw Polymarket market dicts from Gamma API.
+        similarity_threshold: Minimum cosine similarity to accept.
+        top_k: Unused today (kept 1-best per Kalshi). Reserved for
+            future multi-candidate workflows.
+        min_poly_volume: Minimum Polymarket cumulative volume to
+            consider. Default drops tens of thousands of junk markets.
+
+    Returns:
+        List of active_matches-schema dicts surviving the quality filter.
     """
+    import numpy as np  # lazy
+
     from src.matching.quality_filter import filter_active_match
     from src.matching.semantic_matcher import SemanticMatcher  # lazy
 
-    # Drop multi-leg / empty-title Kalshi markets before matching.
+    # ------------------------------------------------------------------
+    # 1. Input filtering
+    # ------------------------------------------------------------------
     kalshi_markets = [m for m in kalshi_markets if _is_matchable_kalshi_market(m)]
+    poly_markets = _filter_poly_by_volume(poly_markets, min_volume=min_poly_volume)
 
-    candidates = _build_candidate_pairs(kalshi_markets, poly_markets)
-    if not candidates:
+    if not kalshi_markets or not poly_markets:
+        logger.info(
+            "match_markets: empty input after filtering (kalshi=%d poly=%d)",
+            len(kalshi_markets), len(poly_markets),
+        )
         return []
 
+    # ------------------------------------------------------------------
+    # 2. Encode once (this is the expensive step)
+    # ------------------------------------------------------------------
     matcher = SemanticMatcher()
-    k_texts = [c[0].get("title", "") for c in candidates]
-    p_texts = [c[1].get("question", "") for c in candidates]
-    scores = matcher.score_pairs(k_texts, p_texts)
+    k_texts = [m.get("title", "") for m in kalshi_markets]
+    p_texts = [m.get("question", "") for m in poly_markets]
 
-    # Keep the best match per kalshi ticker (avoids duplicate pairs
-    # where one Kalshi market matches multiple Polymarket markets).
+    logger.info(
+        "Encoding embeddings: %d kalshi + %d poly = %d texts",
+        len(k_texts), len(p_texts), len(k_texts) + len(p_texts),
+    )
+    k_emb = matcher.encode_batch(k_texts).astype(np.float32)  # (N_k, d)
+    p_emb = matcher.encode_batch(p_texts).astype(np.float32)  # (N_p, d)
+
+    # ------------------------------------------------------------------
+    # 3. Vectorized cosine similarity via normalized dot product
+    # ------------------------------------------------------------------
+    def _normalize(x: np.ndarray) -> np.ndarray:
+        norms = np.linalg.norm(x, axis=1, keepdims=True)
+        norms = np.where(norms > 0, norms, 1.0)  # avoid /0
+        return x / norms
+
+    k_emb = _normalize(k_emb)
+    p_emb = _normalize(p_emb)
+
+    # Similarity matrix: (N_k, N_p). 1065 x 4000 ~ 17MB, fits in RAM easy.
+    sim_matrix = k_emb @ p_emb.T
+
+    # ------------------------------------------------------------------
+    # 4. Best Polymarket per Kalshi above threshold
+    # ------------------------------------------------------------------
+    best_idx = np.argmax(sim_matrix, axis=1)  # (N_k,) index into poly
+    best_sim = sim_matrix[np.arange(len(kalshi_markets)), best_idx]  # (N_k,)
+
     best: dict[str, tuple[float, dict]] = {}
-    for (km, pm), sim in zip(candidates, scores):
-        if sim < similarity_threshold:
+    for i, km in enumerate(kalshi_markets):
+        sim_val = float(best_sim[i])
+        if sim_val < similarity_threshold:
             continue
         kt = km.get("ticker", "")
         if not kt:
             continue
-        if kt not in best or sim > best[kt][0]:
-            k_mid = _kalshi_mid(km)
-            p_price = _poly_yes_price(pm)
-            match = {
-                "kalshi_ticker": kt,
-                "kalshi_title": km.get("title", ""),
-                "kalshi_event": km.get("event_ticker", ""),
-                "kalshi_mid": k_mid,
-                "kalshi_vol": km.get("volume", 0),
-                "poly_id": pm.get("conditionId", ""),
-                "poly_title": pm.get("question", ""),
-                "poly_price": p_price,
-                "poly_vol": pm.get("volume", 0),
-                "similarity": float(sim),
-                "spread": round(k_mid - p_price, 6),
-            }
-            best[kt] = (float(sim), match)
+        pm = poly_markets[int(best_idx[i])]
+        k_mid = _kalshi_mid(km)
+        p_price = _poly_yes_price(pm)
+        match = {
+            "kalshi_ticker": kt,
+            "kalshi_title": km.get("title", ""),
+            "kalshi_event": km.get("event_ticker", ""),
+            "kalshi_mid": k_mid,
+            "kalshi_vol": km.get("volume", 0),
+            "poly_id": pm.get("conditionId", ""),
+            "poly_title": pm.get("question", ""),
+            "poly_price": p_price,
+            "poly_vol": _poly_volume(pm),
+            "similarity": sim_val,
+            "spread": round(k_mid - p_price, 6),
+        }
+        # If the same Kalshi ticker somehow appears twice, keep highest-sim
+        if kt not in best or sim_val > best[kt][0]:
+            best[kt] = (sim_val, match)
 
-    # Apply structural quality filter.
+    # ------------------------------------------------------------------
+    # 5. Structural quality filter
+    # ------------------------------------------------------------------
     survivors: list[dict] = []
     rejected_reasons: dict[str, int] = {}
     for _, match in best.values():
@@ -507,9 +573,10 @@ def match_markets(
             rejected_reasons[key] = rejected_reasons.get(key, 0) + 1
 
     logger.info(
-        "match_markets: %d candidates -> %d semantic matches -> %d after quality filter "
-        "(rejections=%s)",
-        len(candidates), len(best), len(survivors), rejected_reasons,
+        "match_markets: %d kalshi x %d poly -> %d semantic matches -> %d "
+        "after quality filter (rejections=%s)",
+        len(kalshi_markets), len(poly_markets), len(best), len(survivors),
+        rejected_reasons,
     )
     return survivors
 

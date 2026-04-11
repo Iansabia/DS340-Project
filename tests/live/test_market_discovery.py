@@ -10,8 +10,10 @@ from __future__ import annotations
 import pytest
 
 from src.live.market_discovery import (
+    _filter_poly_by_volume,
     _is_matchable_kalshi_market,
     _kalshi_mid,
+    _poly_volume,
     make_match_key,
     upsert_active_matches,
 )
@@ -41,6 +43,50 @@ class TestKalshiMid:
             "last_price_dollars": "0.65",
         }
         assert _kalshi_mid(m) == pytest.approx(0.65)
+
+
+class TestPolyVolume:
+    """Polymarket markets expose volume through several different fields
+    depending on market age/type. _poly_volume should take the max of
+    whatever's present and return 0 when nothing is usable."""
+
+    def test_reads_volume_field(self):
+        assert _poly_volume({"volume": "12345.67"}) == 12345.67
+
+    def test_reads_volumeNum_field(self):
+        assert _poly_volume({"volumeNum": 50000}) == 50000.0
+
+    def test_takes_max_across_fields(self):
+        m = {"volume": 100, "volumeNum": 500, "volume24hr": 50}
+        assert _poly_volume(m) == 500.0
+
+    def test_missing_all_returns_zero(self):
+        assert _poly_volume({}) == 0.0
+
+    def test_malformed_strings_ignored(self):
+        assert _poly_volume({"volume": "N/A"}) == 0.0
+
+    def test_none_values_ignored(self):
+        assert _poly_volume({"volume": None, "liquidity": 75}) == 75.0
+
+
+class TestFilterPolyByVolume:
+    def test_drops_low_volume(self):
+        markets = [
+            {"conditionId": "A", "volume": 50},      # below floor
+            {"conditionId": "B", "volume": 10000},   # above floor
+            {"conditionId": "C", "volume": 0},       # below floor
+        ]
+        kept = _filter_poly_by_volume(markets, min_volume=5000)
+        assert [m["conditionId"] for m in kept] == ["B"]
+
+    def test_keeps_all_when_floor_is_zero(self):
+        markets = [
+            {"conditionId": "A", "volume": 50},
+            {"conditionId": "B", "volume": 100},
+        ]
+        kept = _filter_poly_by_volume(markets, min_volume=0)
+        assert len(kept) == 2
 
 
 class TestFetchKalshiNullSeriesHandling:
