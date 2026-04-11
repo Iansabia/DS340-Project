@@ -7,6 +7,8 @@ from src.matching.quality_filter import (
     directions_compatible,
     thresholds_compatible,
     filter_candidates,
+    filter_active_match,
+    filter_active_matches,
 )
 
 
@@ -124,3 +126,176 @@ class TestFilterCandidates:
         result = filter_candidates(candidates)
         assert len(result) == 1
         assert result[0]["resolution_gap_days"] == 5
+
+
+# --------------------------------------------------------------------
+# filter_active_match: operates on active_matches.json schema.
+# Catches the specific garbage patterns found in live paper trading data.
+# --------------------------------------------------------------------
+
+
+class TestFilterActiveMatch:
+    """Rules for the live-trading quality filter.
+
+    Each test case is drawn from an actual pair in data/live/active_matches.json
+    that was either profitable (should pass) or systematically losing money
+    (should be rejected).
+    """
+
+    # ----- Good pairs that MUST pass -----
+
+    def test_oil_near_expiry_passes(self):
+        """WTI front-month settle vs WTI April price. Real winner."""
+        match = {
+            "kalshi_ticker": "KXWTIW-26APR10-T106.00",
+            "kalshi_title": "Will the WTI front-month settle oil price be <106.00 on Apr 10, 2026?",
+            "poly_title": "What will WTI Crude Oil (WTI) hit in April 2026?",
+            "similarity": 0.92,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is True, f"good oil pair was rejected: {reason}"
+        assert reason is None
+
+    def test_aoc_democratic_nominee_passes(self):
+        """Both sides ask the same discrete question. Real good match."""
+        match = {
+            "kalshi_ticker": "KXPRESNOMD-28-AOC",
+            "kalshi_title": "Will Alexandria Ocasio-Cortez be the Democratic Presidential nominee in 2028?",
+            "poly_title": "Democratic Presidential Nominee 2028 - Will Alexandria Ocasio-Cortez win the 2028 Democratic presidential nomination?",
+            "similarity": 0.97,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is True, f"good AOC pair was rejected: {reason}"
+
+    # ----- Bad pattern 1: NBA season-wins vs championship -----
+
+    def test_rejects_nba_season_wins_vs_champion(self):
+        """Kalshi KXNBAWINS-* is an O/U on season wins. Polymarket is a champion market.
+        These converge only by coincidence and have been losing consistently."""
+        match = {
+            "kalshi_ticker": "KXNBAWINS-SAS-25-T35",
+            "kalshi_title": "Will the San Antonio pro basketball team win at least 35 times this season?",
+            "poly_title": "2026 NBA Champion - Will the San Antonio Spurs win the 2026 NBA Finals?",
+            "similarity": 0.86,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+        assert "nba" in reason.lower() or "season_wins_vs_champion" in reason
+
+    def test_rejects_nba_wins_any_team(self):
+        """Same pattern on a different team+threshold."""
+        match = {
+            "kalshi_ticker": "KXNBAWINS-SAS-25-T60",
+            "kalshi_title": "Will the San Antonio pro basketball team win at least 60 times this season?",
+            "poly_title": "2026 NBA Champion - Will the San Antonio Spurs win the 2026 NBA Finals?",
+            "similarity": 0.88,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+
+    # ----- Bad pattern 2: Fed decision year mismatch -----
+
+    def test_rejects_fed_2027_vs_april_2026(self):
+        """Kalshi ticker encodes '27APR' (April 2027) but Polymarket is April 2026."""
+        match = {
+            "kalshi_ticker": "KXFEDDECISION-27APR-H0",
+            "kalshi_title": "Will the Federal Reserve Hike rates by 0bps at their April 2027 meeting?",
+            "poly_title": "Fed decision in April? - Will there be no change in Fed interest rates after the April meeting?",
+            "similarity": 0.89,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+        assert "year" in reason.lower() or "date" in reason.lower()
+
+    def test_rejects_fed_27jun_vs_april_2026(self):
+        match = {
+            "kalshi_ticker": "KXFEDDECISION-27JUN-H0",
+            "kalshi_title": "Will the Federal Reserve Hike rates by 0bps at their June 2027 meeting?",
+            "poly_title": "Fed decision in April? - Will there be no change in Fed interest rates after the April meeting?",
+            "similarity": 0.87,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+
+    # ----- Bad pattern 3: Cross-topic cabinet vs nomination -----
+
+    def test_rejects_cabinet_visit_vs_presidential_nomination(self):
+        """Kalshi is about a State Department visit. Polymarket is about a 2028 nomination."""
+        match = {
+            "kalshi_ticker": "KXSECSTATEVISIT-27-MEX",
+            "kalshi_title": "Will the Secretary of State visit Mexico before 2027?",
+            "poly_title": "Republican Presidential Nominee 2028 - Will Marco Rubio win the 2028 Republican presidential nomination?",
+            "similarity": 0.82,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+
+    # ----- Bad pattern 4: Low similarity safety net -----
+
+    def test_rejects_low_similarity(self):
+        """Anything under the similarity floor is rejected regardless of content."""
+        match = {
+            "kalshi_ticker": "KXFOO-26-BAR",
+            "kalshi_title": "Will X happen?",
+            "poly_title": "Will Y happen?",
+            "similarity": 0.65,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+        assert "similar" in reason.lower()
+
+    # ----- Required fields -----
+
+    def test_rejects_missing_ticker(self):
+        match = {
+            "kalshi_title": "something",
+            "poly_title": "something else",
+            "similarity": 0.9,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+        assert "ticker" in reason.lower() or "required" in reason.lower()
+
+    def test_rejects_missing_poly_title(self):
+        match = {
+            "kalshi_ticker": "KXFOO-26-BAR",
+            "kalshi_title": "something",
+            "similarity": 0.9,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+
+
+class TestFilterActiveMatchesBatch:
+    def test_batch_returns_passed_and_stats(self):
+        matches = [
+            # Good oil pair
+            {
+                "kalshi_ticker": "KXWTIW-26APR10-T106.00",
+                "kalshi_title": "Will the WTI front-month settle oil price be <106.00 on Apr 10, 2026?",
+                "poly_title": "What will WTI Crude Oil (WTI) hit in April 2026?",
+                "similarity": 0.92,
+            },
+            # NBA garbage
+            {
+                "kalshi_ticker": "KXNBAWINS-SAS-25-T35",
+                "kalshi_title": "Will the San Antonio pro basketball team win at least 35 times this season?",
+                "poly_title": "2026 NBA Champion - Will the San Antonio Spurs win the 2026 NBA Finals?",
+                "similarity": 0.86,
+            },
+            # Fed year mismatch
+            {
+                "kalshi_ticker": "KXFEDDECISION-27APR-H0",
+                "kalshi_title": "Will the Federal Reserve Hike rates by 0bps at their April 2027 meeting?",
+                "poly_title": "Fed decision in April? - Will there be no change in Fed interest rates after the April meeting?",
+                "similarity": 0.89,
+            },
+        ]
+        passed, stats = filter_active_matches(matches)
+        assert len(passed) == 1
+        assert passed[0]["kalshi_ticker"] == "KXWTIW-26APR10-T106.00"
+        assert stats["total"] == 3
+        assert stats["passed"] == 1
+        assert stats["rejected"] == 2
+        # Each rejection reason should appear in the reasons dict
+        assert len(stats["reasons"]) >= 1

@@ -118,6 +118,221 @@ def thresholds_compatible(t1: float | None, t2: float | None) -> bool:
     return False
 
 
+# --------------------------------------------------------------------
+# Live-trading quality filter.
+#
+# Operates on the active_matches.json schema (kalshi_ticker, kalshi_title,
+# poly_title, similarity, ...). Rejects the specific garbage patterns
+# found in live paper-trading data:
+#
+#   1. KXNBAWINS-* (season-wins O/U) matched against NBA champion markets
+#   2. Fed decision contracts with mismatched month/year
+#   3. Cross-topic matches (e.g. cabinet visit vs presidential nominee)
+#   4. Similarity below a floor
+#
+# Used by:
+#   - src/live/collector.py::_load_live_pairs  (skip collection)
+#   - src/live/strategy.py                      (skip entry)
+#   - scripts/apply_match_filter.py             (offline audit)
+# --------------------------------------------------------------------
+
+# Minimum cosine similarity to accept as a match. Kept LOW on purpose:
+# empirically on live paper-trading data, winning oil pairs sit in the
+# 0.79-0.82 range while losing NBA-wins garbage sits at 0.73-0.74 —
+# huge overlap. Similarity is NOT a reliable signal here; the structural
+# rules below (ticker-prefix checks, year mismatch, cross-topic) do the
+# real work. This floor is just a sanity guard for future data.
+MIN_ACTIVE_SIMILARITY = 0.70
+
+# Kalshi ticker prefixes that encode a "number-of-wins" season contract.
+# These are structurally incompatible with champion/finals markets.
+_SEASON_WINS_TICKER_PREFIXES = ("KXNBAWINS", "KXNFLWINS", "KXMLBWINS", "KXNHLWINS")
+
+# Keywords that indicate a Polymarket "pick-the-winner" market. When the
+# Kalshi side is a threshold/O-U, these are almost always different questions.
+_DISCRETE_WINNER_KEYWORDS = (
+    "nba finals",
+    "nba champion",
+    "nba championship",
+    "super bowl",
+    "world series",
+    "stanley cup",
+    "win the finals",
+    "win the championship",
+    "win the title",
+)
+
+# Keywords that indicate a political nomination/election market.
+_NOMINATION_KEYWORDS = (
+    "presidential nominee",
+    "presidential nomination",
+    "republican nominee",
+    "democratic nominee",
+    "nominee 2028",
+    "nomination 2028",
+    "win the 2028",
+    "win the 2024",
+    "next president",
+)
+
+# Keywords that indicate a cabinet/foreign-policy Kalshi market (very
+# different from electoral markets).
+_CABINET_KEYWORDS = (
+    "secretary of state",
+    "secretary of defense",
+    "secretary of treasury",
+    "visit mexico",
+    "visit china",
+    "visit russia",
+    "state department",
+)
+
+
+def _extract_year_from_kalshi_ticker(ticker: str) -> int | None:
+    """Extract year from a Kalshi ticker.
+
+    Kalshi tickers embed dates in patterns like:
+      KXWTI-26APR08-T105.99    -> 2026
+      KXFEDDECISION-27APR-H0   -> 2027
+      KXSECSTATEVISIT-27-MEX   -> 2027
+      KXPRESNOMD-28-AOC        -> 2028
+
+    Returns the 4-digit year, or None if no date pattern found.
+    """
+    if not ticker:
+        return None
+    # Pattern 1: "-YY<MON>" e.g. -27APR-, -26APR08-
+    m = re.search(r"-(\d{2})(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)", ticker.upper())
+    if m:
+        return 2000 + int(m.group(1))
+    # Pattern 2: "-YY-" standalone two-digit year
+    m = re.search(r"-(\d{2})-", ticker)
+    if m:
+        yr = int(m.group(1))
+        # Reject obvious thresholds/numbers ("T35", "T40") — require year-like range
+        if 20 <= yr <= 40:
+            return 2000 + yr
+    return None
+
+
+def _extract_year_from_text(text: str) -> int | None:
+    """Return the first 4-digit year mentioned in the text, or None."""
+    if not text:
+        return None
+    m = re.search(r"\b(20\d{2})\b", text)
+    if m:
+        return int(m.group(1))
+    return None
+
+
+def _has_any(text: str, needles: tuple[str, ...]) -> bool:
+    t = text.lower()
+    return any(n in t for n in needles)
+
+
+def filter_active_match(match: dict) -> tuple[bool, str | None]:
+    """Validate a single entry from active_matches.json.
+
+    Returns (True, None) if the pair should be actively traded, or
+    (False, reason) if it should be filtered out.
+
+    The rules encode patterns discovered in live paper-trading data
+    where systematically-losing pairs shared a structural mismatch
+    that the semantic matcher missed.
+    """
+    ticker = (match.get("kalshi_ticker") or "").strip()
+    k_title = (match.get("kalshi_title") or "").strip()
+    p_title = (match.get("poly_title") or "").strip()
+    similarity = match.get("similarity", 0.0) or 0.0
+
+    # Required fields
+    if not ticker:
+        return False, "missing_kalshi_ticker"
+    if not p_title:
+        return False, "missing_poly_title"
+
+    # --- Rule 4: similarity floor (cheap, check early) ---
+    if similarity < MIN_ACTIVE_SIMILARITY:
+        return False, f"low_similarity ({similarity:.2f} < {MIN_ACTIVE_SIMILARITY})"
+
+    ticker_u = ticker.upper()
+    p_title_l = p_title.lower()
+    k_title_l = k_title.lower()
+
+    # --- Rule 1: season-wins O/U vs champion/finals market ---
+    if any(ticker_u.startswith(p) for p in _SEASON_WINS_TICKER_PREFIXES):
+        if _has_any(p_title_l, _DISCRETE_WINNER_KEYWORDS):
+            return False, "nba_season_wins_vs_champion"
+        # Kalshi also phrases it as "win at least N"
+        if "at least" in k_title_l and _has_any(p_title_l, ("finals", "champion", "championship")):
+            return False, "nba_season_wins_vs_champion"
+
+    # --- Rule 2: Fed decision year/month mismatch ---
+    if ticker_u.startswith("KXFEDDECISION") or ticker_u.startswith("KXFED"):
+        k_year = _extract_year_from_kalshi_ticker(ticker)
+        p_year = _extract_year_from_text(p_title)
+        if k_year is not None and p_year is not None and k_year != p_year:
+            return False, f"fed_year_mismatch (kalshi={k_year}, poly={p_year})"
+        # If Kalshi ticker has a year but the Poly title doesn't mention any
+        # year at all AND says "in April" / "April meeting", Polymarket
+        # defaults to the current Fed cycle (April 2026 in our data). A
+        # 2027 Kalshi Fed contract matched against that is always wrong.
+        if k_year is not None and k_year >= 2027 and p_year is None:
+            # The Poly market is almost certainly the near-term Fed decision
+            if "fed" in p_title_l and ("april" in p_title_l or "june" in p_title_l or "july" in p_title_l):
+                return False, f"fed_year_mismatch (kalshi={k_year}, poly=implicit-2026)"
+
+    # --- Rule 3: cross-topic cabinet vs nomination/election ---
+    if _has_any(k_title_l, _CABINET_KEYWORDS) and _has_any(p_title_l, _NOMINATION_KEYWORDS):
+        return False, "cabinet_vs_nomination"
+
+    # General year-mismatch fallback: if both titles mention a 4-digit year
+    # and they differ by more than one year, reject.
+    k_year_title = _extract_year_from_text(k_title)
+    p_year_title = _extract_year_from_text(p_title)
+    if k_year_title is not None and p_year_title is not None:
+        if abs(k_year_title - p_year_title) >= 2:
+            return False, f"year_mismatch ({k_year_title} vs {p_year_title})"
+
+    return True, None
+
+
+def filter_active_matches(matches: list[dict]) -> tuple[list[dict], dict]:
+    """Apply filter_active_match to a list, return (passed, stats).
+
+    Args:
+        matches: list of dicts in active_matches.json schema.
+
+    Returns:
+        (passed, stats) where passed is the filtered list and stats is
+        {total, passed, rejected, reasons: {reason: count}}.
+    """
+    passed: list[dict] = []
+    reasons: dict[str, int] = {}
+    rejected = 0
+
+    for m in matches:
+        ok, reason = filter_active_match(m)
+        if ok:
+            passed.append(m)
+        else:
+            rejected += 1
+            key = (reason or "unknown").split(" ")[0]  # dedupe by rule name
+            reasons[key] = reasons.get(key, 0) + 1
+
+    stats = {
+        "total": len(matches),
+        "passed": len(passed),
+        "rejected": rejected,
+        "reasons": reasons,
+    }
+    logger.info(
+        "filter_active_matches: %d -> %d (rejected %d; reasons=%s)",
+        stats["total"], stats["passed"], stats["rejected"], reasons,
+    )
+    return passed, stats
+
+
 def filter_candidates(candidates: list[dict]) -> list[dict]:
     """Apply all quality filters to scored candidates.
 

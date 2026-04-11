@@ -119,9 +119,17 @@ class LiveCollector:
         Kalshi and Polymarket markets. Uses kalshi_ticker for orderbook API
         and poly_id for pmxt/Gamma price fetching.
 
+        The returned dict PRESERVES the original index as the pair_id
+        (live_0000, live_0001, ...) so that pair_ids remain stable across
+        runs even when the quality filter rejects some entries. Rejected
+        pairs are simply omitted from the returned dict — the collector
+        will not fetch prices for them.
+
         Returns:
             Dict mapping pair_id -> {kalshi_market_id, polymarket_market_id, ...}
         """
+        from src.matching.quality_filter import filter_active_match
+
         matches_path = self.live_dir / "active_matches.json"
         if not matches_path.exists():
             matches_path = self.ACTIVE_MATCHES_PATH
@@ -133,7 +141,12 @@ class LiveCollector:
             matches = json.load(f)
 
         active = {}
+        rejected = 0
         for i, m in enumerate(matches):
+            ok, reason = filter_active_match(m)
+            if not ok:
+                rejected += 1
+                continue
             pair_id = f"live_{i:04d}"
             active[pair_id] = {
                 "kalshi_market_id": m["kalshi_ticker"],
@@ -146,7 +159,9 @@ class LiveCollector:
                 "poly_title": m.get("poly_title", ""),
                 "similarity": m.get("similarity", 0),
             }
-        logger.info(f"Live pairs loaded: {len(active)}")
+        logger.info(
+            f"Live pairs loaded: {len(active)} (quality-filter rejected {rejected})"
+        )
         return active
 
     def _load_group_id_map(self) -> dict[str, int]:

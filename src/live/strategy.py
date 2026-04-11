@@ -107,7 +107,12 @@ class TradingStrategy:
             self._feature_columns: list[str] = json.load(f)
         logger.info("Feature columns: %d", len(self._feature_columns))
 
-        # Load active matches
+        # Load active matches (with structural quality filter applied).
+        # The filter drops pairs like NBA season-wins vs champion markets,
+        # Fed year mismatches, and cross-topic politics — patterns that
+        # look semantically close but never converge.
+        from src.matching.quality_filter import filter_active_matches
+
         matches_path = self.live_dir / "active_matches.json"
         if not matches_path.exists():
             logger.warning(
@@ -118,8 +123,14 @@ class TradingStrategy:
             self._matches: list[dict] = []
         else:
             with open(matches_path) as f:
-                self._matches = json.load(f)
-            logger.info("Active matches: %d pairs", len(self._matches))
+                raw_matches = json.load(f)
+            self._matches, filter_stats = filter_active_matches(raw_matches)
+            logger.info(
+                "Active matches: %d pairs (filtered from %d; rejections=%s)",
+                len(self._matches),
+                filter_stats["total"],
+                filter_stats["reasons"],
+            )
 
         # Collector for price fetching + bar building
         self._collector = LiveCollector(
