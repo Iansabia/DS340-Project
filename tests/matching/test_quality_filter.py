@@ -274,7 +274,48 @@ class TestFilterActiveMatch:
         ok, reason = filter_active_match(match)
         assert ok is True, f"Rejected good oil pair: {reason}"
 
-    # ----- Bad pattern 5: Low similarity safety net -----
+    # ----- Bad pattern 5: numeric threshold vs ranking -----
+
+    def test_rejects_net_worth_threshold_vs_richest_ranking(self):
+        """Real case from discovery dry-run: KXMUSKNW-26APR30-T600 is a
+        Kalshi contract on Musk's net worth > $600B on April 30.
+        Polymarket is asking 'Will Musk be richest person on December 31?'
+        Completely different question types — threshold on a number vs
+        ranking position — even though both mention Musk."""
+        match = {
+            "kalshi_ticker": "KXMUSKNW-26APR30-T600",
+            "kalshi_title": "Will Elon Musk's net worth be above $600B on April 30, 2026?",
+            "poly_title": "Will Elon Musk be richest person on December 31?",
+            "similarity": 0.82,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+        assert "threshold" in reason.lower() or "ranking" in reason.lower()
+
+    def test_rejects_threshold_vs_wealthiest(self):
+        match = {
+            "kalshi_ticker": "KXBEZNW-26JUN30-T300",
+            "kalshi_title": "Will Bezos net worth exceed $300B by June 30?",
+            "poly_title": "Will Bezos be the wealthiest person in 2026?",
+            "similarity": 0.80,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is False
+
+    def test_accepts_two_threshold_contracts(self):
+        """If BOTH sides are threshold contracts on the same underlying,
+        accept — the thresholds differ but it's still a tradable pair
+        (different strikes on the same asset)."""
+        match = {
+            "kalshi_ticker": "KXBTC-26APR30-T100000",
+            "kalshi_title": "Will Bitcoin be above $100,000 on April 30?",
+            "poly_title": "Will Bitcoin reach $95,000 in April 2026?",
+            "similarity": 0.85,
+        }
+        ok, reason = filter_active_match(match)
+        assert ok is True
+
+    # ----- Bad pattern 6: Low similarity safety net -----
 
     def test_rejects_low_similarity(self):
         """Anything under the similarity floor is rejected regardless of content."""

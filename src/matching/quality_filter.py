@@ -187,6 +187,62 @@ _CABINET_KEYWORDS = (
     "state department",
 )
 
+# Keywords that indicate a "pick the leader" ranking market: who is #1
+# on some leaderboard at a point in time. These are STRUCTURALLY
+# incompatible with numeric-threshold contracts on the same underlying:
+#
+#   Kalshi: "Musk net worth > $600B?"   (threshold on a number)
+#   Poly:   "Musk richest person?"      (rank #1 on a leaderboard)
+#
+# Both involve Musk, both move with Musk's wealth, but they resolve on
+# totally different criteria and never converge.
+_RANKING_KEYWORDS = (
+    "richest person",
+    "richest man",
+    "richest woman",
+    "wealthiest person",
+    "wealthiest man",
+    "wealthiest",
+    "most valuable company",
+    "biggest company",
+    "largest company",
+    "top team",
+    "number one",
+    "#1 ranked",
+    "rank first",
+    "ranked first",
+)
+
+
+def _kalshi_is_threshold_contract(ticker: str, title: str) -> bool:
+    """Return True if this looks like a numeric-threshold Kalshi contract.
+
+    Two signals:
+      1. Ticker ends in ``-T<number>`` (Kalshi's convention for strike
+         levels, e.g. KXMUSKNW-26APR30-T600, KXBTC-26APR-T100000).
+      2. Title mentions a dollar/percent threshold phrase like
+         "above $X", "more than $X", "exceed $X".
+    """
+    if not ticker and not title:
+        return False
+    if ticker and re.search(r"-T\d", ticker.upper()):
+        return True
+    t = (title or "").lower()
+    threshold_phrases = (
+        "above $", "above ", "more than $", "more than ",
+        "exceed ", "exceeds ", "over $", "at least $",
+        "at or above", "greater than ",
+    )
+    # Only count if the phrase is followed by a number
+    for phrase in threshold_phrases:
+        if phrase in t:
+            # Very rough: if there's a digit within 20 chars of the phrase, call it
+            idx = t.find(phrase)
+            window = t[idx : idx + 40]
+            if re.search(r"\d", window):
+                return True
+    return False
+
 
 def _extract_year_from_kalshi_ticker(ticker: str) -> int | None:
     """Extract year from a Kalshi ticker.
@@ -291,6 +347,16 @@ def filter_active_match(match: dict) -> tuple[bool, str | None]:
     # --- Rule 3: cross-topic cabinet vs nomination/election ---
     if _has_any(k_title_l, _CABINET_KEYWORDS) and _has_any(p_title_l, _NOMINATION_KEYWORDS):
         return False, "cabinet_vs_nomination"
+
+    # --- Rule 3b: numeric threshold contract vs ranking/leader market ---
+    # Kalshi "Musk net worth > $600B" vs Polymarket "Musk richest person?"
+    # Both reference the same entity but resolve on different criteria.
+    # Only reject when Kalshi is a threshold AND Polymarket is a ranking
+    # question — symmetric threshold/threshold pairs (different strikes on
+    # the same asset) are LEGITIMATE trading pairs and must not be rejected.
+    if _has_any(p_title_l, _RANKING_KEYWORDS):
+        if _kalshi_is_threshold_contract(ticker, k_title):
+            return False, "threshold_vs_ranking"
 
     # Extract year from the Kalshi ticker itself (authoritative) and
     # from both titles (supplementary).
