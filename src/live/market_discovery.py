@@ -181,7 +181,11 @@ def fetch_active_kalshi_markets(
     seen_tickers: set[str] = set()
 
     for category in categories:
-        # 1. Pull the list of series for this category
+        # 1. Pull the list of series for this category.
+        # Note: ``.get("series", [])`` isn't sufficient because Kalshi
+        # sometimes returns ``{"series": null}`` for empty categories
+        # (observed live on Climate). ``None`` then breaks slicing
+        # downstream, so we explicitly coalesce to an empty list.
         try:
             r = session.get(
                 f"{KALSHI_BASE_URL}/series",
@@ -189,9 +193,14 @@ def fetch_active_kalshi_markets(
                 timeout=30,
             )
             r.raise_for_status()
-            series_list = r.json().get("series", [])
+            payload = r.json() or {}
+            series_list = payload.get("series") or []
         except Exception as e:
             logger.warning("Kalshi /series failed for %s: %s", category, e)
+            continue
+
+        if not series_list:
+            logger.info("Kalshi discovery category=%s: no series returned", category)
             continue
 
         series_ct = 0
@@ -215,16 +224,16 @@ def fetch_active_kalshi_markets(
                         f"{KALSHI_BASE_URL}/events", params=params, timeout=30
                     )
                     r.raise_for_status()
-                    data = r.json()
+                    data = r.json() or {}
                 except Exception as e:
                     logger.debug(
                         "Kalshi /events failed for %s: %s", series_ticker, e
                     )
                     break
 
-                events = data.get("events", [])
+                events = data.get("events") or []
                 for event in events:
-                    for m in event.get("markets", []):
+                    for m in (event.get("markets") or []):
                         ticker = m.get("ticker")
                         if not ticker or ticker in seen_tickers:
                             continue
@@ -281,7 +290,7 @@ def fetch_active_poly_markets(
         try:
             r = session.get(POLY_GAMMA_MARKETS_URL, params=params, timeout=30)
             r.raise_for_status()
-            page = r.json()
+            page = r.json() or []
         except Exception as e:
             logger.warning("Polymarket fetch failed: %s", e)
             break

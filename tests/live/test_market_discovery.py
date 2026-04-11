@@ -43,6 +43,48 @@ class TestKalshiMid:
         assert _kalshi_mid(m) == pytest.approx(0.65)
 
 
+class TestFetchKalshiNullSeriesHandling:
+    """Regression: Kalshi's /series endpoint sometimes returns
+    ``{"series": null}`` for empty categories (observed live on Climate).
+    ``.get("series", [])`` then yields None and the downstream slice
+    crashes with TypeError. The fetch must coalesce None -> []."""
+
+    def test_null_series_payload_does_not_crash(self, monkeypatch):
+        import src.live.market_discovery as md
+
+        class FakeResp:
+            def __init__(self, payload):
+                self._payload = payload
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self._payload
+
+        class FakeSession:
+            def __init__(self):
+                self.headers = {}
+                self.call_count = 0
+
+            def get(self, url, params=None, timeout=None):
+                self.call_count += 1
+                # Return {"series": null} for every category.
+                return FakeResp({"series": None})
+
+        class FakeRequests:
+            Session = FakeSession
+
+        monkeypatch.setitem(__import__("sys").modules, "requests", FakeRequests)
+
+        # Must return [] without raising TypeError on the None series list.
+        result = md.fetch_active_kalshi_markets(
+            categories=("Economics", "Crypto"),
+            max_series_per_category=10,
+        )
+        assert result == []
+
+
 class TestIsMatchableKalshiMarket:
     def test_accepts_simple_title(self):
         m = {
