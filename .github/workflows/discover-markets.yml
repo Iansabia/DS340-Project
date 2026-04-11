@@ -107,5 +107,18 @@ jobs:
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
           N=$(python -c "import json; print(len(json.load(open('data/live/active_matches.json'))))")
           git commit -m "data: discover markets ${TIMESTAMP} (${N} total pairs)"
-          git push
-          echo "Committed."
+
+          # Retry push with rebase on race. SCC trading cycles push every
+          # 15 min and can land on the remote mid-run, causing a non-fast-
+          # forward rejection. Rebase-then-retry up to 3 times handles
+          # the normal collision without losing the discovery commit.
+          for attempt in 1 2 3; do
+            if git push; then
+              echo "Pushed on attempt ${attempt}."
+              exit 0
+            fi
+            echo "Push rejected on attempt ${attempt}; rebasing on remote and retrying..."
+            git pull --rebase --autostash origin master
+          done
+          echo "ERROR: push failed after 3 rebase-retry attempts" >&2
+          exit 1
