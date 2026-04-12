@@ -47,6 +47,16 @@ DERIVED_FEATURE_COLUMNS = [
     "spread_volatility",                 # spread.rolling(3).std() per pair
     "kalshi_order_flow_imbalance",       # (buy_vol - sell_vol) / (buy_vol + sell_vol)
     "polymarket_order_flow_imbalance",   # same for polymarket
+    # --- Added 2026-04-12: richer signal features ---
+    "spread_momentum_6",                 # spread.rolling(6).mean() — medium-term trend
+    "spread_momentum_12",                # spread.rolling(12).mean() — longer-term trend
+    "spread_volatility_6",              # spread.rolling(6).std() — medium-term vol
+    "spread_zscore",                     # (spread - rolling_mean) / rolling_std — how anomalous
+    "spread_range",                      # rolling(6) max - min — recent trading range
+    "dollar_volume_ratio",               # kalshi_dollar_vol / poly_dollar_vol
+    "trade_count_ratio",                 # kalshi_trade_count / poly_trade_count
+    "mid_price",                         # (kalshi_close + poly_close) / 2
+    "price_divergence_pct",              # abs(spread) / mid_price — relative divergence
 ]
 
 # Full output columns = ALIGNED_COLUMNS + DERIVED_FEATURE_COLUMNS

@@ -27,11 +27,11 @@ class TestComputeDerivedFeatures:
             assert col in result.columns, f"Missing derived column: {col}"
 
     def test_output_has_37_columns(self, aligned_pairs_df):
-        """Output DataFrame has 31 aligned + 6 derived = 37 columns."""
+        """Output DataFrame has 31 aligned + 15 derived = 46 columns."""
         from src.features.engineering import compute_derived_features
 
         result = compute_derived_features(aligned_pairs_df)
-        assert len(result.columns) == 37, f"Expected 37 columns, got {len(result.columns)}"
+        assert len(result.columns) == 46, f"Expected 46 columns, got {len(result.columns)}"
 
     def test_price_velocity_is_spread_diff_per_pair(self, aligned_pairs_df):
         """price_velocity = spread.diff() per pair_id. First row per pair is NaN."""
