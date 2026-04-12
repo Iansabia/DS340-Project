@@ -413,6 +413,14 @@ class TradingStrategy:
 
             avg_pred = (lr_pred + xgb_pred) / 2.0
 
+            # Concordance check: only enter when both models agree on
+            # direction. If LR says spread will widen and XGBoost says
+            # it will narrow, the average might still cross threshold
+            # but the signal is conflicted → skip. This eliminates
+            # ambiguous entries where one model dominates the average.
+            if np.sign(lr_pred) != np.sign(xgb_pred):
+                continue
+
             # Prediction threshold: commodity pairs use the normal bar,
             # non-commodity pairs need 3x the prediction confidence.
             # This doesn't block non-commodity entirely — a strong
