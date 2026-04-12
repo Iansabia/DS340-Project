@@ -121,8 +121,7 @@ jobs:
               p = Path("data/live/bars.parquet")
               if p.exists():
                   df = pd.read_parquet(p)
-                  live = df[df["pair_id"].str.startswith("live_")]
-                  bars = f"{len(live)} bars, {live['pair_id'].nunique()} pairs"
+                  bars = f"{len(df)} bars, {df['pair_id'].nunique()} pairs"
               else:
                   bars = "0 bars"
           except Exception:
@@ -144,5 +143,16 @@ jobs:
 
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
           git commit -m "data: gha cycle ${TIMESTAMP} (${SUMMARY})"
-          git push
-          echo "Committed and pushed."
+
+          # Retry push with rebase on race. Discovery workflow and SCC
+          # both push to master, so non-fast-forward rejections are normal.
+          for attempt in 1 2 3; do
+            if git push; then
+              echo "Pushed on attempt ${attempt}."
+              exit 0
+            fi
+            echo "Push rejected on attempt ${attempt}; rebasing and retrying..."
+            git pull --rebase --autostash origin master
+          done
+          echo "ERROR: push failed after 3 rebase-retry attempts" >&2
+          exit 1
