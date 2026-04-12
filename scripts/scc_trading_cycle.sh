@@ -75,14 +75,13 @@ else
     CYCLE_OK=0
 fi
 
-# Step 4b: also log research signals via the old paper trader
-# so the 136k-row trade log keeps growing for the data-scaling study.
-log "running paper_trader --skip-tier3"
-if "$PY" -m src.live.paper_trader --skip-tier3 2>&1; then
-    log "paper_trader: success"
-else
-    log "paper_trader: FAILED (exit $?) — continuing"
-fi
+# Step 4b: paper_trader REMOVED from login node (2026-04-12).
+# With 10,750+ pairs the paper_trader's LSTM/GRU retraining burns
+# >15 min CPU, which trips SCC's login-node watchdog. The live
+# trading system (strategy.py in step 4) handles all position
+# management independently. Paper trader research logging can run
+# as an occasional batch job (qsub) when needed for the data-scaling
+# study, but NOT every 15 minutes on the login node.
 
 # Step 5: stage live data files.
 # These are gitignored for local dev but force-added for collection runs.
