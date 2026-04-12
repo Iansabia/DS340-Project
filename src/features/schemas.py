@@ -57,6 +57,22 @@ DERIVED_FEATURE_COLUMNS = [
     "trade_count_ratio",                 # kalshi_trade_count / poly_trade_count
     "mid_price",                         # (kalshi_close + poly_close) / 2
     "price_divergence_pct",              # abs(spread) / mid_price — relative divergence
+    # --- Quant-grade microstructure features (2026-04-12) ---
+    # From academic market microstructure literature (Kyle 1985,
+    # Amihud 2002, Corwin & Schultz 2012, Roll 1984, Burgi et al 2026)
+    "kalshi_amihud",                     # Amihud illiquidity: |return| / dollar_volume
+    "polymarket_amihud",                 # same for polymarket
+    "kalshi_cs_spread",                  # Corwin-Schultz implied bid-ask spread
+    "polymarket_cs_spread",              # same for polymarket
+    "kalshi_hl_vol",                     # Bekker-Parkinson high-low volatility
+    "polymarket_hl_vol",                 # same for polymarket
+    "ofi_differential",                  # cross-platform order flow imbalance gap
+    "kalshi_kyle_lambda",                # Kyle's Lambda: price impact coefficient
+    "polymarket_kyle_lambda",            # same for polymarket
+    "boundary_distance",                 # min(mid, 1-mid) — option gamma analog
+    "longshot_score",                    # favorite-longshot bias indicator
+    "kalshi_roll_spread",                # Roll (1984) implied spread from return autocov
+    "polymarket_roll_spread",            # same for polymarket
 ]
 
 # Full output columns = ALIGNED_COLUMNS + DERIVED_FEATURE_COLUMNS
