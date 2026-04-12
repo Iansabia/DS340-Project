@@ -313,14 +313,20 @@ class LiveCollector:
 
             for poly_id in batch:
                 try:
-                    # Try condition_id lookup
+                    # Gamma API: ``condition_ids`` (PLURAL) is the only
+                    # param that does exact conditionId lookup. Confusingly:
+                    #   - ``id=0x...``          → returns [] (expects numeric id)
+                    #   - ``condition_id=0x...`` → returns RANDOM unrelated markets
+                    #   - ``condition_ids=0x...``→ returns the exact match (1 result)
+                    # Discovered empirically 2026-04-12 after 0/444 Polymarket
+                    # price failures in live trading.
                     r = requests.get(
                         GAMMA_URL,
-                        params={"id": poly_id},
+                        params={"condition_ids": poly_id},
                         timeout=10,
                     )
-                    if r.status_code != 200:
-                        # Try slug lookup
+                    if r.status_code != 200 or not r.json():
+                        # Fallback: try slug lookup for edge cases
                         r = requests.get(
                             GAMMA_URL,
                             params={"slug": poly_id},
