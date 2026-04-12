@@ -387,6 +387,18 @@ class TradingStrategy:
             if spread_abs > self.max_spread:
                 continue
 
+            # Category-aware entry filter: oil/commodity pairs have a
+            # historical +$0.41/trade edge (76.5% WR) while politics
+            # and sports are near-zero or negative. We let commodity
+            # entries through at the normal threshold but require a
+            # higher bar for low-edge categories. This focuses capital
+            # on the categories that actually make money.
+            from src.features.category import derive_category_from_ticker
+            category = derive_category_from_ticker(k_ticker)
+            is_commodity = category in (
+                "oil", "crypto", "inflation",  # historically positive edge
+            )
+
             # Build features and predict
             features = self._build_feature_vector(k_price, p_price, pair_id, ts)
             if features is None:
@@ -401,8 +413,15 @@ class TradingStrategy:
 
             avg_pred = (lr_pred + xgb_pred) / 2.0
 
-            # Prediction threshold
-            if abs(avg_pred) < self.prediction_threshold:
+            # Prediction threshold: commodity pairs use the normal bar,
+            # non-commodity pairs need 3x the prediction confidence.
+            # This doesn't block non-commodity entirely — a strong
+            # enough signal still triggers — but filters out marginal
+            # entries that historically lost money.
+            effective_threshold = self.prediction_threshold
+            if not is_commodity:
+                effective_threshold = self.prediction_threshold * 3.0
+            if abs(avg_pred) < effective_threshold:
                 continue
 
             # Determine direction
