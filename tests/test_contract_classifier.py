@@ -871,10 +871,16 @@ class TestClassifyAllPairs:
         self.classifier = ContractClassifier(cache_path=cache_path)
 
     def test_classify_all_basic(self):
-        """Small mock list returns correct structure."""
+        """Small mock list returns correct structure.
+
+        Pair_ids are now content-addressed via make_pair_id — see
+        src/live/pair_ids.py and memory/project_pair_id_schema_bug.md.
+        """
+        from src.live.pair_ids import make_pair_id
+
         matches = [
-            {"kalshi_ticker": "KXWTI-26APR08-T105.99", "some_field": "x"},
-            {"kalshi_ticker": "KXNBA-26-SAS", "some_field": "y"},
+            {"kalshi_ticker": "KXWTI-26APR08-T105.99", "poly_id": "0xaaaaaaaa11", "some_field": "x"},
+            {"kalshi_ticker": "KXNBA-26-SAS", "poly_id": "0xbbbbbbbb22", "some_field": "y"},
         ]
         now = datetime(2026, 4, 5, 12, 0, 0)
         result = self.classifier.classify_all_pairs(
@@ -883,30 +889,38 @@ class TestClassifyAllPairs:
 
         assert len(result) == 2
 
+        wti_id = make_pair_id("KXWTI-26APR08-T105.99", "0xaaaaaaaa11")
+        nba_id = make_pair_id("KXNBA-26-SAS", "0xbbbbbbbb22")
+
         # WTI resolves Apr 8 -> ~3 days -> DAILY
-        assert result["live_0000"]["tier"] == "DAILY"
-        assert result["live_0000"]["bar_interval_seconds"] == 900
-        assert result["live_0000"]["kalshi_ticker"] == "KXWTI-26APR08-T105.99"
+        assert result[wti_id]["tier"] == "DAILY"
+        assert result[wti_id]["bar_interval_seconds"] == 900
+        assert result[wti_id]["kalshi_ticker"] == "KXWTI-26APR08-T105.99"
 
         # NBA resolves June 30 -> ~86 days -> MONTHLY
-        assert result["live_0001"]["tier"] == "MONTHLY"
-        assert result["live_0001"]["bar_interval_seconds"] == 14400
+        assert result[nba_id]["tier"] == "MONTHLY"
+        assert result[nba_id]["bar_interval_seconds"] == 14400
 
     def test_classify_all_with_unparseable(self):
         """Unparseable ticker without API -> UNKNOWN."""
+        from src.live.pair_ids import make_pair_id
+
         matches = [
-            {"kalshi_ticker": "KXFEDCHAIRCONFIRM-JSHE"},
+            {"kalshi_ticker": "KXFEDCHAIRCONFIRM-JSHE", "poly_id": "0x1234567890"},
         ]
         now = datetime(2026, 4, 5)
         result = self.classifier.classify_all_pairs(
             matches, now=now, use_api=False
         )
-        assert result["live_0000"]["tier"] == "UNKNOWN"
-        assert result["live_0000"]["resolution_date"] is None
+        pid = make_pair_id("KXFEDCHAIRCONFIRM-JSHE", "0x1234567890")
+        assert result[pid]["tier"] == "UNKNOWN"
+        assert result[pid]["resolution_date"] is None
 
     @patch("src.live.contract_classifier.requests.get")
     def test_classify_all_with_api(self, mock_get):
         """API fills in unparseable ticker."""
+        from src.live.pair_ids import make_pair_id
+
         mock_resp = MagicMock()
         mock_resp.status_code = 200
         mock_resp.json.return_value = {
@@ -915,43 +929,50 @@ class TestClassifyAllPairs:
         mock_get.return_value = mock_resp
 
         matches = [
-            {"kalshi_ticker": "KXPRESNOMD-28-AOC"},
+            {"kalshi_ticker": "KXPRESNOMD-28-AOC", "poly_id": "0xcccccccc33"},
         ]
         now = datetime(2026, 4, 5)
         result = self.classifier.classify_all_pairs(
             matches, now=now, use_api=True
         )
+        pid = make_pair_id("KXPRESNOMD-28-AOC", "0xcccccccc33")
         # API returned May 1 2026 -> ~26 days -> WEEKLY
-        assert result["live_0000"]["tier"] == "WEEKLY"
-        assert result["live_0000"]["resolution_date"] is not None
+        assert result[pid]["tier"] == "WEEKLY"
+        assert result[pid]["resolution_date"] is not None
 
     def test_classify_all_days_remaining(self):
         """days_remaining field is correct."""
         matches = [
-            {"kalshi_ticker": "KXWTI-26APR08-T105.99"},
+            {"kalshi_ticker": "KXWTI-26APR08-T105.99", "poly_id": "0xaaaaaaaa11"},
         ]
+        from src.live.pair_ids import make_pair_id
+
         now = datetime(2026, 4, 5, 12, 0, 0)
         result = self.classifier.classify_all_pairs(
             matches, now=now, use_api=False
         )
+        pid = make_pair_id("KXWTI-26APR08-T105.99", "0xaaaaaaaa11")
         # Apr 8 23:59 - Apr 5 12:00 ~ 3.5 days
-        days = result["live_0000"]["days_remaining"]
+        days = result[pid]["days_remaining"]
         assert days is not None
         assert 3.0 < days < 4.0
 
     def test_dynamic_reclass_all_pairs(self):
         """Same matches at different times produce different tiers."""
+        from src.live.pair_ids import make_pair_id
+
         matches = [
-            {"kalshi_ticker": "KXWTI-26APR08-T105.99"},
+            {"kalshi_ticker": "KXWTI-26APR08-T105.99", "poly_id": "0xaaaaaaaa11"},
         ]
+        pid = make_pair_id("KXWTI-26APR08-T105.99", "0xaaaaaaaa11")
         # 3 days out -> DAILY
         result1 = self.classifier.classify_all_pairs(
             matches, now=datetime(2026, 4, 5, 12, 0, 0), use_api=False
         )
-        assert result1["live_0000"]["tier"] == "DAILY"
+        assert result1[pid]["tier"] == "DAILY"
 
         # 30+ days out -> MONTHLY (hypothetical now far in past)
         result2 = self.classifier.classify_all_pairs(
             matches, now=datetime(2026, 2, 1), use_api=False
         )
-        assert result2["live_0000"]["tier"] == "MONTHLY"
+        assert result2[pid]["tier"] == "MONTHLY"

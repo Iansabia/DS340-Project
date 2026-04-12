@@ -269,12 +269,22 @@ class TradingStrategy:
             len(poly_prices),
         )
 
-        # Build ticker -> pair_id and poly_id -> pair_id mappings
+        # Build ticker -> pair_id and poly_id -> pair_id mappings.
+        # Pair_ids are content-addressed via make_pair_id so they stay
+        # stable across filter/discovery runs — see task #32 fix and
+        # memory/project_pair_id_schema_bug.md.
+        from src.live.pair_ids import make_pair_id
+
         ticker_to_pair: dict[str, str] = {}
         poly_to_pair: dict[str, str] = {}
         pair_to_info: dict[str, dict] = {}
-        for i, match in enumerate(self._matches):
-            pair_id = f"live_{i:04d}"
+        for match in self._matches:
+            pair_id = make_pair_id(
+                match.get("kalshi_ticker", ""),
+                match.get("poly_id", ""),
+            )
+            if not pair_id:
+                continue
             ticker_to_pair[match["kalshi_ticker"]] = pair_id
             poly_to_pair[match["poly_id"]] = pair_id
             pair_to_info[pair_id] = match

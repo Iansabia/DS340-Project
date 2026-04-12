@@ -115,19 +115,23 @@ class LiveCollector:
     def _load_live_pairs(self) -> dict[str, dict]:
         """Load actively-trading matched pairs from active_matches.json.
 
-        These are 615+ pairs found by semantic matching of currently-active
-        Kalshi and Polymarket markets. Uses kalshi_ticker for orderbook API
-        and poly_id for pmxt/Gamma price fetching.
+        These are pairs found by semantic matching of currently-active
+        Kalshi and Polymarket markets. Uses kalshi_ticker for orderbook
+        API and poly_id for pmxt/Gamma price fetching.
 
-        The returned dict PRESERVES the original index as the pair_id
-        (live_0000, live_0001, ...) so that pair_ids remain stable across
-        runs even when the quality filter rejects some entries. Rejected
-        pairs are simply omitted from the returned dict — the collector
-        will not fetch prices for them.
+        Pair_ids are **content-addressed** via
+        :func:`src.live.pair_ids.make_pair_id`, producing strings like
+        ``kxwti26apr08t10799-0x43d5953d``. This matches the format
+        ``train.parquet`` already uses and ensures a given
+        (kalshi_ticker, poly_id) always resolves to the same pair_id
+        regardless of discovery, filter, or eviction state — unlike the
+        previous ``live_{i:04d}`` scheme which silently reassigned
+        positions every time the filtered-list indices shifted.
 
         Returns:
             Dict mapping pair_id -> {kalshi_market_id, polymarket_market_id, ...}
         """
+        from src.live.pair_ids import make_pair_id
         from src.matching.quality_filter import filter_active_match
 
         matches_path = self.live_dir / "active_matches.json"
@@ -140,14 +144,23 @@ class LiveCollector:
         with open(matches_path) as f:
             matches = json.load(f)
 
-        active = {}
+        active: dict[str, dict] = {}
         rejected = 0
-        for i, m in enumerate(matches):
+        skipped_empty = 0
+        for m in matches:
             ok, reason = filter_active_match(m)
             if not ok:
                 rejected += 1
                 continue
-            pair_id = f"live_{i:04d}"
+            pair_id = make_pair_id(
+                m.get("kalshi_ticker", ""),
+                m.get("poly_id", ""),
+            )
+            if not pair_id:
+                # Either kalshi_ticker or poly_id was missing/blank —
+                # can't address this pair stably, skip.
+                skipped_empty += 1
+                continue
             active[pair_id] = {
                 "kalshi_market_id": m["kalshi_ticker"],
                 "polymarket_market_id": m["poly_id"],
@@ -160,7 +173,9 @@ class LiveCollector:
                 "similarity": m.get("similarity", 0),
             }
         logger.info(
-            f"Live pairs loaded: {len(active)} (quality-filter rejected {rejected})"
+            "Live pairs loaded: %d (quality-filter rejected %d, "
+            "skipped %d with missing id)",
+            len(active), rejected, skipped_empty,
         )
         return active
 

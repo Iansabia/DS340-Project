@@ -537,9 +537,14 @@ class ContractClassifier:
         api_lookups = 0
         api_hits = 0
 
-        for i, match in enumerate(matches):
-            pair_id = f"live_{i:04d}"
-            ticker = match["kalshi_ticker"]
+        from src.live.pair_ids import make_pair_id
+
+        for match in matches:
+            ticker = match.get("kalshi_ticker", "")
+            pair_id = make_pair_id(ticker, match.get("poly_id", ""))
+            if not pair_id:
+                # Incomplete match record — skip classification.
+                continue
 
             # Step 1: Parse from ticker
             res_date = self.parse_resolution_date(ticker)
