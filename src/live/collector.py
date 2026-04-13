@@ -53,16 +53,24 @@ class LiveCollector:
     POLYMARKET_GAMMA_URL = "https://gamma-api.polymarket.com/markets"
     ACTIVE_MATCHES_PATH = Path("data/live/active_matches.json")
 
+    # Maximum pairs to price per cycle. Kalshi's orderbook API rate
+    # limits at ~20 req/s; at 60ms spacing, 2000 pairs takes ~2 min
+    # which fits comfortably in a 15-min cycle. The pair universe can
+    # be 10k+ but we only need the highest-similarity ones for trading.
+    MAX_LIVE_PAIRS = 2000
+
     def __init__(
         self,
         live_dir: Path = Path("data/live"),
         use_live_pairs: bool = False,
+        max_live_pairs: int | None = None,
     ):
         self.live_dir = Path(live_dir)
         self.live_dir.mkdir(parents=True, exist_ok=True)
         self.bars_path = self.live_dir / "bars.parquet"
         self.mapping_path = self.live_dir / "pair_mapping.json"
         self._use_live_pairs = use_live_pairs
+        self._max_live_pairs = max_live_pairs or self.MAX_LIVE_PAIRS
 
         if use_live_pairs:
             self._all_pairs = []
@@ -172,6 +180,25 @@ class LiveCollector:
                 "poly_title": m.get("poly_title", ""),
                 "similarity": m.get("similarity", 0),
             }
+        # Cap to top N by similarity to stay within Kalshi rate limits.
+        # With 13k+ pairs, pricing all of them takes ~13 min and triggers
+        # 429s. Top 2000 by similarity covers the best trading candidates
+        # and fits in ~2 min of API calls.
+        if len(active) > self._max_live_pairs:
+            sorted_pairs = sorted(
+                active.items(),
+                key=lambda kv: kv[1].get("similarity", 0),
+                reverse=True,
+            )
+            capped = dict(sorted_pairs[: self._max_live_pairs])
+            logger.info(
+                "Live pairs loaded: %d (quality-filter rejected %d, "
+                "skipped %d empty, capped from %d to %d by similarity)",
+                len(capped), rejected, skipped_empty,
+                len(active), self._max_live_pairs,
+            )
+            return capped
+
         logger.info(
             "Live pairs loaded: %d (quality-filter rejected %d, "
             "skipped %d with missing id)",
