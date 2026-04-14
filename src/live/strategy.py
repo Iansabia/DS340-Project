@@ -309,7 +309,13 @@ class TradingStrategy:
 
             current_spread = k_price - p_price
             if not dry_run:
-                self._pm.update_position(pair_id, current_spread)
+                try:
+                    self._pm.update_position(pair_id, current_spread)
+                except KeyError:
+                    # Position was closed by another runner (GHA) between
+                    # when we loaded open_positions and now. Safe to skip.
+                    logger.debug("Position %s already closed — skipping", pair_id)
+                    continue
             updated_count += 1
 
         logger.info("Updated %d / %d open positions", updated_count, len(open_positions))
