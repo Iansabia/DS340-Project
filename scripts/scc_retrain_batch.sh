@@ -146,13 +146,13 @@ else:
     print('ERROR: no target column found')
     sys.exit(1)
 
-X = combined[feature_cols].values
-y = y.values
-mask = ~(np.isnan(X).any(axis=1) | np.isnan(y))
-X, y = X[mask], y[mask]
+X = combined[feature_cols]
+mask = ~(X.isna().any(axis=1) | y.isna())
+X = X[mask]
+y = y[mask]
 print(f'  Training on {len(X)} rows, {len(feature_cols)} features')
 
-# Train
+# Train (fit expects DataFrame, not numpy)
 lr = LinearRegressionPredictor()
 lr.fit(X, y)
 
