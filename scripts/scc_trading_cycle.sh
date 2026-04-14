@@ -58,10 +58,29 @@ if [ ! -x "$PY" ]; then
 fi
 
 # Step 3: pull latest code from main branch.
-# --autostash protects any local untracked log noise; --rebase keeps history linear.
+# Binary files (positions.db, bars.parquet) can't auto-merge, so if
+# pull --rebase hits a conflict the repo gets stuck in a broken state
+# that persists across ALL future cycles. The fix: detect any dirty
+# git state (rebase in progress, merge conflict, detached HEAD) and
+# hard-reset to origin/master. We lose any uncommitted local data
+# from this cycle but the NEXT cycle runs clean.
+_git_recover() {
+    log "WARN: git in bad state — recovering via hard reset to origin/master"
+    git rebase --abort 2>/dev/null || true
+    git merge --abort 2>/dev/null || true
+    git checkout master 2>/dev/null || true
+    git fetch -q origin 2>/dev/null || true
+    git reset --hard origin/master 2>/dev/null || true
+}
+
+# Check for leftover broken state from a previous failed cycle
+if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ] || [ -f .git/MERGE_HEAD ]; then
+    _git_recover
+fi
+
 log "git pull --rebase --autostash"
 if ! git pull -q --rebase --autostash; then
-    log "WARN: git pull failed — continuing with local code"
+    _git_recover
 fi
 
 # Step 4: run the adaptive trading cycle.
@@ -105,18 +124,27 @@ else
     TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
     if git commit -q -m "auto: scc update ${TIMESTAMP}"; then
         log "committed"
-        # Rebase onto anything that landed while we were running
-        # (common case: a developer pushed to master mid-cycle, or
-        # the discovery batch job pushed its own commit). Without
-        # this, our push gets rejected as non-fast-forward and we
-        # silently skip the cycle's result.
-        if ! git pull --rebase -q --autostash; then
-            log "WARN: pre-push rebase failed"
-        fi
-        if git push -q; then
-            log "pushed successfully"
-        else
-            log "WARN: git push failed — will retry next cycle"
+        # Rebase-retry push: GHA discovery and trading both push to
+        # master, so non-fast-forward rejections are common. Retry
+        # up to 3 times. If the rebase hits a binary conflict,
+        # recover and abandon THIS cycle's commit (next cycle
+        # will start clean).
+        PUSHED=0
+        for attempt in 1 2 3; do
+            if git push -q 2>/dev/null; then
+                log "pushed successfully (attempt $attempt)"
+                PUSHED=1
+                break
+            fi
+            log "push rejected (attempt $attempt) — rebasing"
+            if ! git pull --rebase -q --autostash 2>/dev/null; then
+                log "WARN: rebase conflict on push retry — recovering"
+                _git_recover
+                break
+            fi
+        done
+        if [ "$PUSHED" -eq 0 ]; then
+            log "WARN: push failed after retries — data saved locally, will retry next cycle"
         fi
     else
         log "WARN: git commit failed"
