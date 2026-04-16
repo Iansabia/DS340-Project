@@ -39,6 +39,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 from src.features.engineering import compute_derived_features  # noqa: E402
 from src.models.linear_regression import LinearRegressionPredictor  # noqa: E402
+from src.models.naive import NaivePredictor  # noqa: E402
+from src.models.volume import VolumePredictor  # noqa: E402
 from src.models.xgboost_model import XGBoostPredictor  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -151,11 +153,24 @@ def run_walk_forward(
     windows = _make_windows(df, n_windows)
     logger.info("Windows: %d spans of %d seconds each", n_windows, windows[0][1] - windows[0][0])
 
-    # Model factories so we get a fresh model at each window
-    model_factories = {
+    # Model factories so we get a fresh model at each window.
+    # Baselines (Naive, Volume) included to show the edge over naive strategies.
+    # GRU/LSTM included if torch is available.
+    model_factories: dict[str, callable] = {
+        "naive": NaivePredictor,
+        "volume": VolumePredictor,
         "linear_regression": LinearRegressionPredictor,
         "xgboost": XGBoostPredictor,
     }
+
+    try:
+        from src.models.gru import GRUPredictor  # noqa: WPS433
+        from src.models.lstm import LSTMPredictor  # noqa: WPS433
+        model_factories["gru"] = GRUPredictor
+        model_factories["lstm"] = LSTMPredictor
+        logger.info("torch available — including GRU + LSTM")
+    except ImportError:
+        logger.info("torch not available — skipping Tier 2")
 
     all_results = []
 
