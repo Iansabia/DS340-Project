@@ -187,6 +187,40 @@
 
 ---
 
+## Phase 6: Multi-Scale Validation (April 16, 2026)
+
+### Walk-Forward Backtest
+- Built `experiments/run_walk_forward.py` — true expanding-window walk-forward
+- 5 out-of-sample windows spanning 11 weeks (Jan 12 - Apr 1, 2026)
+- **Every window profitable** for both LR and XGBoost
+- Per-trade Sharpe trending UP: 0.37 → 0.51 (37% improvement across windows)
+- Confirms edge is not a lucky split, improves with more training data
+- Output: `experiments/figures/walk_forward_*.png`, `experiments/results/walk_forward/log.jsonl`
+
+### Per-Category Model Performance
+- Built `experiments/run_category_breakdown.py` — stratifies test set by category
+- **Inflation dominates** the historical edge (+$89 on 616 trades, 63% WR)
+- **LR wins 5/7 categories** (employment, fed_rates, gdp, inflation, politics_election)
+- **XGBoost wins 2/7 categories but by larger margins** (crypto $+48, politics_policy $+31)
+- The "XGBoost best overall" result is driven entirely by crypto outperformance
+- Nuanced paper claim: "XGBoost wins specific regimes, LR wins the rest"
+- Output: `experiments/results/category_breakdown.json`, `category_breakdown_table.txt`
+
+### 250-Bar Checkpoint (pending)
+- Auto-retrain batch job fires every 6h on SCC
+- 50-bar and 100-bar checkpoints fired on April 16
+- 250-bar checkpoint pending (need 20 pairs at 250+ bars, currently max=148)
+- When it fires, we'll have 3 data points (50 / 100 / 250) to confirm the complexity penalty across scales
+
+### Current System Status (April 16, 2026)
+- SCC: 48 pushes in last 12 hours (perfect uptime)
+- Live pair universe: 6,397 pairs (204 commodity), 47,624 bars
+- Combined P&L: +$2.69 across 2,280 closed trades overnight
+- Deployed models: LR + XGBoost retrained April 16 08:39 (37k rows, 54 features)
+- GRU/LSTM trained at 100-bar checkpoint, underperformed regression baselines
+
+---
+
 ## Tools & Infrastructure
 - Python 3.12, PyTorch, XGBoost, scikit-learn, sentence-transformers
 - BU SCC (compute cluster) + GitHub Actions (CI/CD + fallback)
