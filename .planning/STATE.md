@@ -1,36 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: Completed 07.3-04-PLAN.md
-last_updated: "2026-04-08T22:51:53.000Z"
-last_activity: 2026-04-08 -- Completed 07.3-04-PLAN.md (Oracle VM deployment scripts)
+milestone: v1.1
+milestone_name: extended-evidence-and-submission
+status: defining-requirements
+stopped_at: Starting v1.1 milestone (research phase)
+last_updated: "2026-04-17T00:00:00.000Z"
+last_activity: 2026-04-17 -- Started milestone v1.1 (Extended Evidence & Submission)
 progress:
-  total_phases: 12
-  completed_phases: 9
-  total_plans: 34
-  completed_plans: 35
-  percent: 100
+  total_phases: 7
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-01)
+See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 7.3 -- Adaptive Trading System (Plan 04 of 04 done, Oracle VM deployment)
+**Current focus:** v1.1 — Extended Evidence & Submission (defining requirements)
 
 ## Current Position
 
-Phase: 7.3 of 10 (Adaptive Trading System)
-Plan: 4 of 4 complete (07.3-04 Oracle VM deployment done)
-Status: In Progress
-Last activity: 2026-04-08 -- Completed 07.3-04-PLAN.md (Oracle VM deployment scripts)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-17 -- Milestone v1.1 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 

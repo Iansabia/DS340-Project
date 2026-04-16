@@ -2,11 +2,26 @@
 
 ## What This Is
 
-A cross-platform prediction market arbitrage system for DS340 (Spring 2026). We build a data pipeline to match contracts across Kalshi and Polymarket, extract microstructure features from their price/volume data, and systematically test whether increasing model complexity (from regression to RL with anomaly detection) improves spread convergence prediction and simulated trading performance. This is an academic project for Ian Sabia and Alvin Jang.
+A cross-platform prediction market arbitrage system for DS340 (Spring 2026). We build a data pipeline to match contracts across Kalshi and Polymarket, extract microstructure features from their price/volume data, and systematically test whether increasing model complexity (from regression to RL with anomaly detection) improves spread convergence prediction and simulated trading performance. The system is now deployed autonomously on the BU Shared Computing Cluster (SCC) with GitHub Actions fallback, trading 11,582 matched pairs on a 15-minute cycle with 6-hour auto-retrain. This is an academic project for Ian Sabia and Alvin Jang.
 
 ## Core Value
 
 Answer the research question empirically: **does adding model complexity (RL, anomaly detection) improve cross-platform arbitrage detection over simpler regression, and when is that complexity justified?**
+
+## Current Milestone: v1.1 — Extended Evidence & Submission
+
+**Goal:** Strengthen every pillar of the paper's evidence base — scaling, model variety, feature understanding, execution realism — while the live system continues accumulating data. Produce a submission-ready paper (due Apr 27) that credibly signals continued deployment post-submission.
+
+**Target features (each produces an independent paper-ready finding):**
+- Priority-1 cleanups + full cross-model re-verification (LR ≡ XGBoost, GRU overfits, adaptive lookback)
+- Live vs backtest reconciliation (unique evidence — almost no student paper has it)
+- 250-bar data-scaling checkpoint (third scale point, tests ranking invariance)
+- TFT (Temporal Fusion Transformer) — the deferred Tier-2 model
+- Feature ablation study (minimum feature set, parsimony finding)
+- Ensemble & deployment model exploration (evidence-based production ensemble)
+- Paper finalization + 4-minute lightning-talk slides
+
+**Non-goal:** Live-money trading. System stays on paper trading for the v1.1 scope; real-money deployment is the headline item for future-work.
 
 ## Requirements
 
@@ -79,4 +94,4 @@ Answer the research question empirically: **does adding model complexity (RL, an
 | Added PPO-without-autoencoder variant | Per KG feedback — isolates whether RL itself adds value vs. the anomaly detection layer | — Pending |
 
 ---
-*Last updated: 2026-04-01 after initialization*
+*Last updated: 2026-04-17 after v1.1 milestone start*
