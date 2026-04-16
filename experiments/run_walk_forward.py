@@ -77,6 +77,11 @@ def _load_combined_data(data_dir: Path) -> pd.DataFrame:
     df = df.dropna(subset=["spread", TARGET_COLUMN]).reset_index(drop=True)
     df = df.fillna(0.0)
 
+    # Ensure group_id exists (sequence models require it for per-pair windowing).
+    # If the source parquet doesn't include it, derive from pair_id.
+    if "group_id" not in df.columns:
+        df["group_id"] = df["pair_id"].astype("category").cat.codes
+
     logger.info(
         "Loaded %d rows across %d pairs, timestamps [%d .. %d]",
         len(df), df["pair_id"].nunique(), df["timestamp"].min(), df["timestamp"].max(),
@@ -218,6 +223,17 @@ def run_walk_forward(
         X_test = test_df[feature_cols]
         y_test = test_df[TARGET_COLUMN].to_numpy()
 
+        # Sequence models (GRU/LSTM) need group_id for per-pair windowing.
+        # They also fail on zero-variance columns (their scaler divides by std).
+        # Drop any feature with zero variance in this window's training set.
+        nonzero_var_cols = [
+            c for c in feature_cols if train_df[c].std() > 1e-10
+        ]
+        seq_cols = nonzero_var_cols + ["group_id"]
+        X_train_seq = train_df[seq_cols]
+        X_test_seq = test_df[seq_cols]
+        y_train_seq = train_df[TARGET_COLUMN].to_numpy()
+
         logger.info(
             "Window %d: train=%d rows, test=%d rows (time: %s .. %s)",
             i, len(train_df), len(test_df),
@@ -240,8 +256,17 @@ def run_walk_forward(
 
         for name, factory in model_factories.items():
             model = factory()
-            model.fit(X_train, y_train)
-            preds = model.predict(X_test)
+            try:
+                if name in ("gru", "lstm"):
+                    # Sequence models need group_id for per-pair windowing
+                    model.fit(X_train_seq, y_train_seq)
+                    preds = model.predict(X_test_seq)
+                else:
+                    model.fit(X_train, y_train)
+                    preds = model.predict(X_test)
+            except Exception as e:
+                logger.warning("  %s: training failed — %s", name, e)
+                continue
 
             rmse = float(np.sqrt(np.mean((preds - y_test) ** 2)))
             da_mask = y_test != 0
