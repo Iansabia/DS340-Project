@@ -136,11 +136,21 @@ def _simulate_pnl(preds: np.ndarray, actuals: np.ndarray, fee: float = 0.02) -> 
 
 def run_walk_forward(
     data_dir: Path = Path("data/processed"),
-    n_windows: int = 6,
+    n_windows: int = 12,
     threshold: float = 0.02,
+    rolling: bool = False,
+    rolling_train_windows: int = 3,
     output_dir: Path = Path("experiments/results/walk_forward"),
 ) -> list[dict]:
     """Run walk-forward backtest over N time windows.
+
+    Args:
+        n_windows: number of equal-time windows to split the data into.
+        rolling: if True, use ROLLING window (fixed training size, slides
+            forward). If False (default), use EXPANDING window (training
+            set grows as we walk forward).
+        rolling_train_windows: when rolling=True, use the last N windows
+            as the training set. Ignored for expanding window.
 
     Returns the per-window metrics list (also appended to log.jsonl).
     """
@@ -174,13 +184,23 @@ def run_walk_forward(
 
     all_results = []
 
-    # Start at window 1 — need window 0 as training baseline
-    for i in range(1, n_windows):
-        train_end = windows[i][0]      # everything before this window
+    # Start at window i_start — need enough prior windows for training.
+    # Expanding: start at window 1 (just need 1 prior window)
+    # Rolling:   start at window rolling_train_windows (need N prior)
+    i_start = rolling_train_windows if rolling else 1
+
+    for i in range(i_start, n_windows):
         test_start = windows[i][0]
         test_end = windows[i][1]
 
-        train_mask = df["timestamp"] < train_end
+        if rolling:
+            # Fixed-size training window ending right before the test window
+            train_start = windows[i - rolling_train_windows][0]
+            train_mask = (df["timestamp"] >= train_start) & (df["timestamp"] < test_start)
+        else:
+            # Expanding window: all data before test
+            train_mask = df["timestamp"] < test_start
+
         test_mask = (df["timestamp"] >= test_start) & (df["timestamp"] < test_end)
 
         train_df = df[train_mask]
@@ -256,6 +276,7 @@ def run_walk_forward(
 def plot_walk_forward(
     results: list[dict],
     output_dir: Path = Path("experiments/figures"),
+    mode: str = "expanding",
 ) -> None:
     """Produce per-metric line plots of each model across windows."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -266,6 +287,7 @@ def plot_walk_forward(
 
     model_names = list(results[0]["models"].keys())
     window_idxs = [r["window_idx"] for r in results]
+    mode_label = mode.title() + " Window"
 
     metrics_to_plot = [
         ("pnl", "P&L ($)", "walk_forward_pnl.png"),
@@ -274,17 +296,19 @@ def plot_walk_forward(
     ]
 
     for metric_key, ylabel, fname in metrics_to_plot:
-        fig, ax = plt.subplots(figsize=(9, 5))
+        fig, ax = plt.subplots(figsize=(10, 5.5))
         for name in model_names:
             vals = [r["models"][name][metric_key] for r in results]
             ax.plot(window_idxs, vals, marker="o", label=name.replace("_", " ").title())
         ax.set_xlabel("Window index (chronological)")
         ax.set_ylabel(ylabel)
-        ax.set_title(f"Walk-Forward Backtest: {ylabel} per Window")
+        ax.set_title(f"Walk-Forward Backtest ({mode_label}): {ylabel} per Window")
         ax.grid(True, alpha=0.3)
-        ax.legend()
+        ax.legend(loc="best")
         if metric_key == "pnl":
             ax.axhline(0, color="black", linewidth=0.5, linestyle="--")
+        if metric_key == "win_rate":
+            ax.axhline(0.5, color="gray", linewidth=0.5, linestyle="--", label="50%")
         fig.tight_layout()
         out_path = output_dir / fname
         fig.savefig(out_path, dpi=120)
@@ -294,9 +318,15 @@ def plot_walk_forward(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Walk-forward backtest (Tier 1 models)")
-    parser.add_argument("--windows", type=int, default=6)
+    parser.add_argument("--windows", type=int, default=12,
+                        help="Number of time windows (default: 12)")
     parser.add_argument("--threshold", type=float, default=0.02)
     parser.add_argument("--data-dir", type=str, default="data/processed")
+    parser.add_argument("--rolling", action="store_true",
+                        help="Use rolling window (fixed training size) "
+                             "instead of expanding window")
+    parser.add_argument("--rolling-train-windows", type=int, default=3,
+                        help="When --rolling, use last N windows as training set")
     parser.add_argument("--no-plot", action="store_true")
     args = parser.parse_args(argv)
 
@@ -310,9 +340,11 @@ def main(argv: list[str] | None = None) -> int:
         data_dir=data_dir,
         n_windows=args.windows,
         threshold=args.threshold,
+        rolling=args.rolling,
+        rolling_train_windows=args.rolling_train_windows,
     )
     if not args.no_plot:
-        plot_walk_forward(results)
+        plot_walk_forward(results, mode="rolling" if args.rolling else "expanding")
 
     # Summary
     print("\n=== WALK-FORWARD SUMMARY ===")
