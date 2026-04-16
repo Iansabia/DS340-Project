@@ -424,26 +424,41 @@ def main(argv: list[str] | None = None) -> int:
         state = _load_state()
         last = state.get("last_checkpoint_ran", 0)
 
-        # Determine current bars-per-pair from live data + train slice
+        # Determine current bars-per-pair from live data + train slice.
+        # Use the number of PAIRS that have enough bars, not the median.
+        # Discovery adds ~1000 new pairs/day at 1 bar each, which drags
+        # the median down forever. Instead: a checkpoint is "ready" when
+        # at least MIN_PAIRS_FOR_CHECKPOINT pairs have that many bars.
+        MIN_PAIRS_FOR_CHECKPOINT = 20
         train_df, _ = _load_train_test(data_dir, include_category=args.include_category)
-        bars_per_pair_now = int(train_df.groupby("pair_id").size().median())
-        logger.info("Current median bars/pair in training set: %d", bars_per_pair_now)
+        bpp = train_df.groupby("pair_id").size()
+        logger.info(
+            "Bars/pair stats: median=%d, p75=%d, max=%d, total_pairs=%d",
+            int(bpp.median()), int(bpp.quantile(0.75)), int(bpp.max()), len(bpp),
+        )
 
         ran_any = False
         for cp in SCALING_CHECKPOINTS:
             if cp <= last:
                 continue
-            if cp > bars_per_pair_now:
-                logger.info("Checkpoint %d > current %d — stopping", cp, bars_per_pair_now)
+            pairs_ready = int((bpp >= cp).sum())
+            if pairs_ready < MIN_PAIRS_FOR_CHECKPOINT:
+                logger.info(
+                    "Checkpoint %d: only %d pairs ready (need %d) — stopping",
+                    cp, pairs_ready, MIN_PAIRS_FOR_CHECKPOINT,
+                )
                 break
+            logger.info(
+                "Checkpoint %d: %d pairs ready — running",
+                cp, pairs_ready,
+            )
             run_checkpoint(cp, data_dir=data_dir, include_category=args.include_category)
             state["last_checkpoint_ran"] = cp
             _save_state(state)
             ran_any = True
 
         if not ran_any:
-            logger.info("No new checkpoints to run (last=%d, current=%d)",
-                        last, bars_per_pair_now)
+            logger.info("No new checkpoints to run (last=%d)", last)
         return 0
 
     parser.print_help()

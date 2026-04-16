@@ -39,24 +39,31 @@ SCALING_CHECKPOINTS: tuple[int, ...] = (50, 100, 250, 500, 1000, 2000)
 
 
 def next_retraining_actions(
-    bars_per_pair: int,
+    pairs_at_threshold: dict[str, int],
     completed_positions: int,
+    min_pairs: int = 20,
 ) -> dict[str, bool]:
     """Return per-tier retraining eligibility.
 
     Args:
-        bars_per_pair: median number of bars collected per active pair.
+        pairs_at_threshold: Dict with keys 'tier1' and 'tier2' mapping
+            to the number of pairs that have enough bars for that tier.
+            Replaces the old median-based check which was defeated by
+            ongoing pair discovery diluting the median.
         completed_positions: number of fully closed position trajectories
             available in position_history.jsonl.
+        min_pairs: minimum number of pairs at threshold to enable training.
 
     Returns:
         Dict mapping model tier name -> bool (True = retrain eligible).
     """
+    t1_ready = pairs_at_threshold.get("tier1", 0) >= min_pairs
+    t2_ready = pairs_at_threshold.get("tier2", 0) >= min_pairs
     return {
-        "linear_regression": bars_per_pair >= MIN_BARS_TIER1,
-        "xgboost": bars_per_pair >= MIN_BARS_TIER1,
-        "gru": bars_per_pair >= MIN_BARS_TIER2,
-        "lstm": bars_per_pair >= MIN_BARS_TIER2,
+        "linear_regression": t1_ready,
+        "xgboost": t1_ready,
+        "gru": t2_ready,
+        "lstm": t2_ready,
         "ppo_raw": completed_positions >= MIN_POSITIONS_TIER3,
         "ppo_filtered": completed_positions >= MIN_POSITIONS_TIER3,
     }
