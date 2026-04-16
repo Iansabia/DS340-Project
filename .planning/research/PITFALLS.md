@@ -1,400 +1,1031 @@
-# Domain Pitfalls
+# Domain Pitfalls — v1.1 "Extended Evidence & Submission"
 
-**Domain:** Cross-platform prediction market arbitrage with ML/RL (academic project)
-**Researched:** 2026-04-01
-**Overall confidence:** MEDIUM-HIGH (based on established financial ML literature, prediction market mechanics, and RL training dynamics; no web verification available this session)
+**Domain:** Cross-platform prediction-market arbitrage ML + live paper-trading system (academic project, DS340)
+**Researched:** 2026-04-16
+**Overall confidence:** HIGH on well-established categories (TFT overfitting, reproducibility, backtest-vs-live, LLM disclosure); MEDIUM-HIGH on project-specific integration pitfalls
+**Relationship to v1.0:** This file EXTENDS, not replaces, the v1.0 pitfalls (look-ahead bias, survivorship, time alignment, matching false positives, RL degenerate policies, Sharpe on small samples, transaction costs). Those remain active. The v1.1 pitfalls below are *new failure modes* introduced by TFT, live-vs-backtest reconciliation, feature ablation, ensembling, paper credibility, reproducibility, and live-system safety.
+
+---
+
+## Category Map
+
+| # | Category | Top Pitfalls | Guard Phase |
+|---|----------|--------------|-------------|
+| 1 | TFT on small data | Parameter bloat, attention collapse, val-loss disconnect | Phase 11 |
+| 2 | Live vs backtest reconciliation | Fee-model mismatch, timestamp misalignment, resolved-mid-trade, position-sizing drift, mid-vs-last-trade prices | Phase 9 |
+| 3 | Feature ablation | Correlated-feature double-attribution, ablation p-hacking, test-set contamination, seasonal masking | Phase 12 |
+| 4 | Ensemble | Concordance-filter denominator trap, correlated base models, "best ensemble" selection bias, stale-member drag | Phase 13 |
+| 5 | Paper credibility | Sharpe without per-pair independence, cherry-picked walk-forward window, scale-curve optimism at cap, survivorship silence, deflated-Sharpe omission | Phase 10, 14 |
+| 6 | Reproducibility | Missing seeds in Tier-2 models, cached-result staleness, undocumented data-pipeline version, Python env drift, matplotlib backend | Phase 8, 14 |
+| 7 | Live-system safety during v1.1 | Retrain-mid-experiment, schema changes breaking `positions.db`, features not in live bars, model artifact version skew | Phase 8, 13 |
+| 8 | Academic integrity & LLM disclosure | ICLR-style disclosure requirement, plagiarism via uncited patterns, code-comment attribution, responsibility for fabricated claims | Phase 14 |
+| 9 | Data leakage (general audit) | Scaler fit on full data, lag features created before split, target encoding leakage, across-pair leakage | All phases |
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, invalidate results, or sink the project timeline.
+Mistakes that sink the paper's credibility or break the live system. Each maps to a specific v1.1 phase (Phase 8–14 per the milestone plan).
 
 ---
 
-### Pitfall 1: Look-Ahead Bias in Time-Series Train/Test Split
+### Pitfall 1: TFT Overfits Silently on 6,802 Rows
 
-**What goes wrong:** Using random train/test splits (or k-fold cross-validation) on time-series data allows the model to train on future information and test on past data. Results look great in backtest but are meaningless. In this project, if you split the matched-pairs dataset randomly rather than temporally, every model will appear to predict spread convergence well because it has already "seen" nearby time points from the same contract.
+**Category:** TFT training
+**Phase to address:** Phase 11 (TFT implementation)
+**Severity:** HIGH
 
-**Why it happens:** Scikit-learn defaults (train_test_split, cross_val_score) use random shuffling. It is the path of least resistance. With matched pairs across two platforms, it is also tempting to split by market pair rather than by time, which still leaks temporal information if pairs overlap in time.
+**What goes wrong:** PyTorch Forecasting's Temporal Fusion Transformer has roughly 10–100× more parameters than our GRU/LSTM (64 hidden units, 1 layer). On 6,802 training rows with ~47-bar sequences per pair, TFT has enough capacity to memorize the training set while generalizing poorly. The model reports low training MSE, the attention weights look "interpretable" to casual inspection, and the backtest P&L ends up within striking distance of XGBoost — but this is memorization wearing the costume of learning. When tested on any genuinely out-of-sample window (walk-forward window 11, new live bars), TFT's P&L collapses while XGBoost's holds.
 
-**Consequences:** All reported metrics (RMSE, MAE, Sharpe, P&L) are inflated and unreproducible. A reviewer or TA who asks "what happens on truly unseen future data?" will get a blank stare. The entire experiment section of the paper becomes invalid.
+**Why it happens:** TFT's variable-selection network and multi-head attention mechanisms were designed for large datasets (the original paper used 500k+ observations on electricity load forecasting). On small data, the variable-selection network will assign high weight to one or two features by chance in training and never re-explore, effectively becoming a nonlinear single-feature regressor with extra steps. Academic red flag: if your TFT attention weights concentrate >80% on one variable across all time steps, the model has collapsed to a degenerate solution.
 
-**Prevention:**
-1. Use a strict temporal cutoff: train on data before date T, validate on T to T+delta, test on T+delta onward. Never shuffle.
-2. For the window-length ablation, ensure the test set is always in the future relative to all training windows.
-3. Implement a `TimeSeriesSplit`-style validator if doing any hyperparameter tuning. Do not use `sklearn.model_selection.KFold`.
-4. Add an assertion in the data loader: `assert train_timestamps.max() < test_timestamps.min()`.
+**Consequences:** The paper reports "TFT achieves +$195 P&L" and the TA/reviewer asks "can this be reproduced on window-12 data?" and it can't. The deferred Tier-2 finding becomes embarrassing rather than impressive. Worse, if TFT accidentally *wins* the single-split by memorization, you may publish a claim that contradicts your own walk-forward evidence.
 
-**Detection:** Before running any experiment, print the min/max timestamps of train, val, and test sets. If they overlap, stop.
+**Warning signs (check during training):**
+- Training loss drops below 0.5× GRU's training loss but validation loss is flat or worse than GRU.
+- Attention weight concentration: if `entropy(attention_weights) < 0.5 × log(n_features)` across >90% of time steps, the network has collapsed.
+- Variable-selection weights are effectively one-hot (one feature gets 0.95+ weight).
+- Validation RMSE plateaus above GRU's within 15 epochs and never catches up.
+- Training takes more than 30× longer than GRU and still under-performs it.
+- Walk-forward window-11 TFT P&L is negative while windows 1–10 are positive (pure overfitting fingerprint).
 
-**Phase relevance:** Feature engineering / dataset construction phase and experiment phase. The split must be decided and enforced before any model is trained.
+**Prevention strategy (concrete):**
+1. **Parameter budget:** Cap TFT hidden_size at 16, attention_heads at 1, and hidden_continuous_size at 8. Document that this is smaller than the PyTorch Forecasting defaults because of dataset size. In the paper: "Hyperparameters were downsized relative to defaults to match our training-set size."
+2. **Dropout floor:** Set `dropout ≥ 0.3` and `attention_dropout ≥ 0.2`. Do not reduce these for "cleaner" loss curves.
+3. **Early-stopping on walk-forward, not single-split:** Use window-level walk-forward validation P&L as the stopping criterion, not in-sample loss. If walk-forward median P&L stops improving for 3 epochs, stop.
+4. **Time-box:** Hard limit of 1 day on TFT. If TFT has not cleared GRU by then, report "TFT did not converge on this dataset size (6,802 rows, 47 bars/pair)" as the finding. This is a valid academic result — it directly supports the simplicity-wins thesis.
+5. **Attention-weight audit:** Before reporting any TFT result, plot the attention heatmap across windows. If attention is concentrated on one variable, note this in the results section.
+6. **Gate on live-compatible features only:** TFT must be trained on the same 51-column feature set the live system uses — no extra features that exist in historical bars but not live bars (see Pitfall 21).
 
-**Confidence:** HIGH -- this is the single most well-documented pitfall in financial ML literature (de Prado 2018, Bailey et al. 2017).
+**Detection code pattern:**
+```python
+# Run after each epoch
+attn_entropy = -(attention_weights * attention_weights.log()).sum(dim=-1).mean()
+max_feature_weight = variable_selection_weights.max(dim=-1).values.mean()
+if attn_entropy < 0.5 * np.log(n_features) or max_feature_weight > 0.8:
+    logger.warning(f"TFT attention collapse detected: entropy={attn_entropy:.3f}, max_vw={max_feature_weight:.3f}")
+```
 
----
+**Confidence:** HIGH — TFT overfitting on small data is documented in the original Lim et al. (2020) paper (Sec 5.3), in Darts/PyTorch Forecasting issues, and corroborated by our own Finding 2 (GRU already underperforms XGBoost at this scale; TFT is strictly more parameterized).
 
-### Pitfall 2: Survivorship / Availability Bias in Market Selection
-
-**What goes wrong:** You only collect data from markets that are currently visible on both platforms, or markets that resolved successfully. This biases the dataset toward markets with clean outcomes and high liquidity. Markets that were delisted, had settlement disputes, or resolved ambiguously are excluded, which inflates apparent arbitrage profitability.
-
-**Why it happens:** Both Kalshi and Polymarket APIs make it easier to discover active/recently-resolved markets than to find historical markets that were delisted or had edge-case resolutions. Polymarket's `/prices-history` returning empty for resolved markets (documented in CLAUDE.md) is already a symptom -- you are forced into a reconstruction path that may silently drop markets with no trade records.
-
-**Consequences:** The dataset overrepresents "clean" arbitrage opportunities and underrepresents messy real-world cases. Reported profitability is optimistic. The paper's external validity claims are weakened.
-
-**Prevention:**
-1. Document your market universe explicitly: how many markets existed on each platform during the study period, how many you matched, how many you excluded and why.
-2. Log every exclusion with a reason code (no trades, delisted, settlement dispute, low liquidity, unmatched).
-3. Report results on both the filtered dataset AND the full dataset (including markets with sparse data) as a sensitivity analysis.
-4. In the paper, have a "Limitations" paragraph specifically about survivorship bias.
-
-**Detection:** If your matched-pairs dataset has a suspiciously high hit rate (>80% of spreads converge profitably), survivorship bias is likely at play.
-
-**Phase relevance:** Data pipeline phase. Must be addressed during market discovery and matching.
-
-**Confidence:** HIGH -- well-established concept in quantitative finance.
-
----
-
-### Pitfall 3: Cross-Platform Time Alignment Errors
-
-**What goes wrong:** Kalshi and Polymarket report timestamps differently (timezone handling, trade time vs. settlement time, candlestick period boundaries). If you join prices across platforms on "the same hour" but the hour boundaries are offset, or one platform uses trade execution time while the other uses order placement time, your spread calculations are systematically wrong. A 15-minute misalignment on an hourly candlestick can create phantom spreads.
-
-**Why it happens:** Neither platform documents their timestamp semantics in great detail. Kalshi uses hourly candlesticks with `period_interval=60`, but the exact boundary alignment (top-of-hour? rolling?) is not always obvious. Polymarket trade records have individual timestamps but reconstructing OHLC bars requires choosing bucketing boundaries. If the two platforms are bucketed with different offsets, you get misaligned snapshots.
-
-**Consequences:** The model learns to "predict" phantom spreads that are actually measurement artifacts. If spreads appear large due to misalignment and then "converge" when properly aligned data arrives, you get a model that looks good in backtest but is predicting noise. This is a subtle form of data leakage.
-
-**Prevention:**
-1. Normalize all timestamps to UTC with explicit timezone handling. Never rely on naive datetimes.
-2. For Polymarket trade reconstruction, bucket trades into hourly bars aligned to the same boundary as Kalshi candlesticks. Verify alignment by inspecting a few known events where both platforms should show identical price movements.
-3. Add a sanity check: for markets near resolution (final few hours), both platforms should converge toward the same settlement price. If they do not, your alignment is wrong.
-4. Include a data validation step that plots both platform prices for a few well-known markets and visually confirms they track each other.
-
-**Detection:** Plot raw price series from both platforms for 3-5 manually verified market pairs. If the series are consistently offset by a fixed lag, you have an alignment error.
-
-**Phase relevance:** Data pipeline phase, specifically the time-alignment step after raw ingestion.
-
-**Confidence:** HIGH -- timestamp misalignment is one of the most common bugs in cross-venue financial systems.
+**Sources:** [Temporal Fusion Transformers for interpretable multi-horizon time series forecasting (Lim et al., ScienceDirect)](https://www.sciencedirect.com/science/article/pii/S0169207021000637), [TFT darts documentation](https://unit8co.github.io/darts/generated_api/darts.models.forecasting.tft_model.html), [PyTorch Forecasting Stallion tutorial](https://pytorch-forecasting.readthedocs.io/en/v1.4.0/tutorials/stallion.html)
 
 ---
 
-### Pitfall 4: Market Matching False Positives Poison the Dataset
+### Pitfall 2: Live-vs-Backtest P&L Gap Is Treated as Noise Instead of Bias
 
-**What goes wrong:** The sentence-transformer matching pipeline finds contracts that look similar (e.g., "Will BTC exceed $100K by March 2026?" on Kalshi vs. "Bitcoin price above $100K on March 31, 2026" on Polymarket) but have subtly different settlement criteria (one resolves on close price, the other on any intraday touch; one uses CoinGecko, the other uses Binance spot). These false matches create artificial spreads that reflect genuine settlement disagreement, not arbitrage opportunities.
+**Category:** Live vs backtest reconciliation
+**Phase to address:** Phase 9 (Live-vs-backtest reconciliation)
+**Severity:** CRITICAL for paper credibility
 
-**Why it happens:** Semantic similarity captures meaning overlap but cannot distinguish precise legal terms. Prediction markets are quasi-legal instruments where exact settlement definitions matter enormously. A cosine similarity of 0.95 between two contract titles does not mean the contracts are equivalent.
+**What goes wrong:** The live paper-trading system on SCC has been accumulating trades since April 9. The backtest reports +$208 P&L on 1,673 test rows. When you compare live realized P&L to backtest-predicted P&L on the same pairs over the same days, they disagree by more than 20%. The default instinct is to shrug ("small sample, noisy"). But a systematic 20%+ gap is almost always a *bug*, not noise. Common culprits (all of which we are already exposed to):
 
-**Consequences:** False-matched pairs inject noise into the training data. The model trains on "spreads" that will never converge because the contracts measure different things. Worse, some of these false matches may appear to converge by coincidence, training the model on spurious patterns.
+1. **Fee-model mismatch:** backtest uses flat 2pp; live applies 2pp but some live trades route through different fee paths depending on maker/taker status — backtest doesn't model that.
+2. **Timestamp alignment drift:** live uses `datetime.utcnow()` at decision time; backtest uses the bar's close timestamp. A 7-minute clock skew on a 15-minute cycle is a 47% boundary error.
+3. **Look-ahead in "simulated" predictions:** the live system computes features from bar[t] and trades against price at bar[t]; the backtest computes features from bar[t] and trades against price at bar[t] — identical, but the live "price at bar[t]" is the *last trade*, while backtest uses the *bar close* (VWAP). Systematic bias in one direction.
+4. **Position-sizing drift:** backtest assumes $1 per trade; live caps at $10 per pair + $200 cash floor, so live cannot open some positions backtest would have opened.
+5. **Resolved-mid-trade contracts:** the live system caught a contract that resolved during the 15-minute cycle and the exit code booked the resolution price; the backtest ignored that mechanism because historical bars don't include intra-bar resolution.
+6. **Different pair universe:** backtest trades on 144 filtered pairs; live trades on ~1,000 pairs (after discovery and quality filter). The 144-pair subset is a survivorship-biased slice of the live universe.
 
-**Prevention:**
-1. The automatic matching step (sentence-transformer similarity) must be followed by manual human review of EVERY matched pair. With an expected dataset of dozens to low hundreds of pairs, this is feasible.
-2. During manual review, check: (a) identical underlying event, (b) identical resolution date/time, (c) identical settlement source (or at least highly correlated sources), (d) identical settlement criteria (touch vs. close, exact threshold).
-3. Create a match quality score (exact match, close match, weak match) and run experiments both with all matches and with only exact matches.
-4. Document settlement criteria differences for each pair in the dataset metadata.
+Industry evidence: ~90% of academic trading strategies fail when deployed live; a significant fraction of that failure is reconciliation bugs, not model decay.
 
-**Detection:** If a matched pair shows a persistent spread that does not converge even near resolution, it is likely a false match or has divergent settlement criteria. Flag pairs where the final spread at resolution exceeds 5 percentage points.
+**Why it happens:** The reconciliation exercise is usually skipped because it's tedious and reveals uncomfortable gaps. Authors and engineers prefer "backtest looked good, live looks good, shipping" over "let's quantify the delta exhaustively." The v1.0 paper draft currently does not reconcile these numbers rigorously — §5 reports backtest P&L and §4.4 describes the live system, but the two are not put side-by-side trade-for-trade.
 
-**Phase relevance:** Market matching phase. This is the highest-risk phase of the entire project because all downstream work depends on match quality.
+**Consequences:** The paper's strongest headline claim — "the system works in production" — is unverifiable. A reviewer asks "live P&L was $X, backtest P&L was $Y on the same trades, why do these differ by 20%?" and you have no answer. This kills credibility.
 
-**Confidence:** HIGH -- this is specific to cross-platform prediction market work and well-understood in practice.
+**Warning signs:**
+- Live hit rate deviates from backtest hit rate by >5 percentage points on n>200 trades.
+- Per-trade P&L distribution is visibly different (e.g., live has a fatter left tail).
+- Trade count on the same pair-day differs between live and backtest by >10%.
+- Live trades show categories the backtest pair universe doesn't contain.
+
+**Prevention strategy (concrete):**
+1. **Build a reconciliation notebook** (Phase 9 deliverable): for each live trade, look up the corresponding backtest trade on the same (pair, timestamp) and compute the delta. Report median absolute delta, worst-case delta, and a histogram.
+2. **Run the backtest simulator on live pair universe:** rerun the XGBoost backtest against the same ~1,000 pairs the live system monitors, not just the 144 filtered pairs. Report both numbers in the paper.
+3. **Fee-model alignment:** have live and backtest use *exactly the same* fee function, imported from a single module. Write a unit test: `assert backtest_fee(trade) == live_fee(trade)` on a representative sample.
+4. **Timestamp discipline:** all timestamps in all systems are UTC, stored as Unix seconds or pandas Timestamp with explicit tz. Add an assertion at system boundaries.
+5. **Price-source alignment:** both backtest and live must use the same price representation. If backtest uses VWAP and live uses mid, one must migrate to the other. Document which was chosen and why.
+6. **Resolution-event handling:** create a shared `is_resolved_at(contract, timestamp)` function. Both systems must use it. Backtest must simulate intra-bar resolution if the live system handles it.
+7. **Report the gap in the paper:** §5.X "Live vs. backtest reconciliation". Numbers like "live P&L was 108% of backtest P&L on the same 87 overlap trades, within the 95% bootstrap CI of [0.92, 1.24]." This *increases* credibility — readers see you did the work.
+
+**Detection code pattern:**
+```python
+# Join live trades to backtest trades on (pair_id, entry_ts_bucket)
+merged = live_trades.merge(backtest_trades, on=['pair_id', 'entry_bucket'],
+                           suffixes=('_live', '_bt'), how='outer', indicator=True)
+only_live = (merged['_merge'] == 'left_only').sum()
+only_bt = (merged['_merge'] == 'right_only').sum()
+both = (merged['_merge'] == 'both').sum()
+logger.info(f"Live only: {only_live}, Backtest only: {only_bt}, Both: {both}")
+assert only_live + only_bt < 0.2 * both, f"Reconciliation gap too large: {only_live + only_bt}/{both}"
+```
+
+**Confidence:** HIGH — widely documented in quant finance literature, and we have direct exposure (already know our live pair universe differs from our backtest universe).
+
+**Sources:** [QuantConnect Reconciliation Documentation](https://www.quantconnect.com/docs/v2/cloud-platform/live-trading/reconciliation), [Backtesting Limitations: Slippage and Liquidity — LuxAlgo](https://www.luxalgo.com/blog/backtesting-limitations-slippage-and-liquidity-explained/), [Backtesting AI Crypto Trading Strategies Safely](https://www.blockchain-council.org/cryptocurrency/backtesting-ai-crypto-trading-strategies-avoiding-overfitting-lookahead-bias-data-leakage/)
 
 ---
 
-### Pitfall 5: PPO Reward Shaping That Creates Degenerate Policies
+### Pitfall 3: Feature Ablation Becomes P-Hacking via Selection
 
-**What goes wrong:** The PPO agent learns to exploit the reward function rather than learn a genuine trading strategy. Common degenerate policies: (a) never trade (earns 0 reward, avoids all losses -- optimal if penalties for inaction are weak), (b) always trade in one direction (exploits an asymmetry in the reward function or dataset), (c) overfit to a single market pair that had high returns in training.
+**Category:** Feature ablation
+**Phase to address:** Phase 12 (Feature ablation)
+**Severity:** HIGH (paper-credibility risk)
 
-**Why it happens:** Reward shaping for financial RL is notoriously difficult. If reward = P&L, the agent optimizes for high-variance moonshot trades. If reward = Sharpe ratio over an episode, the agent may learn to make one safe trade and then stop. If reward includes a penalty for not trading, the agent may overtrade. The small dataset makes this worse because there are few enough episodes that degenerate strategies can achieve high training reward by memorizing.
+**What goes wrong:** You ablate the 59-feature set to find the "minimum viable feature set." The natural approach is to remove features one-at-a-time, measure test-set P&L, and keep removing the feature whose removal hurts least. After 30+ ablation runs, you report "we can drop 40 features and keep 95% of P&L." This is **p-hacking by ablation**:
 
-**Consequences:** The PPO results section of the paper either shows a trivial policy ("the agent learned not to trade") or shows overfitted results that do not generalize. Either way, the RL contribution looks weak -- but for the wrong reasons (bad reward shaping, not inherent limitations of RL).
+1. **Test-set contamination:** every ablation run uses the *same* test set. If you run 30 ablations, some combinations will look good on this test set by chance alone. The reported "minimum feature set" is optimized for THIS test set, not for unseen data.
+2. **Correlated-feature double-attribution:** `spread`, `spread_ma_6`, `spread_ma_12`, `spread_zscore` all carry nearly identical information. Dropping `spread_zscore` causes zero P&L change because `spread_ma_6` absorbs the signal — not because `spread_zscore` is useless. Reporting "z-score is unnecessary" is a correlation error, not a feature-importance result.
+3. **Seasonal masking:** if most of the test set is from a period where oil contracts dominate, ablating `near_expiry_indicator` won't hurt. But in a different regime, that feature is load-bearing. Single-split ablation masks regime dependence.
+4. **Ablation direction bias:** removing features sequentially based on "least harm on test set" is greedy and finds a *local* minimum, not the true minimum feature set. Restarting with different drop orders can give wildly different "minimum sets."
+5. **Tree-based importance vs. linear importance disagreement:** XGBoost SHAP and LR coefficient importance disagree on which features matter. Reporting "XGBoost says dollar_volume_ratio is #3 important, LR says it's #12 important, so we drop it" hides the disagreement.
 
-**Prevention:**
-1. Design the reward function explicitly and justify each component in the paper: base P&L reward, risk-adjusted component, transaction cost proxy, and inaction penalty (if any).
-2. Log the agent's action distribution during training. If >90% of actions are the same (e.g., "hold"), the policy has collapsed.
-3. Compare against a random trading baseline (randomly enter/exit positions) to ensure PPO learns above-chance behavior.
-4. Use episode-level metrics (total P&L, number of trades, win rate) rather than just mean reward to evaluate policy quality.
-5. Accept that a "PPO learns not to trade" result is itself informative and document it honestly rather than hacking the reward to force trading.
+**Why it happens:** Ablation feels rigorous and quantitative, but ablation without a held-out-from-ablation test set is textbook multiple-testing bias. Most ML papers don't distinguish "validation" and "ablation holdout" sets cleanly.
 
-**Detection:** Action distribution monitoring. If the policy entropy drops to near zero early in training, the agent has converged to a degenerate strategy.
+**Consequences:** The paper claims "we found a parsimonious 15-feature set achieving 98% of full-feature P&L." A reviewer reruns the ablation on a different test slice and finds the claim doesn't hold. Or worse — a later live-trading regime changes and the 15-feature model falls apart because load-bearing features were dropped based on regime-specific ablation.
 
-**Phase relevance:** RL model phase. Reward design should be finalized BEFORE training begins, ideally with a brainstorming/design review session.
+**Warning signs:**
+- Ablation results swing >20% in reported P&L when you change random seed or test-window cutoff.
+- "Dropping feature X has zero effect" while "dropping feature Y has 30% effect" but X and Y are correlated >0.7.
+- Your "minimum feature set" differs by >30% of features when you change ablation direction (forward vs. backward selection).
+- Per-category P&L on the minimum set changes the category winners from the full set (suggests regime dependence).
 
-**Confidence:** HIGH -- degenerate RL policies are the most common failure mode in financial RL research.
+**Prevention strategy (concrete):**
+1. **Three-way split:** train / ablation-holdout / final-test. Use train for fitting each ablation run, ablation-holdout to *select* the minimum set, final-test to *report*. Final-test is touched exactly once.
+2. **Correlation-aware grouping:** before ablation, cluster features by correlation at |r| > 0.85 and ablate *groups*, not individual features. Report "we can drop this correlated cluster" rather than "we can drop feature X."
+3. **Permutation importance instead of drop-one:** use `sklearn.inspection.permutation_importance` with 10+ shuffles per feature. This gives a distribution, not a point estimate, and p-values for significance.
+4. **Cross-validated ablation:** run each ablation through walk-forward validation (11 windows), not single-split. Report median ± IQR of the feature's importance across windows.
+5. **Report all ablations, not just winners:** include every ablation run with full metrics in the supplementary material. Reviewers can check.
+6. **Pre-registration:** write down the ablation protocol *before* running it (which features, which order, which success metric). Publish the pre-registered protocol alongside results. This is the strongest defense against p-hacking.
+7. **Seasonal robustness check:** run the minimum-feature ablation separately on each category (oil vs. inflation vs. crypto). Report "minimum feature set varies by category" as a finding if it does.
+
+**Detection code pattern:**
+```python
+# Check correlation-aware grouping before ablation
+from scipy.cluster.hierarchy import fcluster, linkage
+corr = df[features].corr().abs()
+dist = 1 - corr
+clusters = fcluster(linkage(squareform(dist), method='average'), t=0.15, criterion='distance')
+# Features with same cluster_id are correlated >0.85 and should ablate together
+```
+
+**Confidence:** HIGH — this is the standard multiple-testing / p-hacking critique applied to ablation. Deflated Sharpe and CSCV literature (Bailey et al.) directly applies.
+
+**Sources:** [Statistical Overfitting and Backtest Performance (Bailey et al., SSRN)](https://sdm.lbl.gov/oapapers/ssrn-id2507040-bailey.pdf), [Understanding Ablation Studies — Oreate AI](https://www.oreateai.com/blog/understanding-ablation-studies-a-key-tool-in-machine-learning/81214cd949a32c1df0d6172fda39efaf), [ABGEN: Evaluating LLMs in Ablation (ACL 2025)](https://aclanthology.org/2025.acl-long.611.pdf)
 
 ---
 
-### Pitfall 6: Insufficient Data Destroys Statistical Significance
+### Pitfall 4: Concordance Filter Shrinks the Denominator and Inflates Sharpe
 
-**What goes wrong:** The number of matchable market pairs is unknown but likely small (PROJECT.md says "could be dozens or hundreds"). If you end up with 30-50 matched pairs, even the regression models will have marginal statistical significance. The RL models will almost certainly overfit. Your paper's results section has p-values >0.05 or confidence intervals so wide they are meaningless.
+**Category:** Ensemble
+**Phase to address:** Phase 13 (Ensemble)
+**Severity:** CRITICAL for paper credibility (we're already using this filter)
 
-**Why it happens:** Prediction markets are a young industry with limited contract overlap between platforms. The Kalshi-Polymarket intersection on economics/finance and crypto categories is an empirical question that will only be answered when you run the matching pipeline.
+**What goes wrong:** The live system uses a "concordance filter" — skip the trade if LR and XGBoost disagree on sign. This is sensible risk management, but it has a nasty statistical side-effect: it systematically *removes the hardest trades*, keeping only the ones where two weakly-correlated models agree. The surviving subset has artificially high hit rate and Sharpe. When you report "ensemble achieved 51% win rate, per-trade Sharpe 0.44," that's on a subset of trades pre-filtered to be easy.
 
-**Consequences:** The centerpiece experiment (complexity-vs-performance comparison) lacks statistical power to distinguish between model tiers. You cannot claim "XGBoost outperforms PPO" if the difference is within noise. The paper's contribution is weakened.
+Worse, the concordance filter's selection criterion is computed using the same models being evaluated. This creates a subtle form of look-ahead: the filter "knows" which trades would be disagreements, i.e. harder, i.e. lower-expected-value. Filtering them out makes the *remaining* expected value look higher than it would be for a randomly-sampled trade.
 
-**Prevention:**
-1. Treat dataset size as a first-class concern. Run the matching pipeline EARLY (first week) to get a realistic count of matched pairs and total data points.
-2. If the dataset is very small (<50 matched pairs), adjust scope: drop TFT (needs more data), simplify the ablation experiments, and frame the paper around the data pipeline and matching methodology rather than model comparison.
-3. Use bootstrap confidence intervals on all metrics rather than point estimates. Report whether model differences are statistically significant.
-4. Consider augmenting the temporal dimension: even if you have only 30 pairs, each pair may have hundreds of hourly observations. Frame the regression as predicting hourly spread changes (many data points) rather than per-market outcomes (few data points).
-5. In the paper, be honest about sample size and frame appropriately: "We observe a trend suggesting X, though the sample size limits our ability to make strong claims."
+If we also add a third model (GRU, LSTM) to the concordance filter, the denominator shrinks further and the remaining trades are even more pre-selected. This can create a misleading story: "our 4-model ensemble has Sharpe 1.2!" when really you're reporting performance on 20% of trades pre-filtered to be obvious.
 
-**Detection:** After matching, count your pairs. If <30, trigger contingency planning immediately.
+**Why it happens:** The concordance filter looks like a "safety feature" — only trade when models agree. In reality it's a sample-selection bias. The reporter doesn't realize the filter is doing the same thing as "only show me trades where the models would have been right anyway, so the story looks better."
 
-**Phase relevance:** This is a project-level risk that should be evaluated during the data pipeline phase (before model work begins).
+**Consequences:** Paper reports inflated Sharpe on a filtered subset. Reviewer asks "what's your Sharpe on the *unfiltered* trade stream — i.e., if a practitioner didn't have your ensemble?" and the number drops 30–50%.
 
-**Confidence:** HIGH -- small sample size is the biggest practical risk for this specific project.
+**Warning signs:**
+- Concordance filter rejects >40% of potential trades.
+- Filtered subset has hit rate >20 percentage points higher than unfiltered.
+- As you add more models to the concordance vote, Sharpe monotonically increases and trade count monotonically decreases.
+- The filter rejects more trades in one category than another (implicit category-selection bias).
+
+**Prevention strategy (concrete):**
+1. **Always report both numbers.** For every ensemble result, report:
+   - "Ensemble with concordance filter: $X P&L, N trades, Sharpe S."
+   - "Base model without filter: $Y P&L, M trades, Sharpe T."
+   - "Filter rejected K trades; their mean P&L was Z."
+2. **Simulate the rejected trades:** compute P&L on the rejected trades using the base model's recommendation. If those trades were profitable on their own, the filter is *hurting* real P&L while inflating paper Sharpe. This is a red flag.
+3. **Report filter-level details in paper.** Never say "our ensemble Sharpe is 0.6" without specifying the filter threshold.
+4. **Deflated Sharpe:** compute Sharpe that corrects for the multiple-testing nature of trying several filter thresholds. Use the deflated Sharpe formula from Bailey & de Prado (2014).
+5. **Benchmark against the "accept all trades" base case:** always have a line in the results table for "no filter" as the reference.
+6. **Cross-category robustness:** report filtered performance per category. If the filter only works in one category, say so.
+
+**Detection code pattern:**
+```python
+def concordance_audit(predictions_dict, actual_delta_spread, fees=0.02):
+    # predictions_dict: {'lr': ndarray, 'xgb': ndarray, 'gru': ndarray, ...}
+    signs = {k: np.sign(v) for k, v in predictions_dict.items()}
+    all_agree = np.all(np.stack(list(signs.values())) == signs['lr'], axis=0)
+    accepted_pnl = np.where(all_agree, predictions_dict['lr'] * actual_delta_spread - fees, 0).sum()
+    rejected_pnl = np.where(~all_agree, predictions_dict['lr'] * actual_delta_spread - fees, 0).sum()
+    print(f"Accepted: {all_agree.sum()} trades, P&L ${accepted_pnl:.2f}")
+    print(f"Rejected: {(~all_agree).sum()} trades, hypothetical P&L ${rejected_pnl:.2f}")
+    if rejected_pnl > 0:
+        print("WARNING: Filter rejecting profitable trades — may be inflating Sharpe via subset bias")
+```
+
+**Confidence:** HIGH — this is the Bailey & de Prado "deflated Sharpe" / "probability of backtest overfitting" framework applied to our specific filter.
+
+**Sources:** [The Deflated Sharpe Ratio (Bailey & Lopez de Prado)](https://www.researchgate.net/publication/286121118_The_Deflated_Sharpe_Ratio_Correcting_for_Selection_Bias_Backtest_Overfitting_and_Non-Normality), [Backtest overfitting in the ML era (ScienceDirect)](https://www.sciencedirect.com/science/article/abs/pii/S0950705124011110), [A Unified Theory of Diversity in Ensemble Learning (JMLR)](https://jmlr.org/papers/volume24/23-0041/23-0041.pdf)
+
+---
+
+### Pitfall 5: Reporting Per-Trade Sharpe of 0.44 Without Per-Pair Independence Disclaimer
+
+**Category:** Paper credibility
+**Phase to address:** Phase 10 (Paper finalization), Phase 14 (Submission)
+**Severity:** CRITICAL — this is the single biggest paper-credibility risk
+
+**What goes wrong:** You report "XGBoost achieves per-trade Sharpe of 0.44" and then annualize naively to get a headline Sharpe of 40+. Any reviewer with quant-finance familiarity will immediately notice this is absurd — hedge funds celebrate Sharpe 2, elite funds achieve 3, and anything above 4 is a red flag for overfitting, survivorship, or unit-of-independence errors. Your paper looks either naïve or dishonest.
+
+The correct statistical unit of independence here is **per-pair**, not per-trade. Trades on the same pair within 15-minute windows are heavily auto-correlated. Our historical analysis (Finding 17) showed:
+- Per-trade Sharpe: 0.59
+- Daily Sharpe × √252: 53 (absurd)
+- **Per-pair annualized: 4.28** (correct)
+
+Even 4.28 is likely inflated by the 2-week test window. An honest headline number is probably 2.5–3.5 after correcting for window length and applying realistic slippage.
+
+**Why it happens:** Beginner-to-intermediate quant practitioners default to per-trade Sharpe because it's what scikit-learn and `backtrader` report. The annualization step uses √252 (trading days) without thinking about whether trades are independent. If you have 90 trades/day on correlated pairs, treating them as 90 independent returns is double-counting by an order of magnitude.
+
+**Consequences:** If we publish the headline Sharpe without per-pair correction:
+- TA/reviewer flags it as "implausibly high, did you check this?"
+- Paper loses credibility on every *other* claim, because one obviously-wrong number casts doubt on all numbers.
+- Worst case: TA concludes the project has a deeper methodological error (data leakage) and grades accordingly.
+
+The v1.0 paper draft already addresses this in §5.8 ("Honest Sharpe-Ratio Accounting") — good. **The risk is that v1.1 experiments (TFT, ensemble, ablation) re-introduce this mistake by default** because the evaluation scripts report per-trade Sharpe and someone will copy-paste the headline number into the v1.1 extensions.
+
+**Warning signs:**
+- Any headline Sharpe number above 4.0 in the paper without explicit per-pair correction.
+- Reported annualized Sharpe computed as `per_trade_sharpe × sqrt(252)` (obvious error).
+- Sharpe computed without block-bootstrap confidence intervals.
+- No disclaimer about test-window length.
+
+**Prevention strategy (concrete):**
+1. **Single source of truth for Sharpe.** Create `src/evaluation/sharpe.py` with four named functions:
+   - `per_trade_sharpe(returns)` — documented as "over-estimate, includes correlation"
+   - `per_pair_sharpe(returns, pair_ids)` — correct, aggregates within pair first
+   - `annualized_sharpe(daily_returns)` — correct if returns really are daily
+   - `bootstrap_sharpe_ci(returns, method='per_pair', n=10000)` — returns (sharpe, lower, upper)
+2. **Paper rule:** every Sharpe reported in the paper MUST use one of these four functions and cite which. No ad-hoc Sharpe computations.
+3. **Headline number is per-pair with CI.** For every model in the results table, the headline Sharpe is per-pair annualized with 95% bootstrap CI. Per-trade Sharpe is secondary, in parentheses, with a footnote explaining why it's higher.
+4. **Mandatory disclaimer paragraph in §5.8 (already in v1.0 draft).** Keep this and extend for each new model (TFT, ensemble).
+5. **Include a "what would be suspicious" paragraph.** "Sharpe above 4.0 in quantitative finance typically indicates overfitting, survivorship bias, or unit-of-independence errors. Our per-pair Sharpe of 3.2 sits just below this threshold and is likely inflated by the 2-week test window; a longer out-of-sample period would likely contract it toward 2.0–2.5." This signals statistical sophistication.
+
+**Confidence:** HIGH — this is *the* most-commonly-flagged issue in quant papers reviewed by practitioners. de Prado and Bailey have written extensively on it.
+
+**Sources:** [The Deflated Sharpe Ratio (Bailey & Lopez de Prado)](https://www.researchgate.net/publication/286121118_The_Deflated_Sharpe_Ratio_Correcting_for_Selection_Bias_Backtest_Overfitting_and_Non-Normality), [Reproducibility in machine-learning-based research (AI Magazine 2025)](https://onlinelibrary.wiley.com/doi/10.1002/aaai.70002)
+
+---
+
+### Pitfall 6: Cherry-Picked Walk-Forward Window for Headline Numbers
+
+**Category:** Paper credibility
+**Phase to address:** Phase 10 (Paper finalization)
+**Severity:** HIGH
+
+**What goes wrong:** The v1.0 walk-forward has 11 windows. The median per-trade Sharpe across windows is 0.424 (XGBoost). Window 10 is 0.540 — the best window. If you're tempted to write "our latest walk-forward window achieves Sharpe 0.54" in the abstract, that's cherry-picking. The reader thinks this is the paper's representative performance, but it's the best window out of 11.
+
+Window 11 is 0.35 — the worst among meaningful windows. If we omit it from the reported range (because "it only has 110 test rows, too small"), that's also a cherry-pick: we should either include all windows or define the inclusion rule *before* looking at results.
+
+**Why it happens:** Under deadline pressure, authors write the abstract late in the process, after having seen all the results, and naturally gravitate toward the best numbers. The decision "let's lead with window 10" feels like picking the most recent data, but it's also picking the highest-Sharpe window.
+
+**Consequences:** Abstract says "our system achieves Sharpe 0.54 on the most recent walk-forward window" → reader thinks this is representative → reader computes their own walk-forward on a different window and gets 0.30–0.40 → reader concludes the paper is over-sold.
+
+**Warning signs:**
+- Abstract or conclusion cites a single window's result without context.
+- Reported Sharpe in abstract differs from median Sharpe in Table 3b by >15%.
+- Window selection criterion was not pre-specified.
+- The "reason" for excluding a window was decided after seeing that window's results.
+
+**Prevention strategy (concrete):**
+1. **Pre-register window inclusion criteria.** Before writing §5.2, decide: "Windows with test count ≥ 200 are reported; window 11 (n=110) is excluded from summary statistics but shown in the full table." Document this BEFORE running the analysis and include the reason.
+2. **Abstract reports central tendency + range.** "Per-trade Sharpe ranges from 0.31 to 0.54 across 11 windows, median 0.42."
+3. **Always report median and mean.** If they disagree by >0.05, investigate (likely a window outlier).
+4. **Show all windows.** Don't hide windows in appendix. Table 3 and 3b should include every window with full metrics.
+5. **Per-category walk-forward for robustness.** Run walk-forward on each category separately. If oil's Sharpe is 0.8 and politics' is 0.1, that's a finding — disclose it rather than pooling.
+
+**Confidence:** HIGH — textbook cherry-picking bias, standard in academic-integrity training for quant papers.
+
+**Sources:** [Interpretable Hypothesis-Driven Trading: A Rigorous Walk-Forward Validation Framework (arXiv 2025)](https://arxiv.org/html/2512.12924v1), [Statistical Overfitting and Backtest Performance (Bailey et al.)](https://sdm.lbl.gov/oapapers/ssrn-id2507040-bailey.pdf)
+
+---
+
+### Pitfall 7: Data-Scaling Curve Plateau Hides Real Scaling Behavior
+
+**Category:** Paper credibility
+**Phase to address:** Phase 10 (Paper finalization)
+**Severity:** MEDIUM-HIGH
+
+**What goes wrong:** Your scaling curve (Table 5 in the current draft) shows XGBoost at +$210 for all bars/pair ≥ 100. You explain that the training-set is capped at 6,802 rows, so the scaling curve is flat beyond bar count 100. Fine — but then your paper claim "simpler models win at all scales tested" is only tested up to 6,802 training rows. Readers will naturally extrapolate: "at 100,000 rows, TFT would still lose." That extrapolation is unsupported.
+
+Your 250-bar checkpoint is pending. When it fires, if the training set expands to, say, 12,000 rows, XGBoost might still dominate — OR GRU/LSTM might close the gap. Reporting the current scaling curve without noting "training-set cap reached" leaves the reader with a false impression.
+
+**Why it happens:** Once the training-set cap is hit, additional bars/pair don't add training data (they add test data). The effect looks like a plateau, but it's actually a measurement artifact of a fixed pair universe. Without explaining this, the curve looks like proof of universal simplicity-wins.
+
+**Consequences:** Paper's scale-invariance claim is fragile. When live data accumulates and the training set grows, the 2026 paper's conclusions may invert. This is fine if disclosed — expected if not.
+
+**Warning signs:**
+- Scaling curve plateau at exactly the training-set cap.
+- No x-axis label indicating "training rows" vs. "bars per pair" (these are different).
+- No annotation on the curve where the cap is hit.
+
+**Prevention strategy (concrete):**
+1. **Two-axis scaling plot.** X-axis top: "bars/pair." X-axis bottom: "training rows (capped at N)." Readers see the distinction.
+2. **Annotation marking the cap:** "Dashed line at 100 bars/pair = training-set cap (6,802 rows). Beyond this, the plateau is an artifact."
+3. **Explicitly disclose the limit in text.** "Our scaling experiment tests up to 6,802 training rows due to the fixed pair universe at the time of writing. The live system is accumulating data; if the training set grows beyond this, sequence models may close the gap with XGBoost."
+4. **Frame the finding honestly.** "Within the range we can test (50–6,802 rows), XGBoost dominates. Whether this holds at 10× larger training sets is an open empirical question we cannot answer with the current dataset."
+
+**Confidence:** HIGH — standard scaling-analysis critique.
+
+---
+
+### Pitfall 8: Survivorship Bias in the 144-Pair Universe
+
+**Category:** Paper credibility
+**Phase to address:** Phase 10 (Paper finalization)
+**Severity:** HIGH
+
+**What goes wrong:** The paper reports results on 144 matched pairs. These 144 pairs survived:
+1. Kalshi + Polymarket API discovery (misses delisted markets).
+2. Sentence-transformer semantic matching (misses non-obvious synonymy).
+3. 10-rule quality filter (excludes 22.8% of naive matches).
+4. Loosened-quality-filter improvements that only added pairs meeting new criteria.
+5. Live tombstone TTL of 7 days (pairs that disappear and don't return are dropped).
+
+Every filter is a survivorship event. The 144 pairs are the *survivors* of five selection stages. Their reported profitability is conditional on surviving all five. If a practitioner (or reviewer replicating) were to start fresh without these filters, results would differ.
+
+This is already documented in v1.0 Pitfall 2 and §5/Limitations of the paper draft — partially. The v1.1 risk is that *as we add new experiments* (ablation, ensemble, TFT), each run uses the same 144-pair universe and inherits the same survivorship bias. The paper needs to state this bias *once* explicitly and note that all experiments share it.
+
+**Why it happens:** It's impossible to analyze markets you don't have data for. The temptation is to treat the surviving universe as representative, especially when the filter logic has good per-filter justification.
+
+**Consequences:** Paper's external validity claim is weakened. A reviewer asks "what's the performance on markets that failed the quality filter? How do we know you haven't filtered out all the losing trades?" and you must have an answer.
+
+**Warning signs:**
+- Paper abstract doesn't mention the 22.8% quality-filter rejection rate.
+- "Limitations" paragraph in paper doesn't name survivorship bias explicitly.
+- No sensitivity analysis showing how results change under looser filters.
+
+**Prevention strategy (concrete):**
+1. **Mandatory Limitations paragraph** naming survivorship bias, the 22.8% rejection rate, the 7-day tombstone TTL, and the 5-stage selection pipeline. One paragraph, §6.
+2. **Run one "no quality filter" experiment** as a sensitivity analysis. Report the P&L difference. Expected: P&L decreases (quality filter was doing work), but by how much? If P&L goes to zero without the filter, that's important to disclose.
+3. **Track rejected pairs' counterfactual P&L.** For pairs that were quality-filter-rejected, hypothetically simulate what would have happened if we'd traded them. Report the delta.
+4. **Document the matching-funnel funnel-chart.** "Kalshi markets: 20,000. Polymarket markets: 30,000. Semantic matches: X. Post-quality-filter: Y. Post-live-tombstone: 144." Reader sees survivorship visually.
+5. **Include an "unresolved markets" section.** How many of the 144 pairs resolved in our test window vs. are still open? Open pairs can't contribute P&L, so reported P&L is on the *resolved subset*.
+
+**Confidence:** HIGH — classical survivorship bias, well-understood.
+
+---
+
+### Pitfall 9: Stochastic Training Without Seeds Kills Reproducibility
+
+**Category:** Reproducibility
+**Phase to address:** Phase 8 (Priority-1 cleanups), Phase 14 (Submission)
+**Severity:** CRITICAL for submission credibility
+
+**What goes wrong:** GRU, LSTM, TFT, PPO all use PyTorch, which is stochastic by default: random weight initialization, shuffled DataLoaders, dropout masks, CUDA non-determinism. If you don't explicitly seed all of these, running the same script twice gives different numbers. Even with perfect seeding, results may not be reproducible across PyTorch versions or between CPU/GPU.
+
+Specific failures we're exposed to:
+- `torch.manual_seed(42)` set but `numpy.random.seed()` not set — numpy operations in feature engineering produce different results.
+- DataLoader seeded but `shuffle=True` without `generator` argument — still non-deterministic.
+- CUDNN backends non-deterministic even when seeds are set (need `torch.backends.cudnn.deterministic = True` and `torch.backends.cudnn.benchmark = False`).
+- Multi-worker DataLoaders have independent RNGs per worker that need per-worker seeding.
+- `stable-baselines3` PPO has its own internal RNG that may not respect your global seed.
+
+Consequences: we report "LSTM P&L +$182.72" but a reproducer gets +$175 or +$190. The Table 2 numbers differ from a rerun by 3–5%. The TA/reviewer tries to reproduce and fails. Paper credibility tanks.
+
+**Why it happens:** Default PyTorch is stochastic. Reproducibility requires *every* RNG to be seeded, *and* non-deterministic kernels to be disabled. Most tutorials show `torch.manual_seed(42)` and imply that's enough — it isn't.
+
+**Consequences:** Irreproducible numbers in the paper. Follow-up work can't extend ours because they can't reproduce the baseline. In a submission context (DS340 final), this is a credibility issue.
+
+**Warning signs:**
+- Running the training script twice in succession gives different test P&L.
+- `torch.backends.cudnn.benchmark` is `True` (default).
+- No `random_state` set in scikit-learn train_test_split calls.
+- No seed for `numpy.random`, Python's `random` module.
+- Results change when you change the number of DataLoader workers.
+
+**Prevention strategy (concrete):**
+1. **Create `src/utils/seed.py`** with a single function `set_all_seeds(seed=42)` that seeds numpy, torch, torch.cuda, python random, and sets cudnn deterministic flags. Call it at the top of every training script.
+2. **Multi-seed reporting for Tier 2 & 3 models.** Run LSTM/GRU/TFT/PPO with seeds {42, 43, 44, 45, 46}. Report median ± IQR P&L, not single-seed P&L. This is the gold standard for stochastic ML reporting.
+3. **Deterministic DataLoader pattern:**
+   ```python
+   g = torch.Generator()
+   g.manual_seed(seed)
+   DataLoader(dataset, shuffle=True, generator=g, num_workers=0)  # num_workers=0 for determinism
+   ```
+4. **Document environment:** freeze `requirements.txt` with exact versions. Include Python, PyTorch, XGBoost, scikit-learn versions in §4 of the paper.
+5. **Reproducibility section in appendix:** "All experiments run with seed 42; Tier-2/3 models additionally tested with seeds {43-46} for variance. Environment: Python 3.12.3, PyTorch 2.3.0, XGBoost 2.0.3, on Linux 5.15 (SCC scc1.bu.edu) and macOS 14 (Apple M1)."
+6. **Reproducibility smoke test:** commit a script `scripts/reproducibility_check.sh` that runs the pipeline twice and asserts outputs match bit-for-bit.
+
+**Detection code pattern:**
+```python
+def set_all_seeds(seed=42):
+    import random, numpy as np, torch, os
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    os.environ['PYTHONHASHSEED'] = str(seed)
+```
+
+**Confidence:** HIGH — this is the canonical ML reproducibility issue, documented in PyTorch's own docs.
+
+**Sources:** [Reproducibility — PyTorch documentation](https://docs.pytorch.org/docs/stable/notes/randomness.html), [The Challenge of Reproducible ML (arXiv)](https://arxiv.org/pdf/2109.03991), [Ensuring Training Reproducibility in PyTorch (LearnOpenCV)](https://learnopencv.com/ensuring-training-reproducibility-in-pytorch/), [Reproducibility in ML-based research (AI Magazine 2025)](https://onlinelibrary.wiley.com/doi/10.1002/aaai.70002)
+
+---
+
+### Pitfall 10: Cached Result Files Ship With Stale Numbers (We've Already Hit This)
+
+**Category:** Reproducibility
+**Phase to address:** Phase 8 (Priority-1 cleanups), Phase 14 (Submission)
+**Severity:** CRITICAL (already happened once — v1 paper had wrong XGBoost numbers)
+
+**What goes wrong:** `experiments/results/tier1/xgboost.json` contains cached P&L from a previous run. When the paper script is regenerated, it reads this cached JSON. But the cache is stale: the most recent 144-pair dataset expansion produced $201 XGBoost P&L, while the JSON still says $210 from a previous 120-pair run. Paper ships with $210; reader reruns; gets $201; wonders what's wrong. Our v1.0 paper had *exactly this bug* — the git status above even shows `M experiments/results/tier1/xgboost.json` as modified.
+
+**Why it happens:** Result caching is a natural optimization — avoid rerunning expensive experiments. But caches must be invalidated when inputs change. Our experiment scripts don't check input-hash before using cached outputs, so stale caches persist across data-pipeline updates.
+
+**Consequences:** Paper headline numbers disagree with code output. Reviewer runs the code and finds discrepancies. Worse, we may commit a paper version that disagrees with our own git history.
+
+**Warning signs:**
+- `experiments/results/**/*.json` files have timestamps older than the most recent `data/processed/train.parquet`.
+- `git status` shows modified result files that weren't intended to change.
+- Paper numbers differ from the last `experiments/results/*.json`.
+
+**Prevention strategy (concrete):**
+1. **Input-hash in result files:** every experiment result JSON includes a `data_hash` field (SHA-256 of the input parquet file). Before using a cached result, compare current data hash to stored hash. Mismatch → rerun.
+   ```python
+   import hashlib
+   data_hash = hashlib.sha256(open('data/processed/train.parquet', 'rb').read()).hexdigest()[:16]
+   if cached_result.get('data_hash') != data_hash:
+       result = rerun_experiment()
+       result['data_hash'] = data_hash
+       save(result)
+   ```
+2. **Pre-submission freshness audit:** one day before paper submission, delete all cached results and rerun end-to-end. Commit the new results. Confirm numbers match paper.
+3. **Single-command reproduction:** `make reproduce` must regenerate every table and figure from raw data with no cache reliance. Include this in the README.
+4. **Git hook:** pre-commit hook that warns if result files are modified but data hash hasn't been updated in their metadata.
+5. **Single source of truth for numbers:** paper numbers come from a single JSON file `paper_numbers.json` that is regenerated by one script from the fresh result files. No manual edits.
+6. **Timestamped result logging:** every result file has a `computed_at` ISO timestamp. The paper build script checks that all referenced result files have timestamps within 7 days of the build time.
+
+**Detection code pattern:**
+```python
+# In scripts/audit_result_freshness.py (run before paper submission)
+from pathlib import Path
+from datetime import datetime, timedelta
+import json
+
+data_mtime = Path('data/processed/train.parquet').stat().st_mtime
+stale_results = []
+for result_file in Path('experiments/results').rglob('*.json'):
+    r = json.load(open(result_file))
+    if 'computed_at' not in r:
+        stale_results.append((result_file, 'no timestamp'))
+    else:
+        computed = datetime.fromisoformat(r['computed_at']).timestamp()
+        if computed < data_mtime:
+            stale_results.append((result_file, 'older than data'))
+
+assert not stale_results, f"Stale results: {stale_results}"
+```
+
+**Confidence:** HIGH — this is a known bug, already incurred, and preventable.
+
+**Sources:** Finding 10 in FINDINGS.md, git status in the session context.
+
+---
+
+### Pitfall 11: Retraining Mid-Experiment Invalidates Backtest Comparisons
+
+**Category:** Live-system safety during v1.1
+**Phase to address:** Phase 8, 13 (all phases with live system interaction)
+**Severity:** CRITICAL
+
+**What goes wrong:** You start the TFT experiment (Phase 11). You train TFT on the Apr 17 snapshot of `train.parquet` and report P&L on the Apr 17 test set. Two days later, the auto-retrain on SCC runs (every 6h), adding new bars to the training set. You then run a "comparison" between TFT (trained on Apr 17 data) and XGBoost (retrained by the cron at Apr 19). These are no longer comparable — different training sets, different test sets. The "TFT underperforms XGBoost" headline is an artifact of training on stale data.
+
+Similarly, the ablation experiment (Phase 12) takes ~8 hours to run across 30 feature subsets. If auto-retrain fires during those 8 hours, mid-experiment feature subsets train on different data than earlier subsets. Ablation results are no longer comparable.
+
+**Why it happens:** The live system is on a 6-hour retrain cron. Our v1.1 experiments can take hours. Overlap is almost certain unless we explicitly prevent it.
+
+**Consequences:** All v1.1 model comparisons have a hidden confound: some models trained on the Apr 17 snapshot, others on Apr 19 or Apr 21 snapshots. The paper's "XGBoost vs TFT" comparison is really "XGBoost on Apr 19 data vs TFT on Apr 17 data," which is meaningless.
+
+**Warning signs:**
+- Different models in the same experiment table report different `train_rows` or different `data_hash`.
+- Rerunning XGBoost gives different numbers than the previous run, but you haven't changed the code.
+- The cron log shows a retrain during your experiment's wall-clock window.
+
+**Prevention strategy (concrete):**
+1. **Experiment data freeze.** At the start of each v1.1 experiment, copy `data/processed/train.parquet` to `experiments/snapshots/v1.1_{experiment_name}_{timestamp}.parquet`. Every model in the experiment trains on the frozen snapshot, not the live-updating file.
+2. **Pause auto-retrain during paper-finalization week.** From Apr 20 onward, disable the SCC auto-retrain cron. Document this in the paper: "The auto-retrain cron was paused from 2026-04-20 for paper finalization to ensure comparability; it resumed 2026-04-28."
+3. **Log training data hash per model run.** Every model's result JSON includes `train_data_hash`. Assert across all models in a comparison table that `train_data_hash` matches.
+4. **Experiment orchestrator:** `scripts/run_v1_1_experiment.py` that:
+   - Freezes data to a snapshot.
+   - Runs all models in the experiment against the same snapshot.
+   - Saves results with metadata linking them to the snapshot.
+5. **Pre-experiment checklist:** before starting any v1.1 experiment, run `scripts/check_cron_quiet.sh` that verifies no auto-retrain is scheduled within the next 12 hours.
+
+**Detection code pattern:**
+```python
+# At start of comparison script:
+results_to_compare = [load('xgboost.json'), load('tft.json'), load('gru.json'), ...]
+hashes = {r['train_data_hash'] for r in results_to_compare}
+assert len(hashes) == 1, f"Models trained on different data snapshots: {hashes}"
+```
+
+**Confidence:** HIGH — direct exposure; the live system is active and auto-retrains.
+
+---
+
+### Pitfall 12: Adding Features That Don't Exist in Live Bars
+
+**Category:** Live-system safety
+**Phase to address:** Phase 12 (Ablation), Phase 13 (Ensemble)
+**Severity:** HIGH
+
+**What goes wrong:** The historical dataset has 59 features. The live-bar pipeline only computes 51 (some features require multi-hour context not available in real-time). If the ablation (Phase 12) decides the "minimum feature set" includes one of the 8 historical-only features, the live system can't implement it. You've published a model that looks great in backtest but can't be deployed.
+
+Worse, if TFT (Phase 11) trains on the 59-feature set but the live ensemble (Phase 13) has to use the 51-feature set, TFT's reported P&L isn't what a deployable TFT would achieve.
+
+**Why it happens:** The 8 missing features are computable in principle but weren't implemented in the live pipeline. Historical vs. live feature parity is a constant maintenance burden and tends to drift.
+
+**Consequences:** Paper's "TFT achieves X" or "minimum feature set contains Y" claims are non-deployable. Live vs. backtest reconciliation (Pitfall 2) becomes impossible because live can't even compute the features.
+
+**Warning signs:**
+- `train.parquet` has columns that the live feature-engineering script doesn't produce.
+- Live trades show NaN or zeros for features that are non-NaN in the backtest.
+- Ablation concludes a feature matters, but the feature is not in live bars.
+
+**Prevention strategy (concrete):**
+1. **Feature parity audit script:** `scripts/feature_parity.py` that loads one historical row and one live row, computes diff of their columns, and asserts zero difference.
+2. **Backtest uses only live-compatible features by default.** All Tier-1/2/3 model training scripts import `LIVE_FEATURES` from a shared constants module. Extra features require an explicit flag.
+3. **"Deployable" tag on features:** each feature in `src/features/` has a docstring line `deployable: true/false`. Non-deployable features are excluded from ablation space.
+4. **Two-tier feature set in the paper.** If we have features that only exist in backtest, report results both ways: "with full 59 features: $210; with live-compatible 51 features: $208." Disclose the gap.
+5. **Ablation pre-filter:** before starting feature ablation, drop all non-deployable features from the search space. Document this in the ablation methodology.
+
+**Confidence:** HIGH — direct exposure; we already know the split between historical-only and live-computable features.
 
 ---
 
 ## Moderate Pitfalls
 
-Mistakes that cause significant rework or weakened results, but are recoverable.
+Mistakes that hurt the paper or system but are recoverable.
 
 ---
 
-### Pitfall 7: Polymarket Price Reconstruction Introduces Systematic Bias
+### Pitfall 13: Double-Counting Ensemble Diversity When Base Models Are Correlated
 
-**What goes wrong:** Since Polymarket `/prices-history` returns empty for resolved markets, you must reconstruct OHLC bars from raw trade records. But trade records are noisy: a single large trade can dominate a bar's close price, gaps between trades create ambiguity (does price stay at last trade? or is it undefined?), and reconstruction methodology choices (VWAP vs. last-trade vs. time-weighted) produce materially different price series.
+**Category:** Ensemble
+**Phase:** Phase 13
+**Severity:** MEDIUM-HIGH
+
+**What goes wrong:** LR and XGBoost are both linear-ish on this feature set (XGBoost depth-3 is essentially "weighted sum of short splits"). Their correlation on test-set predictions is ~0.95. Averaging them as an ensemble does almost nothing — the gain from "diversity" is mostly noise. Reporting "our ensemble adds value over base models" on numbers within measurement error is misleading. Similarly, GRU and LSTM are architectural siblings — their predictions correlate >0.9.
+
+If we build a 4-model ensemble (LR, XGBoost, GRU, LSTM) and each pair is correlated >0.85, the *effective* ensemble size is roughly 2, not 4. Sharpe only improves by √2 under perfect independence; under the actual correlation, it improves by <1.2× of base.
+
+**Prevention strategy:**
+1. **Report pairwise correlation of predictions** before claiming ensemble benefits. If correlations are all >0.85, note that ensemble diversity is low.
+2. **Include a diversity metric:** e.g., Q-statistic, disagreement rate, or prediction-variance ratio. Report in the ensemble section.
+3. **Test the "no ensemble" null hypothesis:** bootstrap-CI on ensemble-vs-best-single-model P&L difference. If CI includes 0, the ensemble isn't measurably better.
+4. **Consider non-ML members for real diversity:** a "trade every pair" baseline, a "short-spread-always" baseline — non-ML models add true diversity.
+
+**Sources:** [A Unified Theory of Diversity in Ensemble Learning (JMLR)](https://jmlr.org/papers/volume24/23-0041/23-0041.pdf), [Ensembles in Machine Learning (dida blog)](https://dida.do/blog/ensembles-in-machine-learning)
+
+---
+
+### Pitfall 14: Schema Changes Break `positions.db` or Persisted State
+
+**Category:** Live-system safety
+**Phase:** All phases with live system interaction
+**Severity:** MEDIUM-HIGH (direct exposure — we've hit this)
+
+**What goes wrong:** v1.1 phases add new features or change fee models. If the new code changes the schema of `positions.db` or `trade_log.jsonl`, existing persisted positions become un-readable or misinterpreted. Example: adding a `fee_model_version` column to trades — old trades don't have it; code crashes on `KeyError`.
 
 **Prevention:**
-1. Document your reconstruction methodology explicitly.
-2. Compare multiple reconstruction methods on a few markets where `/prices-history` still works (active markets) to validate that your reconstruction matches the "ground truth."
-3. Use VWAP (volume-weighted average price) for the bar's representative price rather than last-trade, as it is more robust to individual outlier trades.
-4. When a bar has zero trades, carry forward the last known price but flag it as "stale." Do not interpolate.
-5. Report sensitivity: does using last-trade vs. VWAP change your results materially?
-
-**Detection:** Compare your reconstructed prices to any available snapshots. If reconstruction shows 10+ basis points of systematic deviation, investigate.
-
-**Phase relevance:** Data pipeline phase.
-
-**Confidence:** MEDIUM-HIGH -- this is project-specific based on the documented Polymarket API limitation.
+1. **Schema version field** in every persistent store. New code handles old versions gracefully (backward-compat reads, forward-only writes).
+2. **Migration scripts:** any schema change ships with `scripts/migrate_v1_1_to_v1_2.py`. Test migration on a copy of prod data.
+3. **Dry-run new schemas:** before deploying to SCC live, run the new code against a copy of `positions.db` and verify no errors.
+4. **Content-addressed IDs everywhere:** we've already moved pair_ids to content-addressed (Finding 9). Ensure position IDs, trade IDs, and any new IDs follow the same pattern.
 
 ---
 
-### Pitfall 8: Feature Leakage Through Spread Calculation
+### Pitfall 15: Matplotlib Backend Differences Create Figure Variance
 
-**What goes wrong:** The target variable (future spread or spread convergence) is computed from the same price data used to construct features. If features include "current spread" and the target is "spread at T+1," the model can trivially predict by learning that spreads are autocorrelated. This is not a bug per se -- spreads ARE autocorrelated -- but it means the model's apparent accuracy is dominated by persistence rather than genuine predictive signal.
+**Category:** Reproducibility
+**Phase:** Phase 10, 14
+**Severity:** MEDIUM
+
+**What goes wrong:** Figure `walk_forward_pnl.png` looks slightly different on SCC (backend: Agg) vs. local Mac (backend: MacOSX). Font rendering, anti-aliasing, line smoothness differ. The paper uses figures from one environment; reviewer regenerates in another and sees visually-different figures.
 
 **Prevention:**
-1. Separate features cleanly from targets. Features should include information ABOUT the spread (magnitude, velocity, acceleration, volume imbalance) but the model should be evaluated on its ability to predict CHANGE, not level.
-2. Frame the regression target as spread change (delta) or directional movement rather than absolute spread level. A naive "spread stays the same" baseline immediately exposes whether your model adds value beyond persistence.
-3. Include the naive baseline (spread stays the same) and the volume baseline (higher-volume platform is correct) as formal baselines. If your ML models do not beat these, the added complexity is not justified -- and that is a valid finding.
-
-**Detection:** If your linear regression achieves R-squared >0.9 on spread prediction, you are almost certainly predicting persistence rather than genuine convergence signal. Check by comparing against a lag-1 naive forecast.
-
-**Phase relevance:** Feature engineering phase and experiment design phase.
-
-**Confidence:** HIGH -- autocorrelation in financial time series is a well-known issue.
+1. **Explicit backend:** every plot script starts with `matplotlib.use('Agg')` before importing pyplot. Same backend everywhere.
+2. **Fixed font:** `rcParams['font.family'] = 'DejaVu Sans'` (available everywhere). Avoid system fonts.
+3. **PDF not PNG for paper:** PDF is vector, eliminates rendering artifacts. Paper submission uses PDF figures.
+4. **Figure-generation script:** `scripts/regenerate_all_figures.sh` runs once from raw data, produces canonical figures. No manual matplotlib tweaks in notebooks.
 
 ---
 
-### Pitfall 9: Autoencoder Anomaly Threshold Selection is Arbitrary
+### Pitfall 16: Python Environment Drift Between Authors/Machines
 
-**What goes wrong:** The autoencoder's anomaly detection depends on a reconstruction error threshold to flag "anomalous" spread patterns for the PPO agent. This threshold is a hyperparameter that dramatically changes the system's behavior. Set it too low: everything is anomalous, the filter does nothing. Set it too high: nothing passes through, the PPO agent never trades. There is no principled way to set it without a validation set, and with small data, you cannot afford a separate validation set for threshold tuning.
+**Category:** Reproducibility
+**Phase:** Phase 8, 14
+**Severity:** MEDIUM
+
+**What goes wrong:** Ian's Mac runs PyTorch 2.3.0, Alvin's Mac runs 2.1.0. SCC runs 2.2.0. Same code gives slightly different numbers because some PyTorch ops changed between versions. Same failure mode for XGBoost, scikit-learn, numpy.
 
 **Prevention:**
-1. Report results across multiple threshold values (percentiles: 90th, 95th, 99th of training reconstruction error). Do not cherry-pick the one that gives the best backtest.
-2. Use the threshold as an explicit ablation dimension in Experiment 3 (or add it to Experiment 1).
-3. Compare "PPO + autoencoder at threshold X" against "PPO without autoencoder" to isolate whether the filtering helps at each threshold level.
-4. Consider using the reconstruction error as a continuous feature input to PPO rather than a binary filter. This avoids the threshold problem entirely and gives the RL agent more information.
-
-**Detection:** If your results are highly sensitive to the threshold (performance swings >30% across adjacent threshold values), the autoencoder is not providing a robust signal.
-
-**Phase relevance:** RL model phase, specifically the autoencoder integration step.
-
-**Confidence:** MEDIUM-HIGH -- threshold sensitivity is a known issue in anomaly detection systems.
+1. **Pinned requirements.txt** with exact versions, committed.
+2. **`.python-version`** file with `3.12.3` (not `3.12`).
+3. **Dockerfile or lockfile:** `requirements.lock` from `pip-tools` / `uv`. Re-deriving the environment from a lockfile is deterministic.
+4. **Environment hash in result JSON:** `"env_hash": "sha256(requirements.lock)"` — results from different environments don't compare.
+5. **CI check:** GitHub Actions workflow that runs the experiment scripts on the pinned environment and checks numbers match checked-in results.
 
 ---
 
-### Pitfall 10: Sharpe Ratio is Meaningless on Small Backtests
+### Pitfall 17: Feature Correlation Inflates Ablation Importance
 
-**What goes wrong:** You compute Sharpe ratios on 20-30 trades and report them in the paper. With so few trades, the standard error of the Sharpe estimate is enormous. A reported Sharpe of 2.0 might have a 95% confidence interval of [-1.0, 5.0], making it statistically indistinguishable from zero.
+**Category:** Feature ablation
+**Phase:** Phase 12
+**Severity:** MEDIUM
+
+(Covered as sub-point in Pitfall 3.) Specifically: Amihud illiquidity on Kalshi and Amihud on Polymarket correlate ~0.7. Dropping one alone has small effect; dropping both has large effect. Reporting "Amihud-Kalshi is unnecessary" is misleading. Report correlation-cluster ablations.
+
+**Prevention:** See Pitfall 3 (correlation-aware grouping).
+
+---
+
+### Pitfall 18: Scaler Fit on Full Data = Classic Leakage
+
+**Category:** Data leakage
+**Phase:** All phases
+**Severity:** MEDIUM-HIGH
+
+**What goes wrong:** StandardScaler is fit on the *full* dataset, then the same scaler is applied to train and test. This leaks test-set statistics (mean, std) into training. The effect is small in practice but is a textbook leakage pattern reviewers look for.
 
 **Prevention:**
-1. Report the standard error of the Sharpe ratio alongside the point estimate. The asymptotic standard error is approximately `sqrt((1 + 0.5 * sharpe^2) / N)` where N is the number of return observations.
-2. Use bootstrap resampling (with block bootstrap to preserve autocorrelation) to construct confidence intervals on all trading metrics.
-3. If the number of trades is <50, explicitly note in the paper that trading metrics have wide confidence intervals and should be interpreted as directional evidence, not precise estimates.
-4. Complement Sharpe with simpler metrics that are more robust in small samples: win rate, average profit per trade, maximum drawdown.
-
-**Detection:** Compute the confidence interval. If it spans zero, acknowledge this.
-
-**Phase relevance:** Evaluation / experiment phase.
-
-**Confidence:** HIGH -- widely discussed in quantitative finance (Bailey and de Prado, 2012).
+1. **Fit scaler on train only.**
+2. **Use a sklearn Pipeline** so the scaler is automatically fit-on-train only within each cross-validation fold:
+   ```python
+   from sklearn.pipeline import Pipeline
+   pipe = Pipeline([('scaler', StandardScaler()), ('model', LinearRegression())])
+   pipe.fit(X_train, y_train)  # scaler fits on train only
+   ```
+3. **Audit: grep for `StandardScaler` in the codebase** and verify every call fits on train-only.
 
 ---
 
-### Pitfall 11: TFT Overkill for This Dataset Scale
+### Pitfall 19: Target Leakage via Lag Feature Construction
 
-**What goes wrong:** PyTorch Forecasting's Temporal Fusion Transformer requires substantial data to learn its attention mechanisms effectively. On a dataset of dozens of market pairs with hundreds of hourly observations each, TFT is likely to overfit badly and be extremely slow to train compared to GRU. You spend days debugging TFT configuration and hyperparameters only to get results worse than XGBoost.
+**Category:** Data leakage
+**Phase:** All phases
+**Severity:** HIGH if it occurs
+
+**What goes wrong:** You construct `spread_lag_1 = df['spread'].shift(1)` and then split train/test. But if the shift happens across the split boundary, the first test row has a lag feature derived from the last train row. This is a subtle leakage at the split boundary.
 
 **Prevention:**
-1. Implement TFT last, after GRU and LSTM. If GRU does not beat XGBoost, TFT almost certainly will not either.
-2. Set a time box: spend no more than 1 day on TFT implementation and tuning. If it does not converge or requires extensive hyperparameter search, report "TFT did not converge on this dataset size" as a finding.
-3. Use PyTorch Forecasting's built-in hyperparameter suggestions and do not do extensive custom tuning.
-4. Consider dropping TFT from the paper if dataset size is <100 pairs and replacing it with a simpler variant or just noting "transformer-based approaches were not viable at this scale."
-
-**Detection:** If TFT training loss plateaus above GRU's within 20 epochs, it is not going to catch up.
-
-**Phase relevance:** Tier 2 model training phase. Gating decision: only attempt TFT if dataset is large enough.
-
-**Confidence:** MEDIUM -- depends on actual dataset size, which is unknown.
+1. **Shift before split, with explicit handling:** drop the first row of test set if it has a lag from train.
+2. **Or: compute lags per-pair, then split per-pair.** The lag never crosses pairs or train/test boundaries.
+3. **Sanity check:** `assert df_test['spread_lag_1'].iloc[0]` is not equal to `df_train['spread'].iloc[-1]`.
 
 ---
 
-### Pitfall 12: API Rate Limiting and Data Collection Takes Longer Than Expected
+### Pitfall 20: Seasonal Regime Change Masks Feature Importance
 
-**What goes wrong:** The data collection phase is budgeted for a few hours but actually takes days. Polymarket's per-10-seconds rate limits, Kalshi's historical endpoint pagination, failed requests, retries, and the need to reconstruct Polymarket price history from individual trades all add up. You lose 3-4 days of the timeline on data collection alone.
+**Category:** Feature ablation
+**Phase:** Phase 12
+**Severity:** MEDIUM
+
+**What goes wrong:** The test set is Apr-only data. Oil contracts dominate April (WTI expiration). Ablating `near_expiry_indicator` hurts a lot in April data. But if the test set were February (no oil expiration), the same feature would be less important. Single-split ablation makes seasonal features look universally important (or universally unimportant).
 
 **Prevention:**
-1. Implement caching and checkpointing from the start. Save raw API responses to disk so you never need to re-fetch.
-2. Build the data pipeline with resume capability: if it crashes at market pair 47 of 200, it picks up at 47 on restart.
-3. Use exponential backoff for rate limit errors (429 responses). Do not just retry immediately.
-4. Start data collection on Day 1, not Day 3. It is the longest pole in the tent.
-5. Log progress: "Fetched X of Y markets, Y of Z trade records, estimated time remaining: T."
-
-**Detection:** If after 2 hours of running the pipeline you have <10% of the expected data, re-estimate the timeline and adjust scope.
-
-**Phase relevance:** Data pipeline phase. This is timeline-critical given the April 4 TA check-in.
-
-**Confidence:** HIGH -- API data collection almost always takes longer than expected.
+1. **Walk-forward ablation:** redo ablation on each walk-forward window and report per-window feature importance.
+2. **Per-category ablation:** oil vs. inflation vs. crypto separately.
+3. **Disclose seasonality in paper:** "Feature X is most important in the oil-expiration regime (our April test set); its importance in other regimes is untested."
 
 ---
 
-## Minor Pitfalls
+## Academic Integrity & LLM Disclosure
 
-Mistakes that cause annoyance, minor rework, or suboptimal results.
+### Pitfall 21: AI-Assisted Code Without Disclosure (ICLR 2026 Policy Parallel)
+
+**Category:** Academic integrity
+**Phase to address:** Phase 14 (Final submission)
+**Severity:** CRITICAL (this is DS340 final paper)
+
+**What goes wrong:** Ian and Alvin have used Claude Code extensively throughout the project — for data pipeline implementation, matching logic, TFT setup, paper drafting. The 2026 academic norm (ICLR 2026, ICML 2026, ACM CCS 2026) is that **authors must disclose LLM usage** and take full responsibility for the content.
+
+DS340 is a course project, not an ICLR submission, but the same principles apply:
+1. **Disclose usage explicitly** in the paper's methods section or acknowledgments.
+2. **Authors are responsible** for all content — fabricated citations, hallucinated results, or plagiarism produced by the AI is on the authors.
+3. **Verify AI-generated code and claims** independently.
+
+The risk: submitting a paper that extensively used Claude without disclosure, and then the TA/professor realizes this during evaluation. Even if not strictly forbidden, undisclosed AI assistance looks deceptive and may be treated as an academic-integrity issue.
+
+Specific 2026 CS conference policies we should follow:
+- **ICLR 2026:** "Authors are asked to disclose in their submission any usage of LLMs ... Papers that make extensive usage of LLMs and do not disclose this usage will be desk-rejected."
+- **ACM CCS 2026:** "If AI tools were used to generate or substantially rewrite substantive content, authors must include a dedicated 'Generative AI Usage' section that names the tools used, describes which parts were generated or heavily assisted, and explains how authors validated the AI-generated content."
+- **NSF (research funding):** requires disclosure of AI use in project proposals.
+
+**Why it happens:** Authors worry that disclosing AI usage will be penalized. The opposite is true — non-disclosure is now the penalty. Norms have shifted rapidly since 2024.
+
+**Consequences for DS340:** If the professor/TA discovers extensive undisclosed AI usage, the paper's credibility is damaged. Worst case: academic-integrity complaint.
+
+**Prevention strategy (concrete):**
+1. **Include an "AI Assistance Disclosure" paragraph** in the paper's methodology section (or acknowledgments, or as a standalone appendix). Template:
+   > "This project used Anthropic's Claude (Claude Opus 4.6) extensively as a coding assistant via the Claude Code CLI. Specifically, Claude assisted with: (1) drafting boilerplate code for API ingestion (Kalshi, Polymarket), data pipelines, and evaluation scripts; (2) debugging infrastructure bugs (e.g., the `condition_ids` vs. `condition_id` discovery); (3) drafting sections of this paper including initial prose for results tables and related-work summaries. All research contributions — model architecture choices, experimental design, interpretation of results, final numerical claims — were validated by the human authors (Sabia, Jang). All code was reviewed before deployment. All reported numbers were regenerated from source data by the authors prior to submission. Any errors are the authors' responsibility."
+2. **Maintain an `AI_USAGE.md` log** in the repo: which files were substantially AI-authored vs. primarily human-authored. Commit this alongside the code.
+3. **Do not use AI-generated citations without verification.** Every citation in the paper must be verified by a human following the URL/DOI — LLMs hallucinate citations regularly.
+4. **Re-run every experiment personally.** Before submission, both authors run the pipeline end-to-end and confirm numbers match. This is the "validation" step ICLR 2026 requires.
+5. **Commit history transparency:** `Co-Authored-By: Claude` trailers on commits that were substantially AI-assisted. This is already our practice per the session context.
+6. **Author responsibility statement.** Paper must contain an explicit sentence: "The authors take full responsibility for the contents of this paper, including any content developed with AI assistance."
+
+**Warning signs the paper has AI-integrity issues:**
+- Citations whose URLs 404 or point to unrelated papers (hallucinated).
+- Numerical claims in the paper that don't match any file in `experiments/results/`.
+- Prose that sounds like Claude's default style (hedging, "it's important to note that...") but no disclosure.
+
+**Confidence:** HIGH — 2025–2026 academic norms are clear; ICLR 2026, ICML 2026, ACM CCS 2026 have explicit policies; DS340 will likely inherit these conventions or already has them implicitly.
+
+**Sources:** [Policies on Large Language Model Usage at ICLR 2026 — ICLR Blog](https://blog.iclr.cc/2025/08/26/policies-on-large-language-model-usage-at-iclr-2026/), [ICLR 2026 Response to LLM-Generated Papers and Reviews](https://blog.iclr.cc/2025/11/19/iclr-2026-response-to-llm-generated-papers-and-reviews/), [ICML 2026 Intro LLM Policy](https://icml.cc/Conferences/2026/Intro-LLM-Policy), [ACM CCS 2026 Call for Papers](https://www.sigsac.org/ccs/CCS2026/call-for/call-for-papers.html), [Responsible Use of LLMs in Manuscript Preparation (Current Protocols 2026)](https://currentprotocols.onlinelibrary.wiley.com/doi/10.1002/cpz1.70300), [When and how to disclose AI use in academic publishing: AMEE Guide 192](https://www.tandfonline.com/doi/full/10.1080/0142159X.2025.2607513), [Template: AI Use Disclosure Statement for Academic Papers](https://hastewire.com/blog/template-ai-use-disclosure-statement-for-academic-papers)
 
 ---
 
-### Pitfall 13: SHAP on Time Series Models is Misleading
+### Pitfall 22: Hallucinated Citations in Related-Work Section
 
-**What goes wrong:** SHAP values assume feature independence. For time-series features (lagged spread, lagged volume, price velocity), features are highly correlated across time steps. SHAP attributions in this setting can be unstable and misleading, assigning importance to arbitrary lag values rather than the underlying signal.
+**Category:** Academic integrity
+**Phase to address:** Phase 14
+**Severity:** CRITICAL
+
+**What goes wrong:** LLMs are notorious for generating plausible-sounding citations that don't exist — "Smith & Jones (2023), 'Cross-platform prediction market arbitrage via deep learning,' NeurIPS 2023." Sounds plausible; might be entirely fabricated. If the paper's Related Work section includes any AI-assisted citations, every one must be verified.
+
+Our paper cites: Manski (2006), Wolfers & Zitzewitz (2004), Burgi/Tuccella/Zitzewitz (2026), Amihud (2002), Corwin & Schultz (2012), Kyle (1985), Roll (1984), Grinsztajn/Oyallon/Varoquaux (NeurIPS 2022), and an "arXiv 2601.07131" reference. We need to verify every one.
+
+**Prevention strategy:**
+1. **Every citation gets a verified URL in `CITATIONS.md`.** Click the link; confirm the paper exists; confirm authors/title/year match.
+2. **ArXiv ID sanity:** `2601.07131` — arXiv IDs starting with 2601 would be January 2026, but cross-check. The paper we cite must actually exist at that URL.
+3. **Page-level verification:** open each PDF and find the claim we're citing. If we can't find it, the citation is wrong.
+4. **BibTeX from Google Scholar / DOI.org** — always use authoritative sources, never LLM-generated BibTeX.
+5. **Dead-URL audit script:** `scripts/check_citations.py` that HTTP-gets each URL in `CITATIONS.md` and reports 404s.
+
+---
+
+### Pitfall 23: Plagiarism via Uncited Pattern Reuse
+
+**Category:** Academic integrity
+**Phase:** Phase 14
+**Severity:** MEDIUM-HIGH
+
+**What goes wrong:** LLMs trained on public research code may reproduce specific implementations verbatim. If our autoencoder code closely mirrors a published implementation (even in variable names), failing to cite is plagiarism. This is hard to detect manually but easy to surface with code similarity tools.
 
 **Prevention:**
-1. Use SHAP primarily on XGBoost (where it is well-understood and fast via TreeSHAP) rather than on GRU/LSTM.
-2. For recurrent models, use integrated gradients or attention weights (for TFT) instead of SHAP.
-3. Report SHAP feature importances as "suggestive" rather than definitive for any model with temporal features.
-
-**Phase relevance:** Interpretability / SHAP analysis phase.
-
-**Confidence:** MEDIUM -- SHAP limitations with correlated features are documented but the severity depends on the specific dataset.
+1. **Cite inspiration for non-trivial algorithms.** If our PPO uses stable-baselines3, cite it. If our autoencoder is inspired by a blog post, cite it.
+2. **Run plagiarism check** on text we didn't write ourselves — Turnitin or iThenticate if the course provides it.
+3. **Acknowledge tutorials/StackOverflow** in an acknowledgments section if specific answers influenced code.
 
 ---
 
-### Pitfall 14: Null OHLC Fields in Kalshi Candlesticks Create Silent NaN Propagation
+## Data Leakage Audit (Pitfall 24)
 
-**What goes wrong:** Kalshi candlestick OHLC fields can be null when no trades occurred in a period (documented in CLAUDE.md). If you load this into a pandas DataFrame without explicit null handling, NaN values propagate silently through feature calculations (spread = Kalshi_price - Polymarket_price = NaN if either is null). Downstream models either crash or silently train on partial data.
+**Category:** Data leakage (v1.1 new experiments risk re-introducing leakage)
+**Phase to address:** All phases; explicit audit in Phase 14
+**Severity:** HIGH
 
-**Prevention:**
-1. After loading raw Kalshi data, immediately check for and count null OHLC values. Log the count.
-2. Forward-fill (carry forward last known price) for short gaps (1-2 hours). For longer gaps, mark the entire period as "no data" rather than imputing.
-3. Never drop rows silently. Always log how many rows were affected by null handling and what method was used.
-4. Add a validation step: `assert df['spread'].notna().mean() > 0.9` (at least 90% of data is non-null after cleaning).
+**What goes wrong:** Every new experiment (ablation, TFT, ensemble) is another chance to accidentally leak test info. Specific patterns to audit:
 
-**Phase relevance:** Data pipeline phase, cleaning step.
+### 24a. StandardScaler fit on full data
+See Pitfall 18.
 
-**Confidence:** HIGH -- this is a project-specific gotcha explicitly documented in the project context.
+### 24b. Hyperparameter search on test set
+If the XGBoost hyperparameter sweep (depth ∈ {3,5,7,9} × lr × n_est = 48 configs) is scored on the test set rather than validation set, we've selected hyperparameters via test-set peeking. Our current approach reports the best single-split P&L across 48 configs — this IS test-set selection. Mitigation: either (a) use walk-forward median P&L for selection (not single-split), or (b) disclose clearly that reported P&L is in-sample-selected and compute a deflated metric.
 
----
+### 24c. Feature selection via test-set peek
+If the ablation process is scored on the same test set used to report final numbers, the "minimum feature set" is overfit to that test set. See Pitfall 3.
 
-### Pitfall 15: Confusing Prediction Performance with Trading Performance
+### 24d. Ensemble weights learned on test set
+If ensemble weights (how much to weight LR vs. XGBoost) are optimized on the test set, that's leakage. Weights must be learned on training or validation, then evaluated on test.
 
-**What goes wrong:** A model with the best RMSE on spread prediction may not be the best trading model. RMSE penalizes all errors equally, but trading cares about directional accuracy and magnitude of large moves. A model that accurately predicts small spread changes but misses large opportunities will look good on RMSE but perform poorly in simulated P&L.
+### 24e. Stop-loss / take-profit thresholds tuned on test
+Live-system thresholds (TIME_STOP at X minutes, TAKE_PROFIT at Y%, STOP_LOSS at Z%) tuned on backtest-test set leak info. If these were optimized post-hoc on observed trade outcomes, every paper P&L number is biased upward.
 
-**Prevention:**
-1. Always report both regression metrics (RMSE, MAE) AND trading metrics (P&L, Sharpe, win rate, directional accuracy) for every model.
-2. Include directional accuracy as a first-class metric: what fraction of the time does the model correctly predict whether the spread will widen or narrow?
-3. In the paper discussion, explicitly address whether RMSE ranking agrees with P&L ranking. If they disagree, that is an interesting finding worth discussing.
+### 24f. Category-aware entry filter thresholds
+The "3× threshold for non-commodity" rule in the live system — was this tuned on historical category P&L? If so, it's fit to the same data we're reporting on.
 
-**Phase relevance:** Evaluation phase.
+### 24g. Quality filter rules written after observing bad matches
+The 10-rule quality filter was iteratively developed by inspecting specific false-match examples. If any of those examples are in the test set, the filter has "seen" the test set. Mitigation: audit which false matches were the basis for each rule; drop test-set-derived rules from the reported pipeline.
 
-**Confidence:** HIGH -- this disconnect is well-documented in quantitative finance literature.
+**Prevention strategy:**
+1. **Train / validation / test triple split.** Train for fitting, validation for selection (hyperparameters, ablation, ensemble weights, filters), test for reporting. Test set is touched exactly once per final model.
+2. **Leakage audit document:** before submission, walk through every step of the pipeline and answer "did this use test-set data?" for each. Commit the audit to `LEAKAGE_AUDIT.md`.
+3. **Time-ordered split discipline.** Validation is a chronological slice between train and test: `[train][val][test]` on the time axis, never shuffled.
+4. **Hold-out test set physically separate.** In code, test data lives in a separate file that is only loaded in the final evaluation script. Anything that imports test data is flagged.
+5. **Disclosure when leakage found:** if audit reveals a leakage (e.g., stop-loss thresholds were tuned on test data), redo the analysis on a fresh split or disclose the leakage explicitly.
 
----
-
-### Pitfall 16: Ignoring Transaction Costs Inflates P&L Unrealistically
-
-**What goes wrong:** Even though transaction costs are out of scope for detailed modeling, completely ignoring them when computing simulated P&L creates unrealistic results. Kalshi charges fees per contract, and Polymarket has gas costs on Polygon. If your average predicted spread is 3 percentage points and round-trip costs are 2 percentage points, your apparent 3pp profit becomes 1pp -- a 67% reduction.
-
-**Prevention:**
-1. Compute P&L both with and without a rough transaction cost estimate.
-2. Use a simple flat cost per trade: 1% round-trip for Kalshi (fee structure), 0.5% for Polymarket (gas + taker fee). These are rough but better than zero.
-3. Report the "break-even" transaction cost: "Our best model is profitable if round-trip costs are below X basis points."
-4. In the paper, explicitly state that transaction costs are not modeled in detail but provide sensitivity analysis.
-
-**Phase relevance:** Evaluation phase, profit simulation step.
-
-**Confidence:** MEDIUM-HIGH -- the exact fee structures may have changed; the principle is solid.
+**Sources:** [Data Leakage, Lookahead Bias, and Causality in Time Series (Kyle Jones, Medium)](https://medium.com/@kyle-t-jones/data-leakage-lookahead-bias-and-causality-in-time-series-analytics-76e271ba2f6b), [Avoiding Data Leakage in Timeseries 101 (Towards Data Science)](https://towardsdatascience.com/avoiding-data-leakage-in-timeseries-101-25ea13fcb15f/), [Purged cross-validation (Wikipedia)](https://en.wikipedia.org/wiki/Purged_cross-validation), [Hidden Leaks in Time Series Forecasting (arXiv 2025)](https://arxiv.org/html/2512.06932v1), [Data Preparation Without Data Leakage (MachineLearningMastery)](https://machinelearningmastery.com/data-preparation-without-data-leakage/)
 
 ---
 
-## Phase-Specific Warnings
+## Technical Debt Patterns (v1.1 Specific)
 
-| Phase Topic | Likely Pitfall | Mitigation | Severity |
-|-------------|---------------|------------|----------|
-| Data pipeline (Kalshi) | Null OHLC fields, historical cutoff confusion | Validate nulls, call `/historical/cutoff` first | Moderate |
-| Data pipeline (Polymarket) | Price reconstruction from trades, empty history endpoint | Validate against active markets, use VWAP | High |
-| Data pipeline (time alignment) | Timezone/boundary misalignment creating phantom spreads | UTC normalization, visual validation | Critical |
-| Market matching | False positive matches with different settlement criteria | Manual review of EVERY match, settlement criteria logging | Critical |
-| Feature engineering | Autocorrelation masking as prediction, feature leakage | Predict changes not levels, include naive baselines | High |
-| Dataset construction | Insufficient matched pairs for statistical significance | Run matching pipeline early, have scope contingency plan | Critical |
-| Tier 1 models (regression) | Underinvesting in baselines (treating as afterthoughts) | Treat regression baselines as first-class; tune them properly | Moderate |
-| Tier 2 models (time series) | TFT failing on small data, wasting time | Implement TFT last, time-box to 1 day | Moderate |
-| Tier 3 models (RL) | Degenerate PPO policies, bad reward shaping | Monitor action distributions, design reward explicitly | High |
-| Tier 3 models (autoencoder) | Arbitrary anomaly threshold, sensitivity | Report multiple thresholds, consider continuous input | Moderate |
-| Evaluation | Sharpe on small samples, RMSE vs P&L disagreement | Bootstrap CIs, report both metric types | Moderate |
-| Evaluation | Ignoring transaction costs | Rough cost estimates, break-even analysis | Low-Moderate |
-| Interpretability | SHAP on correlated time-series features | Use TreeSHAP on XGBoost, attention for TFT | Low |
-| Paper writing | Overclaiming from statistically weak results | Report CIs, frame as directional findings | Moderate |
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Skip TFT attention-weight audit | Faster Phase 11 | Published TFT result may be collapse, not learning | Never — attention audit takes 5 minutes |
+| Cache `experiments/results/*.json` without data_hash | Faster re-runs | Stale results in paper (already happened v1.0) | Never — input-hash is a one-line fix |
+| Run TFT with default hyperparameters | Phase 11 finishes on time | Overfit result that doesn't generalize | Only if explicitly disclosed as "out-of-the-box defaults" |
+| Skip live-vs-backtest reconciliation | Phase 9 finishes on time | Strongest paper claim is unverified | Never — this is the centerpiece v1.1 contribution |
+| Report per-trade Sharpe as headline | Paper looks stronger | Reviewers catch it, credibility tanks | Never — always use per-pair for headline |
+| Ablate on test set, report "minimum set" | Ablation looks rigorous | P-hacking via selection bias | Never — use validation set for selection |
+| Use same seed for all stochastic models | Simpler to run | Can't report variance, single-seed is a point estimate | Never — use multi-seed for Tier 2/3 |
+| Skip LLM disclosure paragraph | Paper is shorter | 2026-era academic norm violation | Never — 1 paragraph is cheap insurance |
+| Cherry-pick best walk-forward window for abstract | Better-looking headline | Detected as cherry-pick by any reviewer | Never — report median + range |
 
 ---
 
-## Academic-Specific Pitfalls
+## Integration Gotchas (v1.1)
 
-These pitfalls are specific to this being a course project with a deadline and TA review.
-
-### Pitfall A: Spending Too Long on Data, Not Enough on Models
-
-**What goes wrong:** The data pipeline (API ingestion, matching, time alignment, feature engineering) is the hardest engineering work but produces nothing visible to a TA or professor. If data work takes 2.5 of 4 weeks, you have 1.5 weeks for 7+ models, 3 experiments, SHAP analysis, and a paper.
-
-**Prevention:** Hard deadline: data pipeline and matching must be complete by April 7 (3 days after TA check-in). If matching is incomplete by April 7, reduce scope (fewer model tiers, fewer ablations) rather than push data work later.
-
-### Pitfall B: Not Having a Working Demo for TA Check-in (April 4)
-
-**What goes wrong:** The TA check-in is in 3 days. If you show up with code that does not run, or a pipeline that is half-built, you lose credibility and potentially points.
-
-**Prevention:** For April 4, have at minimum: (1) a working data pipeline that fetches data from both APIs, (2) a preliminary list of matched market pairs, (3) one baseline model (linear regression) producing a number on a small subset. This does not need to be polished or final.
-
-### Pitfall C: Framing PPO Underperformance as Failure Instead of Finding
-
-**What goes wrong:** PPO underperforms XGBoost (as expected), and the paper presents this as "our RL approach failed" rather than "our systematic comparison demonstrates that model complexity is not justified at this data scale." The former is a weak paper; the latter is the intended contribution.
-
-**Prevention:** Write the paper's framing EARLY (outline by April 14). The narrative is: "We systematically tested whether increasing model complexity improves cross-platform prediction market arbitrage detection. Our results show [finding], suggesting that [insight]." PPO underperformance is the EXPECTED finding and supports the research question.
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| SCC auto-retrain cron during v1.1 experiments | Overlapping training runs corrupt comparison | Pause cron; freeze data snapshot; run experiment; resume cron |
+| Backtest vs. live feature parity | Ablation proposes feature X that live doesn't compute | Pre-filter ablation space to live-deployable features |
+| PPO from stable-baselines3 | Internal RNG ignores global seed | Pass `seed` to PPO constructor explicitly; rerun with multi-seed |
+| PyTorch Forecasting TFT | Dataset object pre-scales internally | Disable internal scaler OR ensure single scaling pass |
+| `matplotlib` on SCC (headless) | `plt.show()` crashes | `matplotlib.use('Agg')` before first import |
+| JSON serialization of numpy types | `np.float32` not JSON-serializable | Always cast to `float()` before `json.dump` |
+| `stable-baselines3` version pinning | SB3 3.x has different PPO API than 2.x | Pin to exact version in `requirements.txt` |
+| Pandas `to_parquet` with index | Index lost on reload | `df.reset_index(drop=True).to_parquet(...)` or `read_parquet(... columns=...)` explicit |
 
 ---
 
-## Meta-Pitfall: Scope Creep Under Time Pressure
+## Performance Traps (v1.1 Specific)
 
-The project has many model tiers (7+ models), 3 experiments, SHAP analysis, and a paper due in 26 days. The biggest pitfall of all is trying to do everything at mediocre quality rather than prioritizing.
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| TFT training time > budget | 1 epoch takes > 30 min on CPU | Use hidden_size=16, batch_size=64, max_epochs=30 | At any meaningful dataset size without GPU |
+| Ablation runtime > 8 hours | 30 subsets × 30 min each | Cache intermediate models; run in parallel | 30+ subsets on sequential CPU |
+| Ensemble prediction latency on live | Each bar requires 4 model inferences | Cache model objects; batch predictions | When number of pairs × models > 1000 inferences/minute |
+| Reconciliation JSON is huge | `live_trades.json` reaches GB | Daily snapshot + rolling 30-day window only | Live system running > 30 days |
 
-**Recommended priority if time is short:**
-1. Data pipeline + matching (non-negotiable foundation)
-2. Linear Regression + XGBoost + naive baselines (strong baselines)
-3. Experiment 1: complexity comparison with whatever models are ready
-4. Paper with honest findings
-5. GRU (most likely to add value over XGBoost)
-6. PPO variants (the RL exploration)
-7. LSTM, TFT, SHAP, ablation experiments (nice to have)
+---
 
-If you can only do items 1-4 well, that is a better paper than items 1-7 done poorly.
+## "Looks Done But Isn't" Checklist (v1.1 Submission Gate)
+
+Before paper submission on April 27, verify:
+
+### Reproducibility
+- [ ] **All seeds set:** `set_all_seeds(42)` called at top of every training script
+- [ ] **Multi-seed results:** Tier-2/3 models reported with median ± IQR over 5 seeds
+- [ ] **Cache freshness:** every `experiments/results/*.json` has matching `data_hash`
+- [ ] **Environment lockfile:** `requirements.lock` committed; CI passes
+- [ ] **Single-command reproduction:** `make reproduce` regenerates all tables/figures
+
+### TFT (Phase 11)
+- [ ] **Attention-weight audit:** entropy across variables > 0.5 × log(n_features)
+- [ ] **Walk-forward validation:** TFT tested on 11 windows, not just single split
+- [ ] **Downsized hyperparameters disclosed:** hidden_size, dropout reported in paper
+- [ ] **Time-box respected:** TFT took ≤ 1 day; if it didn't, result is "TFT did not converge at this scale"
+- [ ] **Feature parity:** TFT trained on live-deployable features only
+
+### Live vs Backtest (Phase 9)
+- [ ] **Trade-level reconciliation notebook exists** and is referenced in paper
+- [ ] **Fee models aligned:** unit test `assert backtest_fee(t) == live_fee(t)` passes
+- [ ] **Timestamp discipline:** all timestamps UTC, stored with tz-info
+- [ ] **Price source aligned:** backtest and live both use VWAP (or both use mid)
+- [ ] **Live-pair-universe backtest run** and reported alongside filtered-144-pair result
+
+### Feature Ablation (Phase 12)
+- [ ] **Three-way split** (train/val/test) used; test touched once
+- [ ] **Correlation-clustering** applied before ablation; groups ablated together
+- [ ] **Walk-forward ablation** (not single-split) used for selection
+- [ ] **Per-category results** reported for seasonal robustness
+- [ ] **Pre-registered protocol** exists; deviations explained
+
+### Ensemble (Phase 13)
+- [ ] **Base model correlations** reported; diversity metric computed
+- [ ] **Accepted vs. rejected** trades P&L both reported
+- [ ] **No-filter baseline** in results table
+- [ ] **Deflated Sharpe** computed for ensemble
+- [ ] **Ensemble weights learned on validation**, not test
+
+### Paper Credibility (Phase 10, 14)
+- [ ] **Per-pair Sharpe** is the headline; per-trade in parentheses
+- [ ] **Walk-forward median + range** in abstract (not single window)
+- [ ] **Survivorship-bias disclosure paragraph** in Limitations
+- [ ] **Transaction-cost sensitivity** table (already in v1.0 draft) updated for v1.1 models
+- [ ] **Scale-curve plateau** explicitly disclosed with training-cap annotation
+- [ ] **No-filter, full-universe result** shown alongside filtered results
+
+### Academic Integrity (Phase 14)
+- [ ] **AI-assistance disclosure paragraph** in methods or acknowledgments
+- [ ] **`AI_USAGE.md`** committed with file-level attribution
+- [ ] **Every citation verified** by URL/DOI; `CITATIONS.md` updated
+- [ ] **Authors' responsibility statement** present in paper
+- [ ] **Plagiarism check run** if course provides one
+
+### Live System Safety (Phase 8, 13)
+- [ ] **Auto-retrain cron paused** during paper-finalization week (Apr 20–27)
+- [ ] **Data snapshots frozen** for each v1.1 experiment
+- [ ] **`positions.db` schema** backward-compatible with v1.0 persisted state
+- [ ] **All features in ablation space** are live-deployable
+
+### Data Leakage (Pitfall 24)
+- [ ] **`LEAKAGE_AUDIT.md`** exists and is committed
+- [ ] **Scaler fits on train only** (code audit)
+- [ ] **Hyperparameters selected on validation**, not test
+- [ ] **Stop-loss/take-profit thresholds** not tuned on reported-test data
+- [ ] **Quality-filter rules** that were derived from test-set examples disclosed or removed
+
+---
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Stale `experiments/results/*.json` (Pitfall 10) | LOW | Delete cache, rerun end-to-end, commit fresh results; 4–6 hours |
+| TFT attention collapse (Pitfall 1) | LOW | Report "TFT did not converge at this scale" as finding; no rerun needed |
+| Live-vs-backtest gap > 20% (Pitfall 2) | MEDIUM | Debug by trade-level reconciliation; likely a fee or timestamp bug; 1–2 days |
+| P-hacked ablation (Pitfall 3) | MEDIUM-HIGH | Redo with three-way split and correlation-clustering; 1 day |
+| Inflated ensemble Sharpe (Pitfall 4) | LOW | Report with/without concordance filter; 2 hours; reframe paper section |
+| Per-trade Sharpe published as headline (Pitfall 5) | LOW | Recompute per-pair; edit paper; 2 hours |
+| Missing seeds (Pitfall 9) | MEDIUM | Add seeds; rerun stochastic models with multi-seed; 4–8 hours |
+| Undisclosed AI assistance (Pitfall 21) | LOW | Add disclosure paragraph; 30 minutes |
+| Hallucinated citation discovered (Pitfall 22) | LOW | Remove or correct citation; 15 minutes per |
+| Data leakage discovered (Pitfall 24) | HIGH | Redo analysis on fresh split; may take days; worst case: restructure paper around smaller-scope claim |
+
+---
+
+## Pitfall-to-Phase Mapping (for Roadmap Consumer)
+
+| Pitfall | Prevention Phase | Verification Step |
+|---------|------------------|-------------------|
+| 1. TFT overfits | Phase 11 | Attention entropy > threshold; walk-forward window-11 P&L positive |
+| 2. Live-vs-backtest gap | Phase 9 | Reconciliation notebook shows < 10% gap on overlap trades |
+| 3. Ablation p-hacking | Phase 12 | Three-way split used; correlation-cluster ablation; pre-registered protocol |
+| 4. Concordance filter inflates Sharpe | Phase 13 | Accept/reject trades both reported; deflated Sharpe computed |
+| 5. Per-trade Sharpe headline | Phase 10, 14 | Every Sharpe in paper uses `src/evaluation/sharpe.py` functions with named method |
+| 6. Cherry-picked window | Phase 10 | Abstract reports median + range, not single window |
+| 7. Scale-curve plateau | Phase 10 | Annotation on Fig 2 marking training-cap; text explicitly discloses |
+| 8. Survivorship bias silence | Phase 10 | Limitations paragraph names it; matching-funnel diagram |
+| 9. Missing seeds | Phase 8, 14 | `set_all_seeds` imported and called in every training script; multi-seed results for Tier 2/3 |
+| 10. Stale result cache | Phase 8, 14 | `data_hash` in every result JSON; pre-submission freshness audit passes |
+| 11. Retrain during experiment | Phase 8, 13 | Data snapshot frozen per experiment; auto-retrain paused Apr 20–27 |
+| 12. Live-incompatible features | Phase 12, 13 | Ablation space pre-filtered to `LIVE_FEATURES`; parity audit script passes |
+| 13. Correlated ensemble members | Phase 13 | Pairwise correlation table included; diversity metric reported |
+| 14. Schema breakage | All | Schema version field; migration scripts tested |
+| 15. Matplotlib backend | Phase 10, 14 | Figures generated with `Agg`; PDF output |
+| 16. Python env drift | Phase 8, 14 | `requirements.lock` committed; CI passes |
+| 17. Correlated ablation attribution | Phase 12 | Correlation clustering applied (covered in 3) |
+| 18. Scaler fit on full data | All | Pipeline pattern; code audit |
+| 19. Lag feature leakage | All | Lag before split, handle boundary; per-pair splits |
+| 20. Seasonal masking in ablation | Phase 12 | Per-category ablation; walk-forward ablation |
+| 21. AI-assistance non-disclosure | Phase 14 | Disclosure paragraph; `AI_USAGE.md` |
+| 22. Hallucinated citations | Phase 14 | `CITATIONS.md` with verified URLs; dead-URL script passes |
+| 23. Pattern-reuse plagiarism | Phase 14 | Inspiration cited; acknowledgments complete |
+| 24. Data leakage audit | All; formal in Phase 14 | `LEAKAGE_AUDIT.md` committed |
 
 ---
 
 ## Sources
 
-- Training data knowledge of financial ML best practices (de Prado, "Advances in Financial Machine Learning," 2018) -- HIGH confidence on backtesting pitfalls
-- Training data knowledge of RL for trading (survey literature through 2024) -- HIGH confidence on degenerate policy pitfalls
-- Project-specific API gotchas from CLAUDE.md and PROJECT.md -- HIGH confidence (project documentation)
-- Prediction market mechanics from general domain knowledge -- MEDIUM-HIGH confidence
-- Note: Web search was unavailable during this research session. All findings are based on training data and project documentation. Core pitfalls (look-ahead bias, survivorship bias, reward shaping) are extremely well-established in the literature and do not require web verification. API-specific pitfalls are based on the project's own documented findings.
+**Financial ML / Backtesting:**
+- [Statistical Overfitting and Backtest Performance (Bailey et al., SSRN)](https://sdm.lbl.gov/oapapers/ssrn-id2507040-bailey.pdf) — HIGH confidence on selection bias, deflated Sharpe, CSCV
+- [The Deflated Sharpe Ratio (Bailey & Lopez de Prado)](https://www.researchgate.net/publication/286121118_The_Deflated_Sharpe_Ratio_Correcting_for_Selection_Bias_Backtest_Overfitting_and_Non-Normality)
+- [Backtest overfitting in the ML era (ScienceDirect 2024)](https://www.sciencedirect.com/science/article/abs/pii/S0950705124011110)
+- [Interpretable Hypothesis-Driven Trading: A Rigorous Walk-Forward Validation Framework (arXiv 2512.12924)](https://arxiv.org/html/2512.12924v1)
+- [QuantConnect Live-Backtest Reconciliation Docs](https://www.quantconnect.com/docs/v2/cloud-platform/live-trading/reconciliation)
+- [LuxAlgo: Backtesting Limitations — Slippage and Liquidity](https://www.luxalgo.com/blog/backtesting-limitations-slippage-and-liquidity-explained/)
+
+**Reproducibility:**
+- [PyTorch Reproducibility Documentation](https://docs.pytorch.org/docs/stable/notes/randomness.html)
+- [Reproducibility in machine-learning-based research (Semmelrock et al., AI Magazine 2025)](https://onlinelibrary.wiley.com/doi/10.1002/aaai.70002)
+- [The Challenge of Reproducible ML (arXiv 2109.03991)](https://arxiv.org/pdf/2109.03991)
+- [Ensuring Training Reproducibility in PyTorch (LearnOpenCV)](https://learnopencv.com/ensuring-training-reproducibility-in-pytorch/)
+
+**TFT / Deep Learning on Small Data:**
+- [Temporal Fusion Transformers for interpretable multi-horizon time series forecasting (Lim et al., IJF)](https://www.sciencedirect.com/science/article/pii/S0169207021000637)
+- [TFT — darts documentation](https://unit8co.github.io/darts/generated_api/darts.models.forecasting.tft_model.html)
+- [PyTorch Forecasting Stallion Tutorial](https://pytorch-forecasting.readthedocs.io/en/v1.4.0/tutorials/stallion.html)
+
+**Data Leakage:**
+- [Data Leakage, Lookahead Bias, and Causality in Time Series (Kyle Jones)](https://medium.com/@kyle-t-jones/data-leakage-lookahead-bias-and-causality-in-time-series-analytics-76e271ba2f6b)
+- [Avoiding Data Leakage in Timeseries 101 (Towards Data Science)](https://towardsdatascience.com/avoiding-data-leakage-in-timeseries-101-25ea13fcb15f/)
+- [Hidden Leaks in Time Series Forecasting (arXiv 2512.06932)](https://arxiv.org/html/2512.06932v1)
+- [Purged cross-validation (Wikipedia)](https://en.wikipedia.org/wiki/Purged_cross-validation)
+
+**Academic Integrity / LLM Disclosure:**
+- [Policies on Large Language Model Usage at ICLR 2026](https://blog.iclr.cc/2025/08/26/policies-on-large-language-model-usage-at-iclr-2026/) — authoritative for 2026 norms
+- [ICLR 2026 Response to LLM-Generated Papers and Reviews](https://blog.iclr.cc/2025/11/19/iclr-2026-response-to-llm-generated-papers-and-reviews/)
+- [ICML 2026 Intro LLM Policy](https://icml.cc/Conferences/2026/Intro-LLM-Policy)
+- [ACM CCS 2026 Call for Papers](https://www.sigsac.org/ccs/CCS2026/call-for/call-for-papers.html)
+- [Responsible Use of LLMs in Manuscript Preparation (Mijatović, Current Protocols 2026)](https://currentprotocols.onlinelibrary.wiley.com/doi/10.1002/cpz1.70300)
+- [When and how to disclose AI use in academic publishing: AMEE Guide 192](https://www.tandfonline.com/doi/full/10.1080/0142159X.2025.2607513)
+
+**Ensemble / Diversity:**
+- [A Unified Theory of Diversity in Ensemble Learning (JMLR 2023)](https://jmlr.org/papers/volume24/23-0041/23-0041.pdf)
+- [Diverse Models, United Goal — Survey of Ensemble Learning (CAAI 2025)](https://ietresearch.onlinelibrary.wiley.com/doi/full/10.1049/cit2.70030)
+
+**Project-specific:**
+- `FINDINGS.md` (internal log) — HIGH confidence on project exposure to Pitfalls 2, 10, 11
+- `.planning/research/PITFALLS.md` (v1.0) — HIGH confidence on baseline pitfalls this file extends
+- `PAPER_DRAFT.md` v1.0 — identifies where credibility risks live in current prose
+
+---
+*Pitfalls research for: Kalshi × Polymarket cross-platform arbitrage, v1.1 milestone*
+*Researched: 2026-04-16*
+*Author: Research subagent for GSD `/gsd:new-milestone` Phase 6 (v1.1)*

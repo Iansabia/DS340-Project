@@ -1,464 +1,622 @@
-# Architecture Patterns
+# Architecture Research — v1.1 Integrations
 
-**Domain:** Cross-platform prediction market arbitrage with ML/RL  
-**Researched:** 2026-04-01  
-**Confidence:** HIGH (well-established ML pipeline patterns applied to specific domain)
+**Domain:** Cross-platform prediction market arbitrage (extending existing production system)
+**Researched:** 2026-04-16
+**Scope:** v1.1 milestone — TFT, live-vs-backtest reconciliation, feature ablation, ensemble exploration, 250-bar checkpoint
+**Confidence:** HIGH (grounded in the shipped v1.0 codebase; patterns extend established contracts rather than inventing new ones)
 
-## Recommended Architecture
+> This document addresses v1.1-specific integration architecture. The v1.0 greenfield architecture from 2026-04-01 remains as history for context on why the existing contracts look the way they do.
 
-The system decomposes into six major components arranged in a linear pipeline with a branching model layer. Data flows left-to-right from raw API responses to evaluation metrics. Each component has a clear input/output contract, making them independently testable and buildable in sequence.
+## Architectural Stance for v1.1
+
+**Guiding principle:** the BasePredictor contract, the per-experiment script layout, and the `data/processed` -> `experiments/results/*.json` -> analysis pipeline all work. v1.1 must *fit* into that skeleton, not reshape it. Every new file listed below is either (a) a new model implementing an existing ABC, (b) a new experiment script in the existing style, or (c) a single new analysis subpackage that stitches existing artifacts together.
+
+The deadline is April 27. Integration elegance is a means to finishing, not an end in itself.
+
+## System Overview (v1.1 Delta)
 
 ```
-                         +------------------+
-                         |  Kalshi API      |
-                         +--------+---------+
-                                  |
-                                  v
-                    +-------------+-------------+
-                    |    Data Ingestion Layer    |<--- Polymarket APIs
-                    |  (per-platform adapters)   |     (Gamma + CLOB + Data)
-                    +-------------+-------------+
-                                  |
-                         raw JSON / CSVs
-                                  |
-                                  v
-                    +-------------+-------------+
-                    |   Market Matching Pipeline |
-                    |  (keyword + semantic sim)  |
-                    +-------------+-------------+
-                                  |
-                         matched pairs registry
-                                  |
-                                  v
-                    +-------------+-------------+
-                    |   Feature Engineering      |
-                    | (time-aligned, per-hour    |
-                    |  microstructure vectors)   |
-                    +-------------+-------------+
-                                  |
-                         feature matrices
-                                  |
-              +-------------------+-------------------+
-              |                   |                   |
-              v                   v                   v
-    +---------+-------+ +--------+--------+ +--------+--------+
-    | Tier 1: Regress | | Tier 2: TimeSer | | Tier 3: RL+AE   |
-    | LinReg, XGBoost | | GRU, LSTM, TFT  | | PPO, PPO+AutoEnc|
-    +---------+-------+ +--------+--------+ +--------+--------+
-              |                   |                   |
-              +-------------------+-------------------+
-                                  |
-                         predictions / actions
-                                  |
-                                  v
-                    +-------------+-------------+
-                    |   Evaluation & Simulation  |
-                    | (metrics, P&L, Sharpe,     |
-                    |  SHAP, experiment tracking) |
-                    +----------------------------+
+                          EXISTING PIPELINE (unchanged)
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  data/raw ──> src/matching ──> data/processed ──> src/features ──> src/ │
+  │                                                                 models/ │
+  └─────────────────────────────────────────────────────────────────────────┘
+                                      │
+                   ┌──────────────────┼──────────────────┐
+                   ▼                  ▼                  ▼
+          ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+          │  NEW: TFT    │   │ experiments/ │   │  src/live/   │
+          │  (Tier 2)    │──▶│  run_*.py    │   │  strategy    │
+          └──────────────┘   │  (existing   │   │  (existing)  │
+                             │   + new)     │   └──────┬───────┘
+                             └──────┬───────┘          │
+                                    ▼                  ▼
+                     ┌─────────────────────┐   positions.db
+                     │ experiments/results │   trade_log.jsonl
+                     │ /{tier1,tier2,...}  │          │
+                     │  *.json             │          │
+                     └──────────┬──────────┘          │
+                                │                     │
+                                └────────┬────────────┘
+                                         ▼
+                           ┌──────────────────────────┐
+                           │  NEW: src/analysis/      │
+                           │  reconciliation.py       │
+                           │  (live vs backtest)      │
+                           └─────────────┬────────────┘
+                                         ▼
+                           ┌──────────────────────────┐
+                           │ experiments/results/     │
+                           │   reconciliation/        │
+                           │   *.json, *.md           │
+                           └──────────────────────────┘
 ```
 
-### Component Boundaries
+Five edges of new construction; the body of the codebase sits still.
 
-| Component | Responsibility | Inputs | Outputs | Communicates With |
-|-----------|---------------|--------|---------|-------------------|
-| **Data Ingestion** | Fetch, cache, and normalize raw market data from both platform APIs | API endpoints, rate limit config | Standardized per-platform DataFrames (parquet/CSV) in `data/raw/` | Market Matching (provides raw data) |
-| **Market Matching** | Identify equivalent contracts across Kalshi and Polymarket | Raw market metadata from both platforms | Matched-pairs registry (JSON/CSV mapping Kalshi market IDs to Polymarket token IDs) | Feature Engineering (provides pair mappings) |
-| **Feature Engineering** | Time-align price histories, compute microstructure features per matched pair | Raw price/volume data + matched-pairs registry | Per-hour feature matrices with spread, volume, bid-ask, velocity columns in `data/processed/` | All model tiers (provides training/test data) |
-| **Model Layer (Tiers 1-3)** | Train models, generate predictions or trading actions | Feature matrices, train/test split config | Predictions (spread forecasts) or action sequences (buy/sell/hold) | Evaluation (provides outputs for scoring) |
-| **Autoencoder** | Detect anomalous spread patterns as signal filter for PPO | Feature matrices (spread behavior windows) | Binary anomaly flags + reconstruction error scores | PPO agent (gates when PPO should act) |
-| **Evaluation & Simulation** | Score all models on consistent metrics, run profit simulation | Model predictions/actions + ground truth | RMSE, MAE, directional accuracy, P&L, Sharpe, win rate, SHAP plots | None (terminal node; outputs go to paper) |
+## Answers to the Six Architecture Questions
 
-### Data Flow
+### 1. TFT integration — follow the GRU pattern, don't invent a new one
 
-**Stage 1: Ingestion (API to disk)**
+**Recommendation:** `src/models/tft.py` inherits from `BasePredictor` and exposes `fit(X, y)` / `predict(X)` in the exact row-aligned contract that `GRUPredictor` already uses. All of TFT's `TimeSeriesDataSet` / encoder-length / known-vs-observed complexity hides inside `fit()`.
 
-1. Kalshi adapter calls `/markets` to list resolved markets in economics/finance and crypto categories. For each market, checks `/historical/cutoff` to determine whether to use live or historical endpoints. Fetches hourly candlesticks via `period_interval=60`. Stores raw OHLCV + metadata as parquet files keyed by market ticker.
+**Why mimic GRU rather than invent:**
+- `experiments/run_baselines.run_tier2_with_seeds` (lines 206-275 of `experiments/run_baselines.py`) already expects `(X_with_group_id_column, y_array)` input. If TFT matches this contract, it reuses the existing multi-seed harness, the existing `save_results` schema, and the existing comparison table formatter with zero modification.
+- `experiments/run_walk_forward.py` (lines 260-263) already has a single branch for sequence models: "if name in ('gru', 'lstm'): pass `X_train_seq`". Adding `'tft'` to that branch is a three-character change.
+- GRU has already solved every interface mismatch between "PyTorch native training loop" and "row-aligned pandas predictions" — warm-up stitching, per-group windowing, scaler caching. TFT has the same shape of problem; reusing the pattern is cheaper than re-solving it.
 
-2. Polymarket adapter calls Gamma API to list resolved markets, extracting `clobTokenIds`. For each token, fetches trade records from the Data API (NOT `/prices-history`, which returns empty for resolved markets). Reconstructs hourly OHLCV from raw trades. Stores as parquet files keyed by token ID.
+**How the `TimeSeriesDataSet` awkwardness gets absorbed:**
 
-3. Both adapters write to `data/raw/{platform}/` with a consistent schema: `timestamp`, `open`, `high`, `low`, `close`, `volume`, `market_id`, `market_question`, `category`, `resolution`.
+```
+TFTPredictor.fit(X, y):
+    1. Assert 'group_id' column (same guard as GRU, copy-paste the message)
+    2. Internally build a long-format DataFrame with columns:
+         - time_idx (monotonic per group_id) — derive from row order within group
+         - target (y)
+         - group_id
+         - static_categoricals = [group_id]
+         - time_varying_known_reals = ['hours_to_resolution'] if present else []
+         - time_varying_unknown_reals = [all other feature_cols]
+    3. Wrap in pytorch_forecasting.TimeSeriesDataSet
+    4. Train with pytorch_lightning.Trainer (max_epochs, early stopping)
+    5. Cache: scaler, dataset_kwargs, feature_cols, training rows
+       (same _cached_train idea as GRU for warm-up stitching)
+    6. Set _fitted = True
 
-**Stage 2: Matching (raw data to pair registry)**
+TFTPredictor.predict(X):
+    1. Same group_id guard
+    2. Same warm-up stitching as GRU — stitch cached training rows before test rows per group
+    3. Build TimeSeriesDataSet.from_dataset(training_dataset, stitched_df,
+       predict=True, stop_randomization=True)
+    4. TFT forward pass on the prediction loader
+    5. Slice output to return len(X) predictions, row-aligned
+```
 
-1. Load market metadata (questions, categories, resolution dates) from both platforms.
-2. Keyword pass: exact and fuzzy string matching on market questions to generate candidate pairs.
-3. Semantic similarity pass: encode questions with sentence-transformers, compute cosine similarity, threshold at a tunable cutoff (start with 0.85).
-4. Manual curation: human reviews candidates, verifies settlement criteria alignment, removes false matches.
-5. Output: `data/processed/matched_pairs.json` — a list of `{kalshi_id, polymarket_token_id, question, category, match_confidence}`.
+Yes, TFT needs a `time_idx` column. The orchestration script already guarantees rows are sorted by `(pair_id, time_idx)`, so `time_idx` can be derived inside `fit()` from the cumulative count within group. No upstream change needed.
 
-**Stage 3: Feature Engineering (raw + pairs to feature matrices)**
+**New files:**
+- `src/models/tft.py` — `TFTPredictor(BasePredictor)` (new; ~250 LOC estimate)
+- `experiments/run_tft.py` — thin wrapper that loads data, runs TFT with 3 seeds, saves to `experiments/results/tier2/tft.json` using existing `save_results` (new; ~80 LOC)
 
-1. For each matched pair, load raw OHLCV from both platforms.
-2. Time-align to hourly buckets using outer join (NaN for missing hours, forward-filled or flagged).
-3. Compute per-hour feature vector:
-   - `spread`: Kalshi mid-price minus Polymarket mid-price
-   - `spread_pct`: spread as percentage of average price
-   - `kalshi_volume`, `poly_volume`: hourly volume on each platform
-   - `volume_ratio`: ratio of volumes (liquidity imbalance signal)
-   - `kalshi_bid_ask_spread`, `poly_bid_ask_spread`: per-platform bid-ask (if available)
-   - `price_velocity_kalshi`, `price_velocity_poly`: hourly price change
-   - `spread_velocity`: hourly change in cross-platform spread
-   - `hours_to_resolution`: time remaining before contract settles
-   - Rolling window features: `spread_ma_6h`, `spread_std_6h`, `volume_ma_24h`, etc.
-4. Output: `data/processed/features.parquet` — one row per (pair, hour) with all feature columns.
+**Modified files:**
+- `experiments/run_baselines.py` — add `TFTPredictor` import, add to `tier2` list in `build_models`, add to `model_classes` list in `run_tier2_with_seeds` (≤5 lines total)
+- `experiments/run_walk_forward.py` — extend the sequence-model branch to include `'tft'` (≤3 lines)
+- `_MODEL_ORDER` in `run_baselines.py` — insert `"TFT"` after `"LSTM"` (1 line)
 
-**Stage 4: Train/Test Split**
+**Data-flow:** identical to GRU. Reads `data/processed/train.parquet` + `test.parquet`, writes `experiments/results/tier2/tft.json`, feeds the cross-tier comparison table unchanged.
 
-Temporal split only. Train on earlier data, test on more recent data. No random splitting (would leak future information). Split point chosen per matched pair based on resolution date to avoid look-ahead bias.
+**Confidence:** HIGH. PyTorch Forecasting's `TimeSeriesDataSet.from_dataset()` path is exactly how production-style TFT wrappers hide the dataset plumbing. The pattern is established.
 
-**Stage 5: Model Training (parallel across tiers)**
+---
 
-- Tier 1 (regression): Flat feature vectors, no sequence dimension. scikit-learn LinearRegression and XGBoost regressor. Target: `spread_t+1` or `spread_change_t+1`.
-- Tier 2 (time series): Windowed sequences of feature vectors. GRU/LSTM take `(batch, seq_len, features)` tensors. TFT uses PyTorch Forecasting's `TimeSeriesDataSet` with static (pair identity) and time-varying (all microstructure) features. Target: spread at horizon `h`.
-- Tier 3 (RL): Custom Gym environment wrapping the feature data. PPO-only variant receives raw features as state. PPO+AE variant first runs autoencoder to flag anomalous hours, then PPO only acts when anomaly flag is set (or receives anomaly score as additional state feature).
+### 2. Reconciliation pipeline — new `src/analysis/` package, thin experiment wrapper
 
-**Stage 6: Evaluation (all models scored identically)**
+**Recommendation:** create `src/analysis/reconciliation.py` containing the pure-logic reconciliation functions. `experiments/run_live_reconciliation.py` is a ~40-line CLI wrapper that loads inputs, calls the analysis functions, and writes artifacts.
 
-Every model's outputs are converted to a common format before evaluation:
-- Regression predictions -> directional signal (positive = spread will widen, negative = converge)
-- RL actions -> trade log with entry/exit timestamps and P&L
-- All models scored on: RMSE, MAE, directional accuracy, simulated P&L, win rate, Sharpe ratio
-- Naive baselines (spread-always-closes, higher-volume-correct) scored identically for comparison
+**Why a new `src/analysis/` package rather than stuffing it into `src/evaluation/`:**
 
-## Patterns to Follow
+`src/evaluation/` owns things that plug into `BasePredictor.evaluate()` — regression metrics, profit simulation, results storage. Those are in-the-loop utilities called thousands of times per experiment. Reconciliation is a different class of thing: it compares two *completed* artifact sets (live trades + backtest predictions) and produces a report. Putting it in `evaluation/` would pollute the module with "out-of-loop analytics" and force `from src.evaluation import ...` imports for scripts that have nothing to do with the predict/evaluate cycle.
 
-### Pattern 1: Platform Adapter Pattern
-**What:** Each API gets its own adapter class that normalizes platform-specific quirks into a common schema. All downstream code works with the common schema, never with raw API responses.  
-**When:** Always. This is the foundation of the pipeline.  
-**Why:** Polymarket's three-API structure (Gamma + CLOB + Data) and Kalshi's live/historical split are messy. Isolating this mess in adapters keeps every other component clean.  
-**Example:**
+Precedent: this is why `src/live/` is its own package (runtime system) and `src/experiments/retraining_policy.py` is its own module (meta-logic about when to train). A third analytical layer — "compare what happened to what we predicted would happen" — belongs at a third tier. One package, one responsibility.
+
+**Why not `experiments/run_live_reconciliation.py` with all logic inline:**
+
+The reconciliation logic is non-trivial (timestamp alignment, trade-to-prediction matching, multiple comparison metrics). It should be unit-testable in `tests/analysis/test_reconciliation.py` without spinning up the full experiment entrypoint. The pattern that the codebase already uses — pure-logic module in `src/`, thin CLI wrapper in `experiments/` — applies directly.
+
+**Data-flow shape (cleanest):**
+
+```
+Inputs (read-only):
+  - data/live/positions.db (SQLite: closed_positions table)
+  - data/live/position_history.jsonl (close records, redundant but easier to stream)
+  - data/live/bars.parquet (live feature bars)
+  - models/deployed/*.pkl (the models that were live at trade time)
+  - experiments/results/tier1/*.json (backtest predictions — implicit via saved models)
+
+Process (in src/analysis/reconciliation.py):
+  1. Load live closed positions -> DataFrame
+     columns: [pair_id, entry_ts, exit_ts, entry_spread, exit_spread,
+               realized_pnl, direction, kalshi_ticker]
+
+  2. For each closed position, reconstruct the features the model saw at
+     entry time by reading bars.parquet at that (pair_id, timestamp) row.
+     This is the counterfactual "what would the backtest have done."
+
+  3. Run the same model that was live (LR + XGB from models/deployed/)
+     on those features -> predicted spread change.
+
+  4. Compute realized spread change from bars.parquet
+     (spread at exit_ts - spread at entry_ts).
+
+  5. Emit comparison metrics:
+       - live_pnl vs backtest_predicted_pnl (using same profit_sim logic)
+       - live_directional_accuracy vs backtest_directional_accuracy
+       - slippage (live entry price vs backtest assumed entry price at bar close)
+       - execution lag (bars between signal and fill)
+       - hit-rate divergence per tier
+
+Outputs (write):
+  - experiments/results/reconciliation/summary.json
+  - experiments/results/reconciliation/per_position.csv
+  - experiments/results/reconciliation/report.md (human-readable section)
+```
+
+Key discipline: **re-use `src.evaluation.profit_sim.simulate_profit`** when computing the backtest-counterfactual P&L. If the reconciliation report runs trades through a different P&L simulator than the backtest, the whole comparison is meaningless.
+
+**New files:**
+- `src/analysis/__init__.py`
+- `src/analysis/reconciliation.py` — pure-logic module
+- `experiments/run_live_reconciliation.py` — CLI wrapper
+- `tests/analysis/test_reconciliation.py` — tests (see section 6 for scope)
+
+**Modified files:** none. Inputs are all read-only.
+
+**Data-flow relationships:**
+- Reads `positions.db` via `src/live/position_manager.PositionManager` (existing accessor — don't open SQLite directly in analysis code, let the position manager hand back DataFrames)
+- Reads `bars.parquet` directly (same as `src/live/strategy.py` already does)
+- Loads models via `BasePredictor.load()` (existing, unchanged)
+- Uses `compute_derived_features` from `src/features/engineering` (existing, unchanged)
+
+**Confidence:** HIGH. Every component this reaches across already has a stable public accessor.
+
+---
+
+### 3. Feature ablation — pure experiment-level, no `fit()` signature change
+
+**Recommendation:** feature ablation lives entirely in `experiments/run_feature_ablation.py`. It filters the feature matrix columns *before* calling `model.fit(X, y)`. Do not add a `features` parameter to `BasePredictor.fit()`.
+
+**Why experiment-level filtering wins:**
+
+1. **Zero invasion.** Modifying `BasePredictor.fit(X, y)` to `fit(X, y, features=None)` ripples through nine model files (linear_regression, xgboost, gru, lstm, tft, naive, volume, ppo_raw, ppo_filtered) plus every test that mocks the ABC plus the cached live `BasePredictor.load()` contract. All for functionality that can be done in one line of pandas: `X[ablation_subset]`.
+
+2. **The contract is already "whatever columns are in X, that's the feature set."** `LinearRegressionPredictor.fit` calls `self._model.fit(X_train, y_train)` — it uses every column. `GRUPredictor.fit` uses every column except `group_id`. The filtering point is *already* at the experiment boundary. Ablation is a natural extension of that existing semantics, not a new feature.
+
+3. **Sequence models need `group_id` preserved.** If ablation logic lives inside `fit()` and accidentally filters out `group_id`, GRU crashes with its existing guard. Keeping filtering at the experiment boundary makes this invariant obvious (and the ablation script is responsible for always appending `group_id` to sequence subsets).
+
+**Design of `experiments/run_feature_ablation.py`:**
+
+```
+Define feature groups as module-level constants (mirror the feature taxonomy
+that's already implicit in engineering.py):
+
+FEATURE_GROUPS = {
+    "prices":       [all raw price/spread columns],
+    "volumes":      [kalshi_volume, poly_volume, volume_ratio, ...],
+    "microstruct":  [bid_ask, order_flow_imbalance, realized_spread, ...],
+    "velocity":     [spread_velocity, price_velocity_*, rolling_std, ...],
+    "time":         [hours_to_resolution, time_idx, ...],
+    "category":     [category_oil, category_crypto, ...],  # from features/category.py
+}
+
+For each ablation:
+    - "leave_one_group_out": 6 runs, each drops one group
+    - "only_one_group":      6 runs, each keeps only one group
+    - "core_minimum":        greedy forward-selection floor
+
+For each (model_class, ablation_config):
+    subset = ALL_FEATURES - excluded_group
+    X_train_ab = X_train[subset + (['group_id'] if sequence else [])]
+    X_test_ab  = X_test[subset + (['group_id'] if sequence else [])]
+    model = model_class()
+    model.fit(X_train_ab, y_train)
+    metrics = model.evaluate(X_test_ab, y_test, timestamps=...)
+    save_results(f"{model_name}_ablate_{group}",
+                 metrics, results_dir, extra={"ablated_group": group,
+                                              "n_features_used": len(subset)})
+```
+
+Results land in `experiments/results/ablation/*.json` using the existing `save_results` schema. The comparison table script can then render them the same way it renders the baselines.
+
+**Which models get ablated:** LR, XGBoost, GRU, LSTM, (TFT if Phase 11 finishes). PPO ablation is skipped — PPO training is expensive and its features are the same subset, so running the same analysis on the regression models answers the "parsimony" question at 1/20th the cost.
+
+**New files:**
+- `experiments/run_feature_ablation.py` (new; ~200 LOC)
+
+**Modified files:** none.
+
+**Confidence:** HIGH. This is exactly what `run_experiment2_lookback.py` and `run_experiment3_threshold.py` already do — vary one axis, re-run the same models, save to a per-experiment subdirectory.
+
+---
+
+### 4. Ensemble design — dedicated `src/models/ensemble.py`, not experiment glue
+
+**Recommendation:** build `src/models/ensemble.py` containing `EnsemblePredictor(BasePredictor)` that wraps a list of child predictors. Experiments instantiate `EnsemblePredictor([LR, XGB])` like any other model.
+
+**Why a dedicated class beats experiment-level logic:**
+
+1. **Live deployment reuse.** `src/live/strategy.py` lines 413-420 currently hardcodes the LR + XGB average:
+   ```python
+   lr_pred = float(self._lr_model.predict(features)[0])
+   xgb_pred = float(self._xgb_model.predict(features)[0])
+   avg_pred = (lr_pred + xgb_pred) / 2.0
+   ```
+   If v1.1's ensemble exploration finds a better combination (e.g., LR + XGB + GRU with weights 0.4 / 0.4 / 0.2), that finding is only useful if it can be *deployed*. A `BasePredictor` subclass pickles, loads, and predicts through the same `BasePredictor.load(path).predict(X)` call that live strategy already uses. Experiment-level glue doesn't.
+
+2. **Testability.** Ensemble logic (weight normalization, concordance handling, NaN propagation) deserves its own tests. A class has a clean seam for unit tests. Inline experiment code doesn't.
+
+3. **Composability in ablation and walk-forward.** Walk-forward runs a model per window. If ensemble is a `BasePredictor`, it slots into the walk-forward loop unchanged. If it's experiment glue, walk-forward needs a parallel code path.
+
+**Design:**
+
 ```python
-# src/data/base.py
-from abc import ABC, abstractmethod
-import pandas as pd
+# src/models/ensemble.py
+class EnsemblePredictor(BasePredictor):
+    """Weighted average ensemble of child BasePredictor instances.
 
-class MarketDataAdapter(ABC):
-    """Common interface for platform-specific data fetching."""
-    
-    @abstractmethod
-    def list_markets(self, categories: list[str]) -> pd.DataFrame:
-        """Return metadata for all markets in given categories."""
-        ...
-    
-    @abstractmethod
-    def get_price_history(self, market_id: str) -> pd.DataFrame:
-        """Return hourly OHLCV for a single market.
-        
-        Columns: timestamp, open, high, low, close, volume
-        Index: DatetimeIndex at hourly frequency
-        """
-        ...
+    Args:
+        models: list of (name, predictor, weight) tuples, or list of predictors
+                with equal weighting.
+        concordance_mode: 'none' | 'strict' | 'soft'.  'strict' = only emit a
+                non-zero prediction when all models agree on sign (matches the
+                existing live-strategy concordance check).
+    """
+    def fit(self, X_train, y_train):
+        for _, m, _ in self._models:
+            m.fit(X_train, y_train)
+        self._fitted = True
+        return self
 
-# src/data/kalshi.py
-class KalshiAdapter(MarketDataAdapter):
-    def get_price_history(self, market_id: str) -> pd.DataFrame:
-        # Checks cutoff, routes to live or historical endpoint
-        # Handles null OHLC fields (no trades in period)
-        # Returns standardized DataFrame
-        ...
-
-# src/data/polymarket.py
-class PolymarketAdapter(MarketDataAdapter):
-    def get_price_history(self, market_id: str) -> pd.DataFrame:
-        # Fetches token ID from Gamma API
-        # Reconstructs OHLCV from raw trades via Data API
-        # Returns standardized DataFrame
-        ...
+    def predict(self, X):
+        preds = np.stack([m.predict(X) for _, m, _ in self._models])
+        weights = np.array([w for _, _, w in self._models])
+        weights = weights / weights.sum()
+        if self._concordance == 'strict':
+            agree = np.all(np.sign(preds) == np.sign(preds[0]), axis=0)
+            weighted = (weights[:, None] * preds).sum(axis=0)
+            return np.where(agree, weighted, 0.0)
+        return (weights[:, None] * preds).sum(axis=0)
 ```
 
-### Pattern 2: Registry Pattern for Matched Pairs
-**What:** The matched-pairs registry is a serialized file (`matched_pairs.json`) that acts as the single source of truth for which markets are paired. All downstream components read from it; only the matching pipeline writes to it.  
-**When:** After the matching pipeline produces and curates pairs.  
-**Why:** Decouples matching (which involves NLP and human judgment) from feature engineering (which is mechanical). Lets you re-run feature engineering without re-running matching. Lets you manually add/remove pairs without touching code.  
-**Example:**
-```python
-# data/processed/matched_pairs.json
-[
-    {
-        "pair_id": "btc-50k-2025-12",
-        "kalshi_ticker": "KXBTC-25DEC31-T50000",
-        "polymarket_token_id": "71321095738...",
-        "question": "Will Bitcoin exceed $50,000 by Dec 31?",
-        "category": "crypto",
-        "match_confidence": 0.94,
-        "settlement_aligned": true,
-        "notes": "Kalshi settles at midnight ET, Polymarket at midnight UTC — 5h offset"
-    }
-]
-```
+**Sequence-model gotcha:** children of mixed types (GRU + LR) need identical `X.columns` or the predict step diverges. The ensemble class should require consistent input — the experiment script is responsible for passing `X_with_group_id` so both children can consume it (LR ignores the extra column; GRU requires it).
 
-### Pattern 3: Experiment Configuration as Data
-**What:** Each experiment (window length ablation, threshold ablation, architecture comparison) is defined by a config dict/YAML, not by code changes. Models, hyperparameters, data splits, and evaluation metrics are all config-driven.  
-**When:** For all three experiments and any ad-hoc runs.  
-**Why:** Reproducibility. Two people working in parallel can run different configs without merge conflicts. Makes the paper's experiment tables directly traceable to config files.  
-**Example:**
-```python
-# experiments/configs/window_ablation.yaml
-experiment_name: "window_length_ablation"
-base_model: "gru"
-variants:
-  - name: "6h"
-    window_length: 6
-  - name: "24h"
-    window_length: 24
-  - name: "72h"
-    window_length: 72
-  - name: "7d"
-    window_length: 168
-evaluation:
-  metrics: ["rmse", "mae", "directional_accuracy", "sharpe"]
-  test_split: "temporal"
-```
+**Live-deployment implications:**
 
-### Pattern 4: Common Evaluation Interface
-**What:** Every model (regardless of tier) must implement a method that returns predictions in a standardized format. The evaluation module consumes this format and produces all metrics.  
-**When:** For every model.  
-**Why:** The entire point of the project is fair comparison across architectures. If models output different formats, comparison code becomes a mess of special cases. Standardize early.  
-**Example:**
-```python
-# src/models/base.py
-@dataclass
-class PredictionResult:
-    """Standardized output from any model."""
-    pair_id: str
-    timestamps: list[datetime]
-    predicted_spread: np.ndarray        # predicted spread value
-    predicted_direction: np.ndarray     # +1 (widen), -1 (converge), 0 (hold)
-    confidence: np.ndarray              # model confidence (optional)
-    
-    # For RL models only
-    actions: np.ndarray | None = None   # buy_kalshi, buy_poly, hold, exit
-    positions: np.ndarray | None = None # current position state
-```
+When ensemble exploration picks a winner, `src/live/retrain.py` (existing) should be updated to fit and pickle the `EnsemblePredictor` instance, and `src/live/strategy.py` should replace its hardcoded LR/XGB average with `self._ensemble_model = BasePredictor.load(model_dir / 'ensemble.pkl')`. This is a ≤20 line change post-v1.1 but the architecture supports it.
 
-### Pattern 5: Gym Environment Wrapper for RL
-**What:** The RL agent interacts with a custom Gym environment that wraps the feature matrix. The environment steps through time, providing observations and computing rewards from realized P&L.  
-**When:** Tier 3 (PPO) implementation.  
-**Why:** Standard interface that works with Stable Baselines 3 or custom PPO. Separates trading logic (environment) from learning logic (agent). Makes it easy to test the environment independently.  
-**Example:**
-```python
-# src/models/trading_env.py
-class SpreadTradingEnv(gym.Env):
-    """Gym environment for cross-platform spread trading."""
-    
-    def __init__(self, features_df, pair_id, anomaly_flags=None):
-        # State: current feature vector (+ anomaly score if PPO+AE)
-        # Actions: {0: hold, 1: buy_kalshi, 2: buy_polymarket, 3: exit}
-        # Reward: realized P&L on position close, small penalty for holding
-        self.anomaly_flags = anomaly_flags  # None for PPO-only variant
-        ...
-    
-    def step(self, action):
-        # Advance one hour, compute reward, return new observation
-        ...
-    
-    def reset(self):
-        # Reset to start of episode (random or sequential start)
-        ...
-```
+**New files:**
+- `src/models/ensemble.py` — `EnsemblePredictor(BasePredictor)`
+- `experiments/run_ensemble_sweep.py` — runs several ensemble variants, saves to `experiments/results/ensemble/*.json`
+- `tests/models/test_ensemble.py`
 
-### Pattern 6: Autoencoder as Upstream Filter (Not Inline)
-**What:** The autoencoder is trained separately on "normal" spread behavior. At inference time, it scores each hour's spread pattern. The PPO agent receives the anomaly score as an additional feature (soft gating) or only activates when score exceeds threshold (hard gating).  
-**When:** Tier 3 PPO+AE variant.  
-**Why:** Training the autoencoder and PPO jointly is unstable and hard to debug. Training them sequentially (autoencoder first, then PPO with frozen autoencoder signals) is simpler, more interpretable, and lets you evaluate each component's contribution independently. This also directly supports the professor's question about whether the autoencoder adds value.  
-**Implementation detail:** Train autoencoder on training set spread windows. Compute reconstruction error for all data. Add `anomaly_score` column to feature matrix. PPO+AE variant includes this column in its observation space; PPO-only variant does not.
+**Modified files:** none in v1.1 (live-deployment swap is a v1.2 task, out of current scope).
 
-## Anti-Patterns to Avoid
+**Confidence:** HIGH for the architecture; MEDIUM for which ensemble variant wins (empirical question).
 
-### Anti-Pattern 1: Monolithic Data Pipeline Script
-**What:** A single `pipeline.py` that fetches data, matches markets, engineers features, and trains models.  
-**Why bad:** Impossible to re-run one stage without re-running everything. API calls are slow and rate-limited. If feature engineering logic changes, you do not want to re-fetch all data. Two team members cannot work on different stages simultaneously.  
-**Instead:** Each stage writes its output to disk. Next stage reads from disk. Stages are independently runnable scripts or CLI commands. Cache aggressively at every boundary.
+---
 
-### Anti-Pattern 2: Leaky Time Splits
-**What:** Using random train/test splits, or including future information in feature windows.  
-**Why bad:** Catastrophic for a trading system. Models will appear to perform well but have zero real predictive power. The paper's results would be meaningless.  
-**Instead:** Strict temporal splits. Training data ends at time T, test data starts after T. Feature windows look backward only. `hours_to_resolution` is the only forward-looking feature (it is known at each point in time). Validate that no feature uses data from after observation time.
+### 5. Build order — mostly respects dependencies, one parallelization opportunity
 
-### Anti-Pattern 3: Platform-Specific Logic Leaking Downstream
-**What:** Code in feature engineering or model training that checks "if platform == 'kalshi'" to handle data quirks.  
-**Why bad:** Fragile, hard to test, and a sign that the ingestion layer did not properly normalize.  
-**Instead:** All platform-specific logic lives in the adapter. By the time data reaches feature engineering, it should be platform-agnostic — just two time series of prices/volumes for each matched pair.
+**Proposed order:** Phase 8 (cleanups) -> 9 (reconciliation) -> 10 (250-bar wait) -> 11 (TFT) -> 12 (feature ablation) -> 13 (ensemble) -> 14 (paper).
 
-### Anti-Pattern 4: Training RL on the Full Dataset
-**What:** Giving the PPO agent access to all data including test-period data during training.  
-**Why bad:** RL environments are especially prone to information leakage because the environment itself contains the data. If the environment includes test-period timesteps, the agent can memorize profitable sequences.  
-**Instead:** Create separate environment instances for train and test periods. The training environment only contains data up to the temporal split point. Evaluation runs the trained agent on a test environment it has never seen.
+**Dependency analysis:**
 
-### Anti-Pattern 5: Comparing Models on Different Feature Sets
-**What:** Regression models get flat features, time series models get windowed features, RL gets a different state representation — and then you compare their RMSE as if they saw the same data.  
-**Why bad:** You are comparing feature engineering, not model architectures. Undermines the research question.  
-**Instead:** All models receive the same underlying features. Regression models get the flattened current-timestep vector. Time series models get a window of those same vectors. RL gets the same vector as its observation. The information content is equivalent; only the model's ability to use temporal structure differs.
+| Phase | Depends on | Blocks |
+|-------|-----------|--------|
+| 8: cleanups + re-verify | v1.0 codebase | Everything (clean baseline numbers) |
+| 9: live reconciliation | Phase 8 (stable models + results) | Paper section 5 |
+| 10: 250-bar checkpoint | Wall-clock (accumulation) | Paper scaling story |
+| 11: TFT | Phase 8 (baseline code path) | Phase 13 (if ensemble includes TFT) |
+| 12: feature ablation | Phase 8 (baseline code path) | Paper parsimony section |
+| 13: ensemble | Phase 8, **optionally 11** | Paper production-ensemble section |
+| 14: paper | All of the above | Submission |
 
-### Anti-Pattern 6: Overfitting Autoencoder Anomaly Threshold
-**What:** Tuning the reconstruction error threshold on the test set to maximize PPO+AE performance.  
-**Why bad:** The threshold becomes a free parameter optimized on test data, inflating PPO+AE results.  
-**Instead:** Set the threshold on the validation set (a held-out portion of the training data) using a principled method (e.g., 95th percentile of training set reconstruction errors). Lock it before touching test data.
+**Build-order issues:**
 
-## Detailed Component Design
+1. **Phase 10 is pure wall-clock wait.** The 250-bar retraining policy fires when the live system accumulates enough bars; this is hours-to-days of calendar time, not development time. **Phase 10 parallelizes with 11 and 12.** Concretely: kick off TFT development (Phase 11) and feature-ablation scripting (Phase 12) while the live system accumulates the bars that Phase 10 depends on. When the 250-bar checkpoint fires (automated via `src/experiments/retraining_policy.py`), collect the metrics output — it's a few hours of analysis work, not days.
 
-### Data Ingestion Layer
+2. **Phase 13 (ensemble) depends on Phase 11 (TFT) if-and-only-if the ensemble candidate includes TFT.** The safer move: design Phase 13 to include a (LR + XGB + GRU + LSTM) variant as the baseline ensemble, and TFT-including variants as optional upgrades. If Phase 11 slips, Phase 13 still ships.
+
+3. **Phase 9 (reconciliation) only depends on the re-verified models from Phase 8**, not on any new v1.1 models. No reason to block it on anything else.
+
+**Recommended execution order:**
 
 ```
-src/data/
-    __init__.py
-    base.py              # MarketDataAdapter ABC
-    kalshi.py            # KalshiAdapter
-    polymarket.py        # PolymarketAdapter
-    cache.py             # Disk caching utilities (avoid re-fetching)
-    rate_limiter.py      # Per-platform rate limiting
+Phase 8 ──┬──▶ Phase 9  (reconciliation)  ──┐
+          │                                  │
+          ├──▶ Phase 10 (live wait, passive) ┤
+          │                                  │
+          ├──▶ Phase 11 (TFT)               ┤
+          │                                  │
+          └──▶ Phase 12 (ablation)          ┴──▶ Phase 13 (ensemble) ──▶ Phase 14 (paper)
 ```
 
-**Key design decisions:**
-- Each adapter handles its own rate limiting internally. Polymarket limits are per-10-seconds, not per-hour.
-- Disk caching at the raw response level. Once a resolved market's data is fetched, it never changes — cache forever.
-- Null handling: Kalshi candlestick OHLC fields can be null when no trades occurred. Adapter must forward-fill or mark as NaN with a `has_trades` boolean column, not silently drop rows.
-- Polymarket trade reconstruction: Aggregate raw trades into hourly bars. Use volume-weighted average price for OHLCV when multiple trades occur in an hour.
+Phases 9, 10, 11, 12 can all proceed in parallel after Phase 8 completes. Phase 13 depends on 8, 11, 12. Phase 14 waits for 13.
 
-### Market Matching Pipeline
+**Confidence:** HIGH. Dependencies are structural (data-flow), and the parallelization point is clear.
+
+---
+
+### 6. Test strategy — strict for reconciliation + ensemble, light everywhere else
+
+**Recommendation:** three test tiers, applied by risk rather than uniformly.
+
+| Module | Test discipline | Rationale |
+|--------|----------------|-----------|
+| `src/analysis/reconciliation.py` | **Full unit + integration tests** | Numbers go into the paper. Off-by-one on timestamp alignment = wrong paper. |
+| `src/models/ensemble.py` | **Unit tests for weighting logic + concordance** | Candidate for live deployment; correctness here affects real trades. |
+| `src/models/tft.py` | **Smoke test only** (fits on toy data, predict returns correct shape) | Behavior is delegated to pytorch_forecasting. A full test suite would rebuild what they already test. |
+| `experiments/run_feature_ablation.py` | **Smoke test** (runs end-to-end on tiny subset) | Orchestration script; logic is `X[cols]` + existing model calls. |
+| `experiments/run_live_reconciliation.py` | **Smoke test** (runs on 3-position fixture) | Thin CLI wrapper; logic tested in `src/analysis/`. |
+| `experiments/run_tft.py` | **None** | Trivial wrapper around `run_baselines.run_tier2_with_seeds`. |
+| `experiments/run_ensemble_sweep.py` | **None** | Trivial wrapper. |
+
+**Minimum test discipline that keeps us honest:**
+
+1. **Reconciliation must be unit-tested.** The mapping from (pair_id, entry_ts) to "the features the model saw" is fiddly. If it's wrong, every reconciliation number is wrong, and the paper's unique "live-vs-backtest" evidence collapses. Required: tests for timestamp alignment, for trades that span missing bars, for pairs with no matching backtest predictions.
+
+2. **Ensemble weight arithmetic must be tested.** Normalize to sum-to-one, concordance short-circuit, handling child that returns NaN. Three to five tests, under 100 LOC.
+
+3. **Smoke tests, not comprehensive coverage, for the rest.** "Runs without crashing on a 3-pair 50-row fixture" is enough to catch the class of bug that would waste a day.
+
+**What to skip on purpose:**
+- Re-testing `pytorch_forecasting` internals.
+- Re-testing `BasePredictor.evaluate` (already tested in v1.0).
+- Property-based tests, coverage gates, mutation testing. Out of scope for a DS340 final project.
+
+**Where to write tests:**
+- `tests/analysis/test_reconciliation.py`
+- `tests/models/test_ensemble.py`
+- `tests/models/test_tft.py` (smoke)
+- `tests/experiments/test_feature_ablation_smoke.py`
+
+**Confidence:** HIGH. This is the minimum that protects the paper's headline numbers without turning the last two weeks into a test-writing exercise.
+
+---
+
+## Integration Points Summary
+
+### New Files (v1.1)
+
+| Path | Purpose | Depends on |
+|------|---------|-----------|
+| `src/models/tft.py` | TFTPredictor(BasePredictor) | `src/models/base.py`, `src/models/sequence_utils.py`, pytorch_forecasting |
+| `src/models/ensemble.py` | EnsemblePredictor(BasePredictor) | `src/models/base.py` |
+| `src/analysis/__init__.py` | New package | — |
+| `src/analysis/reconciliation.py` | Live vs backtest comparison logic | `src/live/position_manager`, `src/evaluation/profit_sim`, `src/features/engineering` |
+| `experiments/run_tft.py` | TFT runner CLI | `src/models/tft`, `experiments/run_baselines` utilities |
+| `experiments/run_feature_ablation.py` | Ablation experiment CLI | `src/evaluation/results_store`, existing models |
+| `experiments/run_ensemble_sweep.py` | Ensemble sweep CLI | `src/models/ensemble`, `src/evaluation/results_store` |
+| `experiments/run_live_reconciliation.py` | Reconciliation CLI wrapper | `src/analysis/reconciliation` |
+| `tests/analysis/test_reconciliation.py` | Reconciliation tests | — |
+| `tests/models/test_ensemble.py` | Ensemble tests | — |
+| `tests/models/test_tft.py` | TFT smoke test | — |
+
+### Modified Files (v1.1)
+
+| Path | Change | Size |
+|------|--------|------|
+| `experiments/run_baselines.py` | Add TFT to `tier2` list + `_MODEL_ORDER` | ≤5 lines |
+| `experiments/run_walk_forward.py` | Add `'tft'` to sequence-model branch | ≤3 lines |
+
+### Not Modified
+
+- `src/models/base.py` — contract is stable, ablation does NOT need a new parameter
+- `src/models/linear_regression.py`, `xgboost_model.py`, `gru.py`, `lstm.py`, `naive.py`, `volume.py`, `ppo_raw.py`, `ppo_filtered.py`, `autoencoder.py`
+- `src/evaluation/*` — all existing utilities consumed unchanged
+- `src/live/*` — no changes for v1.1 (ensemble deployment swap is post-v1.1)
+- `src/experiments/retraining_policy.py` — 250-bar checkpoint fires via existing logic
+- `src/features/*` — feature set is fixed for v1.1
+- `src/matching/*` — matching pipeline is frozen
+- `src/data/*` — ingestion is frozen
+- `scripts/*` — cron scripts unchanged
+- `.github/workflows/*` — GHA fallback unchanged
+
+## Architectural Patterns Applied
+
+### Pattern 1: Predictor ABC as Universal Adapter
+
+**What:** Every new model — TFT, Ensemble — implements `BasePredictor`. Anything that consumes models (experiments, live strategy, walk-forward, ablation) does so through the ABC.
+
+**Why:** Nine model files, one interface, zero special-casing. Adding model N+1 is always "one file, one import, one list entry."
+
+**v1.1 application:** `TFTPredictor` and `EnsemblePredictor` are both `BasePredictor` subclasses. They plug into the cross-tier comparison table, the walk-forward backtest, the feature-ablation experiment, and (prospectively) live deployment with no orchestration changes.
+
+### Pattern 2: Pure Logic in `src/`, Thin CLI in `experiments/`
+
+**What:** Non-trivial logic lives in `src/analysis/reconciliation.py` as testable functions. `experiments/run_live_reconciliation.py` is a 40-line CLI wrapper.
+
+**Why:** Unit-testability without CLI overhead. Reusability from notebooks. Clear separation between "the thing that computes" and "the thing the human invokes."
+
+**v1.1 application:** applies to reconciliation only. TFT, ensemble, and ablation have their logic inside model classes or at the experiment boundary (where `X[cols]` is sufficient), so no new `src/` module is warranted for them.
+
+### Pattern 3: Per-Experiment Results Directory with Fixed JSON Schema
+
+**What:** Every experiment writes `experiments/results/{experiment_name}/{model_name}.json` using `src.evaluation.results_store.save_results`. The schema includes `metrics`, `extra` (config + pnl_series), and standardized fields.
+
+**Why:** Comparison across experiments is mechanical. The paper's tables are generated by reading all JSON files and rendering. No CSV parsing, no format migration.
+
+**v1.1 application:** reconciliation, ablation, and ensemble all emit results in this schema. The cross-tier comparison table from `run_baselines` already handles arbitrary model names; no new formatter logic needed.
+
+### Pattern 4: Warm-up Stitching for Row-Aligned Sequence Predictions
+
+**What:** Sequence models (GRU, LSTM, TFT) cache training rows during `fit()` and prepend them to test rows during `predict()` so every test row gets a full-length lookback window. Row-aligned output means direct comparison with Tier 1 flat models.
+
+**Why:** Without stitching, sequence models return `len(X) - lookback` predictions and misalign with regression models. The cross-tier comparison becomes impossible.
+
+**v1.1 application:** TFT reuses this pattern directly. The `_cached_train` dict in `TFTPredictor` mirrors `GRUPredictor._cached_train`.
+
+## Anti-Patterns to Avoid in v1.1
+
+### Anti-Pattern 1: Adding a `features` parameter to `BasePredictor.fit()`
+
+**What people do:** "Feature ablation needs to select columns — let's extend the ABC."
+**Why wrong:** Ripples through nine model files, two training scripts, live strategy's pickle load, and every test. All to replace a one-liner (`X[cols]`) that belongs at the experiment boundary.
+**Do this instead:** Filter columns in `experiments/run_feature_ablation.py` before calling `model.fit(X_subset, y)`.
+
+### Anti-Pattern 2: Inline reconciliation logic in the CLI script
+
+**What people do:** Stuff 400 lines of SQLite joins, timestamp math, and counterfactual inference into `experiments/run_live_reconciliation.py`.
+**Why wrong:** Untestable. When the reconciliation number looks wrong (and it will, first time), every debugging session requires spinning up the full CLI. Unit tests are impossible.
+**Do this instead:** `src/analysis/reconciliation.py` for logic; `experiments/run_live_reconciliation.py` for CLI only.
+
+### Anti-Pattern 3: Ensemble as experiment-glue
+
+**What people do:** Compute `(lr.predict(X) + xgb.predict(X)) / 2` directly in the experiment script.
+**Why wrong:** Not deployable (live strategy has no way to consume experiment glue). Not testable as a unit. Not reusable in walk-forward or ablation.
+**Do this instead:** `src/models/ensemble.EnsemblePredictor` — same `fit/predict/save/load` surface as everything else.
+
+### Anti-Pattern 4: Reimplementing TFT's dataset plumbing upstream
+
+**What people do:** "TFT needs `time_idx` and known/unknown feature split — let's add those columns during feature engineering so the model doesn't have to deal with it."
+**Why wrong:** (a) Forces every other model to carry columns it doesn't use. (b) Couples upstream to a library decision that might change. (c) Wastes time; `time_idx` is derivable from sorted `group_id` + row order in three lines.
+**Do this instead:** Hide all `TimeSeriesDataSet` preparation inside `TFTPredictor.fit()`.
+
+### Anti-Pattern 5: Uniform test discipline
+
+**What people do:** "Every new module gets 80% coverage."
+**Why wrong:** v1.1 has two weeks. Comprehensive coverage of a TFT wrapper (mostly delegating to pytorch_forecasting) spends days to re-prove what an external library already tests. Reconciliation gets under-tested because testing budget is spent elsewhere.
+**Do this instead:** Risk-weighted tests. Reconciliation (paper-critical) and ensemble (deployable) get full tests. Thin wrappers get smoke tests. Delegation layers skip tests.
+
+## Data-Flow Diagrams for New v1.1 Capabilities
+
+### TFT Training & Evaluation
 
 ```
-src/matching/
-    __init__.py
-    keyword_matcher.py   # Stage 1: exact/fuzzy string matching
-    semantic_matcher.py   # Stage 2: sentence-transformer cosine similarity
-    curator.py           # Stage 3: tools for human review
-    registry.py          # Read/write matched_pairs.json
+data/processed/train.parquet ──┐
+data/processed/test.parquet  ──┤
+                               ├──▶ experiments/run_tft.py
+                               │        │
+                               │        ├── _build_split (shared helper)
+                               │        ├── prepare_xy_for_seq (X + group_id)
+                               │        ├── TFTPredictor(seed=42|123|456).fit
+                               │        └── .evaluate(threshold=0.02, timestamps=...)
+                               │             │
+                               │             ▼
+                               └──── save_results("TFT", metrics, tier2/, extra)
+                                        │
+                                        ▼
+                              experiments/results/tier2/tft.json
+                                        │
+                                        ▼
+                              (consumed by run_baselines --tier all comparison table,
+                               run_ensemble_sweep if TFT included,
+                               run_feature_ablation for TFT variants if time permits)
 ```
 
-**Key design decisions:**
-- Two-stage pipeline: keyword pass (fast, high recall) then semantic pass (slower, high precision). Keyword pass filters from thousands of markets down to hundreds of candidates. Semantic pass ranks and thresholds.
-- sentence-transformers model: Use `all-MiniLM-L6-v2` (fast, good for short texts) rather than a large model. Market questions are short sentences — no need for a 300M parameter encoder.
-- The curator module provides a simple CLI or notebook interface for human review. Displays candidate pairs side by side with questions, resolution dates, and settlement criteria for accept/reject.
-- Registry is append-only with versioning. When you re-run matching, it merges with existing pairs rather than overwriting.
-
-### Feature Engineering
+### Live vs Backtest Reconciliation
 
 ```
-src/features/
-    __init__.py
-    alignment.py         # Time-align two price series to hourly buckets
-    microstructure.py    # Compute spread, volume, bid-ask, velocity features
-    windows.py           # Create rolling window features and sequence tensors
-    dataset.py           # Final dataset class (PyTorch-compatible)
+data/live/positions.db ────────┐
+data/live/position_history.jsonl ┤
+data/live/bars.parquet ────────┤
+models/deployed/*.pkl ─────────┤
+                               │
+                               ▼
+                    src/analysis/reconciliation.py
+                         │
+                         ├── load_closed_positions(positions.db)
+                         ├── reconstruct_entry_features(bars.parquet, pair_id, entry_ts)
+                         ├── counterfactual_predictions(models, features)
+                         ├── counterfactual_profit_sim(preds, actuals)  ◀── uses src/evaluation/profit_sim
+                         └── compute_divergence_metrics(live, counterfactual)
+                                 │
+                                 ▼
+                   experiments/run_live_reconciliation.py (CLI)
+                                 │
+                                 ▼
+        experiments/results/reconciliation/
+                        ├── summary.json       (headline metrics)
+                        ├── per_position.csv   (one row per closed trade)
+                        └── report.md          (human-readable; paper section draft)
 ```
 
-**Key design decisions:**
-- Time alignment uses outer join on hourly timestamps. Hours where one platform has no data get NaN, then forward-fill up to a configurable max gap (e.g., 4 hours). Gaps longer than the max are flagged and excluded from training.
-- All features are computed from the aligned pair, not from individual platforms. This ensures every feature captures the cross-platform relationship.
-- The `dataset.py` module provides both a flat `FeatureDataset` (for Tier 1) and a windowed `SequenceDataset` (for Tier 2) wrapping the same underlying data. RL environments read from the same parquet files.
-- Feature normalization: StandardScaler fit on training data only, applied to test data. Stored as part of the pipeline artifact for reproducibility.
-
-### Model Layer
+### Feature Ablation
 
 ```
-src/models/
-    __init__.py
-    base.py              # PredictionResult dataclass, BaseModel ABC
-    linear.py            # LinearRegression wrapper
-    xgboost_model.py     # XGBoost wrapper
-    gru.py               # GRU model
-    lstm.py              # LSTM model
-    tft.py               # TFT via PyTorch Forecasting
-    autoencoder.py       # Anomaly detection autoencoder
-    ppo_agent.py         # PPO implementation or Stable Baselines 3 wrapper
-    trading_env.py       # Gym environment for RL
+data/processed/train.parquet ──┐
+data/processed/test.parquet  ──┤
+                               ├──▶ experiments/run_feature_ablation.py
+                               │        │
+                               │        ├── FEATURE_GROUPS = {...}  (module-level)
+                               │        │
+                               │        └── for (model_class, ablation) in grid:
+                               │              X_subset = X[group_subset + maybe_group_id]
+                               │              model.fit(X_subset, y)
+                               │              metrics = model.evaluate(X_test_subset, y_test)
+                               │              save_results(f"{name}_ablate_{group}", ...)
+                               │
+                               ▼
+                     experiments/results/ablation/
+                         *.json  (one per (model, ablation) pair)
+                                 │
+                                 ▼
+                  (consumed by paper's parsimony section table generator)
 ```
 
-**Key design decisions:**
-- Every model inherits from a `BaseModel` that enforces `train()`, `predict()`, and `evaluate()` methods with standardized signatures. This is what enables fair comparison.
-- GRU over LSTM as the primary recurrent model. GRU is faster to train, has fewer parameters, and performs comparably on short sequences. LSTM is included for completeness but GRU is the recurrent baseline.
-- TFT via PyTorch Forecasting rather than from scratch. PyTorch Forecasting handles the `TimeSeriesDataSet` format, variable selection networks, and interpretable attention. Implementing TFT from scratch would consume too much time.
-- PPO: Use Stable Baselines 3 (SB3) rather than writing PPO from scratch. SB3's PPO is well-tested and handles the clipped objective, GAE, and value function correctly. Writing custom PPO is error-prone and adds no value to the research question. Wrap SB3's PPO with a thin interface that conforms to `BaseModel`.
-- Autoencoder architecture: Simple feedforward (not convolutional or variational). Input is a flattened window of spread features (e.g., 24 hours x N features). Bottleneck dimension is a hyperparameter. Reconstruction loss is MSE. Anomaly score = reconstruction error.
-
-### Evaluation & Simulation
+### Ensemble Sweep
 
 ```
-src/evaluation/
-    __init__.py
-    metrics.py           # RMSE, MAE, directional accuracy
-    simulation.py        # Simulated trading P&L engine
-    sharpe.py            # Sharpe ratio and risk-adjusted metrics
-    baselines.py         # Naive baselines (spread-closes, volume-correct)
-    shap_analysis.py     # SHAP feature importance
-    reporting.py         # Generate comparison tables and plots
+data/processed/train.parquet ──┐
+                               ├──▶ experiments/run_ensemble_sweep.py
+                               │        │
+                               │        ├── define ensemble variants:
+                               │        │     - LR + XGB (baseline, matches live)
+                               │        │     - LR + XGB + GRU
+                               │        │     - LR + XGB + GRU + LSTM
+                               │        │     - LR + XGB + TFT (if Phase 11 done)
+                               │        │     - LR + XGB + GRU with concordance
+                               │        │
+                               │        └── for variant in variants:
+                               │              ens = EnsemblePredictor(variant)
+                               │              ens.fit(X_train_with_group_id, y_train)
+                               │              metrics = ens.evaluate(X_test, y_test)
+                               │              save_results(f"Ensemble_{variant_name}", ...)
+                               ▼
+                     experiments/results/ensemble/
+                         *.json
+                                 │
+                                 ▼
+                  (consumed by paper + optionally fed to v1.2 live deployment)
 ```
 
-**Key design decisions:**
-- The simulation engine is stateful: it tracks positions, computes P&L per trade, and handles position sizing. It does NOT model transaction costs (out of scope per project constraints) but logs where fees would apply so the paper can discuss them.
-- Naive baselines are implemented as model classes that conform to the same `BaseModel` interface. This means they flow through the exact same evaluation pipeline as ML models — zero special-casing.
-- SHAP analysis runs on the best-performing Tier 1 and Tier 2 models. RL models are not directly SHAP-interpretable, but the autoencoder's learned features can be analyzed.
-- All metrics are computed per-pair and aggregated. This lets the paper discuss whether certain market types (crypto vs. economics) are more predictable.
+## Scaling Considerations
 
-### Experiment Management
+**Actual scale for v1.1:**
 
-```
-experiments/
-    configs/                 # YAML config files per experiment
-    runners/
-        architecture_comparison.py
-        window_ablation.py
-        threshold_ablation.py
-    results/                 # Auto-generated result tables and plots
-```
+| Concern | Current | v1.1 target |
+|---------|---------|-------------|
+| Matched pairs | ~144 (after quality filter) | ~144 (no matching work in v1.1) |
+| Bars per pair (offline) | ~100-500 | unchanged |
+| Bars per pair (live) | accumulating | ~250 at checkpoint |
+| Feature count | 59 | 59 (no new features) |
+| Model count | 9 | 11 (add TFT + Ensemble) |
+| Experiment scripts | 11 | 14 (add TFT, ablation, ensemble, reconciliation) |
 
-**Key design decisions:**
-- Each experiment runner reads a config, instantiates models, trains, evaluates, and writes results to `experiments/results/`. No Jupyter notebooks for final experiments — notebooks are for exploration only.
-- Results are saved as both CSV (for the paper) and JSON (for programmatic comparison).
-- Simple experiment tracking: no MLflow or Weights & Biases overhead. Just timestamped result directories with config + metrics + model checkpoints. This is a 4-week academic project, not a production ML platform.
+No scaling concerns for v1.1. All runs fit on a laptop in hours. TFT training is the slowest new component (~15 min per seed on CPU, ~3 min on GPU if available). The ablation grid is (5 groups x 5 models x leave-one-out + only-one-out) = 50 runs, each <2 min for Tier 1, so <2 hours total.
 
-## Suggested Build Order
-
-The build order is dictated by data flow dependencies. Each component depends on the output of the previous one. Within the model layer, tiers can be built in parallel once feature engineering is complete.
-
-```
-Phase 1: Data Ingestion        (no dependencies)
-    |
-Phase 2: Market Matching       (depends on: raw data from Phase 1)
-    |
-Phase 3: Feature Engineering   (depends on: matched pairs from Phase 2)
-    |
-    +--- Phase 4a: Tier 1 Models (LinReg, XGBoost)  \
-    |                                                 |-- all depend on Phase 3
-    +--- Phase 4b: Tier 2 Models (GRU, LSTM, TFT)   |   but are independent
-    |                                                 |   of each other
-    +--- Phase 4c: Tier 3 Models (AE, PPO, PPO+AE)  /
-    |
-Phase 5: Evaluation & Experiments  (depends on: all model outputs)
-    |
-Phase 6: Paper & Presentation     (depends on: evaluation results)
-```
-
-**Critical path:** Phases 1-3 are strictly sequential and block everything. Getting to a working feature matrix is the single most important milestone. Tier 1 models (Phase 4a) should be built first because they are simplest and validate that the feature matrix works correctly. Tier 2 and Tier 3 can then be built in parallel by two team members.
-
-**TA check-in (April 4) target:** Phases 1-3 complete + Phase 4a (Tier 1 baselines trained and evaluated). This proves the pipeline works end-to-end and provides baseline numbers.
-
-**Parallelization opportunities:**
-- Two people can work on Kalshi and Polymarket adapters simultaneously (Phase 1).
-- Once Phase 3 is done, one person can build Tier 2 while the other builds Tier 3.
-- Evaluation code can be written in parallel with model training (just needs the `PredictionResult` interface defined).
-
-## Scalability Considerations
-
-| Concern | At 10 pairs | At 50 pairs | At 200+ pairs |
-|---------|-------------|-------------|---------------|
-| **Data ingestion time** | Minutes (one-time) | 30-60 min (rate limits) | Hours; need parallelism and aggressive caching |
-| **Feature matrix size** | ~100K rows, fits in RAM | ~500K rows, still fits in RAM | May need chunked processing or parquet partitioning |
-| **Model training time** | Seconds (Tier 1), minutes (Tier 2), minutes (Tier 3) | Minutes across the board | Tier 2/3 may need GPU; TFT especially |
-| **Matching pipeline** | Manual review feasible | Manual review tedious but feasible | Need higher-precision automated matching, spot-check only |
-| **Experiment grid** | 3 experiments x 4 variants each = 12 runs, minutes | Same grid, longer per run | May need to subset pairs or reduce grid |
-
-**Realistic expectation:** Based on the project constraints (economics/finance + crypto categories, resolved markets only), the dataset will likely contain 20-80 matched pairs. This is squarely in the "fits in RAM, train on CPU" range. Do not over-engineer for scale. The bottleneck is data quality and matching accuracy, not compute.
+If TFT turns out to be GPU-bound, the BU SCC deployment already has GPU access; run TFT there and scp the `.json` back.
 
 ## Sources
 
-- Project proposal PDF (DS340 Project Proposal, Spring 2026)
-- CLAUDE.md project instructions and technical context
-- PROJECT.md validated requirements and constraints
-- Architecture patterns derived from established ML pipeline design (scikit-learn pipelines, PyTorch training loops, Stable Baselines 3 Gym interface, PyTorch Forecasting TimeSeriesDataSet). Confidence: HIGH — these are well-established, stable patterns that have not changed materially.
-- RL trading system design patterns from OpenAI Gym / Gymnasium standard interface. Confidence: HIGH.
-- Autoencoder anomaly detection as upstream filter is a standard pattern in manufacturing and financial anomaly detection literature. Confidence: HIGH for the pattern; MEDIUM for its effectiveness in this specific domain (cross-platform prediction markets are a novel application).
+- v1.0 `.planning/research/ARCHITECTURE.md` (2026-04-01) — establishes the contracts that v1.1 extends.
+- `src/models/base.py` — actual `BasePredictor` ABC, drives question 3's "don't add a `features` parameter" conclusion.
+- `src/models/gru.py` — the warm-up-stitching pattern that TFT inherits.
+- `experiments/run_baselines.py` — the multi-seed harness that TFT plugs into.
+- `experiments/run_walk_forward.py` — shows where TFT needs a 3-line addition to the sequence-model branch.
+- `src/live/strategy.py` — shows the ensemble integration point for future deployment.
+- `src/experiments/retraining_policy.py` — confirms 250-bar checkpoint fires automatically.
+- PyTorch Forecasting `TimeSeriesDataSet` documentation (existing pattern for wrapping TFT; v1.0 confidence assessment still applies).
 
-**Note on web search:** Web search tools were unavailable during this research session. All architecture recommendations are based on established ML engineering patterns from training data. The patterns recommended (adapter pattern, Gym environments, PyTorch Forecasting for TFT, Stable Baselines 3 for PPO) are mature and stable. However, specific version numbers and API details should be verified against current documentation during implementation phases.
+---
+*Architecture research for: v1.1 integrations (TFT, reconciliation, ablation, ensemble, checkpoint)*
+*Researched: 2026-04-16*
