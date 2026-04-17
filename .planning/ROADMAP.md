@@ -105,11 +105,11 @@
   1. `pytorch-forecasting==1.7.0`, `quantstats==0.0.81`, and `SciencePlots==2.2.1` are installed and importable in `.venv/` (Python 3.12 rebuild if 3.14 wheels unavailable)
   2. A shared `src/utils/seed.py` is called at the top of every training script and running `experiments/verify_headline.py` twice produces identical Table 2 numbers within 1% tolerance (guards P6)
   3. All PAPER_DRAFT.md Table 2 numbers reconcile against the `experiments/results/tier1/*.json` files currently on disk (no unexplained divergence between paper and code)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md -- Install pytorch-forecasting, quantstats, SciencePlots; freeze requirements.txt
+- [ ] 08-02-PLAN.md -- Create seed utility, inject into all scripts, verify reproducibility, reconcile tier1 JSON
 
 ### Phase 9: Live vs Backtest Reconciliation
 **Goal**: A trade-level comparison proves that the live paper-trading system and the backtest simulator agree on P&L within documented tolerances, giving the paper unique live-deployment evidence
@@ -221,7 +221,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 8. Environment & Baseline Verification | v1.1 | 0/0 | Not started | - |
+| 8. Environment & Baseline Verification | v1.1 | 0/2 | Planned | - |
 | 9. Live vs Backtest Reconciliation | v1.1 | 0/0 | Not started | - |
 | 10. 250-Bar Scaling Checkpoint | v1.1 | 0/0 | Not started | - |
 | 11. TFT Training | v1.1 | 0/0 | Not started | - |
