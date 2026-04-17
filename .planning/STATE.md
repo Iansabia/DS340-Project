@@ -4,7 +4,7 @@ milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: planning
 stopped_at: Completed 08-02-PLAN.md (seed utility + reproducibility)
-last_updated: "2026-04-17T23:29:46.852Z"
+last_updated: "2026-04-17T23:33:01.547Z"
 last_activity: 2026-04-17 -- v1.1 roadmap created
 progress:
   total_phases: 7
