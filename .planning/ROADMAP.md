@@ -87,7 +87,7 @@
 
 **Deadline:** 2026-04-27
 
-- [ ] **Phase 8: Environment & Baseline Verification** - Clean venv, seed discipline, reproduce all Table 2 numbers identically
+- [x] **Phase 8: Environment & Baseline Verification** - Clean venv, seed discipline, reproduce all Table 2 numbers identically (completed 2026-04-17)
 - [ ] **Phase 9: Live vs Backtest Reconciliation** - Trade-level comparison of live paper-trading P&L against backtest predictions
 - [ ] **Phase 10: 250-Bar Scaling Checkpoint** - Third scale point in Table 5, test ranking invariance across 5x data growth
 - [ ] **Phase 11: TFT Training** - Temporal Fusion Transformer on 6,802 rows with pre-specified small-data hyperparameters
@@ -221,7 +221,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 8. Environment & Baseline Verification | 1/2 | In Progress|  | - |
+| 8. Environment & Baseline Verification | 2/2 | Complete   | 2026-04-17 | - |
 | 9. Live vs Backtest Reconciliation | v1.1 | 0/0 | Not started | - |
 | 10. 250-Bar Scaling Checkpoint | v1.1 | 0/0 | Not started | - |
 | 11. TFT Training | v1.1 | 0/0 | Not started | - |

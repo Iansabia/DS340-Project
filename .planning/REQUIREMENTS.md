@@ -147,9 +147,9 @@ Gating phase; blocks all downstream work.
 
 - [x] **ENV-01**: `pytorch-forecasting==1.7.0 --dry-run` succeeds on the current `.venv` Python 3.14, or the venv is rebuilt on Python 3.12. Must complete before any v1.1 model training runs.
 - [x] **ENV-02**: Three target libraries installed and importable: `pytorch-forecasting==1.7.0`, `quantstats==0.0.81`, `SciencePlots==2.2.1`.
-- [ ] **ENV-03**: Shared seed utility at `src/utils/seed.py` applied at top of every training script (torch, numpy, Python random, CUDNN deterministic flag, DataLoader worker seed). Guards P6.
-- [ ] **ENV-04**: Running `experiments/verify_headline.py` twice in succession produces identical Table 2 numbers within 1% tolerance. Guards P6.
-- [ ] **ENV-05**: All current `PAPER_DRAFT.md` Table 2 numbers reproduce from the clean environment (reconciles the `experiments/results/tier1/*.json` modified-on-disk files with the paper's current numbers).
+- [x] **ENV-03**: Shared seed utility at `src/utils/seed.py` applied at top of every training script (torch, numpy, Python random, CUDNN deterministic flag, DataLoader worker seed). Guards P6.
+- [x] **ENV-04**: Running `experiments/verify_headline.py` twice in succession produces identical Table 2 numbers within 1% tolerance. Guards P6.
+- [x] **ENV-05**: All current `PAPER_DRAFT.md` Table 2 numbers reproduce from the clean environment (reconciles the `experiments/results/tier1/*.json` modified-on-disk files with the paper's current numbers).
 
 ### Phase 9 -- Live vs Backtest Reconciliation
 
@@ -251,9 +251,9 @@ Terminal phase; consumes results from all prior phases.
 |---|---|---|
 | ENV-01 | Phase 8 | Complete |
 | ENV-02 | Phase 8 | Complete |
-| ENV-03 | Phase 8 | Pending |
-| ENV-04 | Phase 8 | Pending |
-| ENV-05 | Phase 8 | Pending |
+| ENV-03 | Phase 8 | Complete |
+| ENV-04 | Phase 8 | Complete |
+| ENV-05 | Phase 8 | Complete |
 | RECON-01 | Phase 9 | Pending |
 | RECON-02 | Phase 9 | Pending |
 | RECON-03 | Phase 9 | Pending |

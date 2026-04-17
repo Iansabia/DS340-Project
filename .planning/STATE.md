@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: planning
-stopped_at: Completed 08-01-PLAN.md (environment install)
-last_updated: "2026-04-17T19:10:33.885Z"
+stopped_at: Completed 08-02-PLAN.md (seed utility + reproducibility)
+last_updated: "2026-04-17T23:29:46.852Z"
 last_activity: 2026-04-17 -- v1.1 roadmap created
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -59,6 +59,9 @@ Recent decisions affecting current work:
 - [v1.1 Roadmap]: EnsemblePredictor NOT wired into live strategy.py during v1.1
 - [v1.1 Roadmap]: Phases 9/10/11/12 parallelize after Phase 8; Phase 13 waits on 11; Phase 14 terminal
 - [Phase 08-environment-and-baseline-verification]: Python 3.14.3 venv compatible with pytorch-forecasting 1.7.0, quantstats 0.0.81, SciencePlots 2.2.1; no Python 3.12 rebuild required
+- [Phase 08-02]: run_baselines.py now calls compute_derived_features() + select_dtypes(['number']) to align with 51-feature pipeline used in verify_headline.py
+- [Phase 08-02]: PPO imports in run_baselines.py are lazy (deferred) to allow Tier 1 to run without stable_baselines3 installed
+- [Phase 08-02]: set_all_seeds(42) is the standard entry point seed call for all experiment scripts; P&L reconciliation skipped in ENV-05 check (different profit sim implementations)
 
 ### Pending Todos
 
@@ -72,7 +75,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T19:10:33.883Z
-Stopped at: Completed 08-01-PLAN.md (environment install)
+Last session: 2026-04-17T23:29:46.850Z
+Stopped at: Completed 08-02-PLAN.md (seed utility + reproducibility)
 Resume file: None
 Next action: `/gsd:plan-phase 8`
