@@ -1,30 +1,14 @@
 # Roadmap: Kalshi vs. Polymarket Price Discrepancies
 
-## Overview
+## Milestones
 
-This project builds an end-to-end cross-platform prediction market arbitrage pipeline, then systematically tests whether increasing model complexity (regression to recurrent networks to RL with anomaly detection) improves spread convergence prediction. The roadmap follows strict data-flow dependencies: raw ingestion feeds matching, matching feeds feature engineering, features feed all models. Phases 1-4 must complete by the April 4 TA check-in (working pipeline + baseline results). Phases 5-6 can be parallelized between team members. Phases 7-8 synthesize results into experiments and the final paper.
+- **v1.0 Core Pipeline** - Phases 1-7.3 (shipped 2026-04-08)
+- **v1.1 Extended Evidence & Submission** - Phases 8-14 (in progress, deadline 2026-04-27)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-Decimal phases appear between their surrounding integers in numeric order.
-
-- [ ] **Phase 1: Data Ingestion** - Build platform API adapters and ingest historical market data from Kalshi and Polymarket
-- [ ] **Phase 2: Market Matching** - Match equivalent contracts across platforms using NLP and manual curation
-- [ ] **Phase 3: Feature Engineering** - Compute derived features from aligned 4-hour microstructure data, temporal split, PyTorch Forecasting format
-- [x] **Phase 4: Regression Baselines and Evaluation Framework** - Train Tier 1 models, build evaluation/simulation infrastructure, deliver TA check-in
-- [x] **Phase 5: Time Series Models** - Train GRU, LSTM, and TFT on spread prediction with hourly sequences
-- [ ] **Phase 6: RL and Autoencoder** - Build trading environment, train autoencoder anomaly detector, train PPO variants
-- [x] **Phase 7: Experiments and Interpretability** - Run cross-tier comparison, ablation experiments, SHAP analysis, bootstrap CIs (completed 2026-04-06)
-- [x] **Phase 7.1: Walk-Forward Backtesting** - Produce honest backtested Sharpe ratios via walk-forward portfolio simulator with realistic transaction costs (completed 2026-04-06)
-- [ ] **Phase 7.2: Live Paper Trading** - Deploy models on live data via pmxt SDK, paper trade all 8 models, retrain on growing dataset
-- [x] **Phase 7.3: Adaptive Trading System** - Multi-bar position management with contract-horizon-based bar intervals and rule-based exit strategy, deployed on Oracle Cloud VM (completed 2026-04-08)
-- [ ] **Phase 8: Paper and Presentation** - Write final paper and lightning talk slides
-
-## Phase Details
+<details>
+<summary>v1.0 Core Pipeline (Phases 1-7.3) - SHIPPED 2026-04-08</summary>
 
 ### Phase 1: Data Ingestion
 **Goal**: Raw historical market data from both platforms is reliably available on disk for downstream processing
@@ -35,206 +19,218 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Running the Polymarket ingestion script produces parquet files in `data/raw/` containing reconstructed price histories from trade records, with metadata from Gamma API
   3. Re-running either script skips already-cached data and respects rate limits without manual intervention
   4. Both adapters recover from transient API failures via automated retry with backoff
-**Plans**: 3 plans
-
-Plans:
-- [ ] 01-01-PLAN.md -- Project setup, shared infrastructure (ResilientClient, MarketDataAdapter ABC, schemas, test fixtures)
-- [ ] 01-02-PLAN.md -- Kalshi adapter (market discovery, candlestick fetching with chunking, null OHLC handling)
-- [ ] 01-03-PLAN.md -- Polymarket adapter (Gamma discovery, CLOB price history, Data API trade fallback)
+**Plans**: 3/3 complete
 
 ### Phase 2: Market Matching
 **Goal**: A verified registry of matched contract pairs across Kalshi and Polymarket with confidence scores and settlement documentation
 **Depends on**: Phase 1
 **Requirements**: MATCH-01, MATCH-02, MATCH-03, MATCH-04, MATCH-05
-**Success Criteria** (what must be TRUE):
-  1. The matching pipeline produces candidate pairs ranked by combined keyword and semantic similarity scores
-  2. A manual curation interface allows reviewing, accepting, or rejecting each candidate pair
-  3. Every accepted pair in `matched_pairs.json` has a confidence score and documented settlement criteria from both platforms
-  4. The total number of matched pairs is known, enabling a go/no-go decision on project scope (if <30 pairs, TFT is dropped)
-**Plans**: TBD
-
-Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+**Plans**: Complete
 
 ### Phase 02.1: Trade-Based Data Reconstruction (INSERTED)
-
-**Goal:** Raw trades pulled from both platforms, reconstructed into 4-hour OHLCV+VWAP candles with microstructure features, and aligned cross-platform with forward-fill and staleness decay. Output: data/processed/aligned_pairs.parquet with 50-70 usable pairs.
-**Requirements**: TRADE-FETCH, TRADE-RECONSTRUCT, TRADE-ALIGN, TRADE-VALIDATE, TRADE-PIPELINE (defined by design spec)
+**Goal:** Raw trades pulled from both platforms, reconstructed into 4-hour OHLCV+VWAP candles with microstructure features, and aligned cross-platform with forward-fill and staleness decay.
 **Depends on:** Phase 2
-**Plans:** 2/2 plans complete
-
-Plans:
-- [x] 02.1-01-PLAN.md -- Trade fetcher (Kalshi + Polymarket pagination) and candle reconstructor (4-hour OHLCV+VWAP+microstructure)
-- [ ] 02.1-02-PLAN.md -- Cross-platform aligner (forward-fill, staleness decay, quality filters) and rebuild_data.py CLI pipeline
+**Plans:** 2/2 complete
 
 ### Phase 3: Feature Engineering
 **Goal**: A processed, model-ready dataset with derived microstructure features computed from 4-hour aligned data, temporally split into train/test sets with PyTorch Forecasting compatibility
 **Depends on**: Phase 2.1
 **Requirements**: FEAT-01, FEAT-02, FEAT-03, FEAT-04, FEAT-05
-**Success Criteria** (what must be TRUE):
-  1. `data/processed/` contains train.parquet and test.parquet with 39 columns (31 aligned + 6 derived + time_idx + group_id) for each matched pair
-  2. Low-liquidity markets (<20 trades) are filtered upstream by aligner and documented
-  3. Temporal train/test split is enforced per pair with an assertion that no training timestamp exceeds the earliest test timestamp
-  4. The dataset includes `time_idx` and `group_id` columns compatible with PyTorch Forecasting TimeSeriesDataSet format
-  5. A `build_timeseries_dataset()` function creates a TimeSeriesDataSet from the feature matrix
-**Plans**: 1 plan
-
-Plans:
-- [ ] 03-01-PLAN.md -- Derived features (velocity, volume ratio, spread momentum/volatility, order flow imbalance), temporal split, PyTorch Forecasting format, CLI pipeline
+**Plans**: 1/1 complete
 
 ### Phase 4: Regression Baselines and Evaluation Framework
 **Goal**: Tier 1 models are trained and evaluated, the evaluation framework exists for all future models, and the TA check-in deliverable is ready
 **Depends on**: Phase 3
 **Requirements**: MOD-01, MOD-02, MOD-03, MOD-04, EVAL-01, EVAL-02
-**Success Criteria** (what must be TRUE):
-  1. Linear Regression and XGBoost are trained on the processed dataset and produce spread predictions on the test set
-  2. Naive baselines (spread-always-closes, higher-volume-platform-correct) produce predictions on the test set
-  3. All four models are evaluated with RMSE, MAE, and directional accuracy, with results in a comparison table
-  4. Profit simulation runs for all four models, reporting P&L, win rate, and Sharpe ratio
-  5. The evaluation framework accepts any model implementing the common prediction interface, ready for Tier 2 and Tier 3 models
-**Plans**: 2 plans
-
-Plans:
-- [ ] 04-01-PLAN.md -- Prediction interface, evaluation framework (metrics + profit sim), naive and volume baselines
-- [ ] 04-02-PLAN.md -- Linear Regression, XGBoost, results storage, baseline comparison experiment script
+**Plans**: 2/2 complete
 
 ### Phase 5: Time Series Models
 **Goal**: Recurrent and attention-based models are trained and evaluated, testing whether temporal structure improves spread prediction
 **Depends on**: Phase 4
 **Requirements**: MOD-05, MOD-06, MOD-07
-**Success Criteria** (what must be TRUE):
-  1. GRU model is trained on windowed hourly sequences and evaluated through the existing evaluation framework
-  2. LSTM model is trained on windowed hourly sequences and evaluated through the existing evaluation framework
-  3. TFT model is trained via PyTorch Forecasting and evaluated through the existing framework (or explicitly deferred with documented rationale if dataset is too small or timeline is tight)
-  4. Results for all Tier 2 models appear in the same comparison table as Tier 1, enabling direct cross-tier comparison
-**Plans**: 5 plans
-
-Plans:
-- [x] 05-01-PLAN.md -- Sequence utilities (windowing, early stopping, seed, device, scaler helpers) with TDD tests
-- [x] 05-02-PLAN.md -- GRUPredictor (hidden=64) with BasePredictor contract, warm-up stitching, TDD tests
-- [x] 05-03-PLAN.md -- LSTMPredictor (hidden=32) with BasePredictor contract, warm-up stitching, TDD tests
-- [x] 05-04-PLAN.md -- Tier 2 experiment harness (--tier flag, 3 seeds, tier2 JSONs, combined comparison table)
-- [x] 05-05-PLAN.md -- TFT (MOD-07) deferral documentation + phase-level SUMMARY.md
+**Plans**: 5/5 complete
 
 ### Phase 6: RL and Autoencoder
 **Goal**: PPO trading agents and the autoencoder anomaly detector are trained, testing whether RL and anomaly detection improve trading performance
 **Depends on**: Phase 4
 **Requirements**: MOD-08, MOD-09, MOD-10
-**Success Criteria** (what must be TRUE):
-  1. A custom Gym environment simulates spread trading with appropriate state space, action space, and reward function
-  2. The autoencoder is trained on normal spread behavior and flags anomalous spread patterns via reconstruction error threshold
-  3. PPO on raw features produces a trading policy (even if it learns "don't trade," which is a valid finding)
-  4. PPO with autoencoder signal filter produces a trading policy that only acts on flagged opportunities
-  5. All RL models are evaluated through the existing evaluation framework with results in the comparison table
-**Plans**: 5 plans
-
-Plans:
-- [ ] 06-01-PLAN.md -- SpreadTradingEnv (Gymnasium Env): state (198,), Discrete(3) actions, dense reward with tx cost, TDD
-- [ ] 06-02-PLAN.md -- AnomalyDetectorAutoencoder: 31->16->8->4->8->16->31 with 95th percentile threshold, TDD
-- [ ] 06-03-PLAN.md -- PPORawPredictor (BasePredictor): SB3 PPO on raw features, action-to-prediction mapping, TDD
-- [ ] 06-04-PLAN.md -- PPOFilteredPredictor (BasePredictor): PPO with autoencoder reward masking, TDD
-- [ ] 06-05-PLAN.md -- Tier 3 harness (--tier 3, --tier all), __init__.py exports, train + produce tier3 JSONs
+**Plans**: 5/5 complete
 
 ### Phase 7: Experiments and Interpretability
 **Goal**: The three planned experiments are executed, SHAP analysis reveals feature importance, and all results have statistical rigor via confidence intervals
 **Depends on**: Phase 5, Phase 6
 **Requirements**: EXP-01, EXP-02, EXP-03, EXP-04, EVAL-03, EVAL-04
-**Success Criteria** (what must be TRUE):
-  1. Experiment 1 (centerpiece) produces a cross-tier complexity-vs-performance comparison with all models on identical test data
-  2. Experiment 2 produces results for 6h, 24h, 72h, and 7d lookback windows showing how window length affects prediction quality
-  3. Experiment 3 produces results for no minimum, >2pp, >5pp, and >10pp spread thresholds showing how filtering affects trading performance
-  4. SHAP feature importance analysis is computed for the best-performing models (TreeSHAP for XGBoost, DeepExplainer or attention for neural models)
-  5. Bootstrap confidence intervals are reported on key metrics, and transaction cost sensitivity analysis quantifies break-even fee levels
-**Plans**: 5 plans
-
-Plans:
-- [ ] 07-01-PLAN.md -- Experiment 1: cross-tier comparison (formalize 8-model results into summary JSON, RMSE bar chart, P&L equity curves, LaTeX table)
-- [ ] 07-02-PLAN.md -- Experiment 2: lookback window ablation (GRU+LSTM at lookback={2,6,12,18}, RMSE/P&L plots)
-- [ ] 07-03-PLAN.md -- Experiment 3: spread threshold ablation (all 8 models at threshold={0.0,0.02,0.05,0.10}, heatmap/bar chart)
-- [ ] 07-04-PLAN.md -- SHAP analysis (TreeSHAP on XGBoost) + transaction cost sensitivity (0-10pp, break-even per model)
-- [ ] 07-05-PLAN.md -- Bootstrap confidence intervals (1000 resamples, 95% CI on RMSE/MAE/P&L/Sharpe, forest plot)
+**Plans**: 5/5 complete
 
 ### Phase 07.1: Walk-Forward Backtesting (INSERTED)
-
-**Goal:** Produce honest, paper-ready backtested Sharpe ratios for all 8 models via a walk-forward portfolio simulator with realistic transaction costs ($10k capital, $100/position, 5pp round-trip fees, daily returns annualized by sqrt(365))
-**Requirements**: BACKTEST-CORE, BACKTEST-RUN
+**Goal:** Produce honest, paper-ready backtested Sharpe ratios for all 8 models via a walk-forward portfolio simulator with realistic transaction costs
 **Depends on:** Phase 7
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 07.1-01-PLAN.md -- WalkForwardBacktester class (TDD): chronological walk-forward, transaction costs, capital-normalized returns, Sharpe/drawdown/Calmar
-- [ ] 07.1-02-PLAN.md -- Run all 8 models through backtester, save JSON results, generate equity curve + drawdown figures, print comparison table
+**Plans:** 2/2 complete
 
 ### Phase 07.2: Live Paper Trading and Data Collection (INSERTED)
-
-**Goal:** Deploy a live paper trading system that collects data from Kalshi+Polymarket via pmxt SDK, runs all 8 models on live bars, logs paper trades, and supports periodic retraining on the growing dataset
-**Requirements**: LIVE-COLLECT, LIVE-BARS, LIVE-MAPPING, LIVE-PAPER-TRADE, LIVE-DASHBOARD, LIVE-RETRAIN, LIVE-METRICS-DELTA
+**Goal:** Deploy a live paper trading system that collects data from Kalshi+Polymarket, runs all 8 models on live bars, logs paper trades, and supports periodic retraining
 **Depends on:** Phase 7.1
-**Plans:** 3/3 plans complete
-
-Plans:
-- [ ] 07.2-01-PLAN.md -- Live data collector: polls pmxt SDK for Kalshi+Polymarket prices, constructs 4h bars matching train.parquet schema, appends to data/live/bars.parquet
-- [ ] 07.2-02-PLAN.md -- Paper trading engine: loads all 8 trained models, runs inference on live bars, logs trades to JSONL, CLI dashboard for P&L tracking
-- [ ] 07.2-03-PLAN.md -- Auto-retrain pipeline: combines train.parquet + live bars, retrains all 8 models, reports metric deltas (did more data help?)
+**Plans:** 3/3 complete
 
 ### Phase 07.3: Adaptive Trading System (INSERTED)
-
-**Goal:** Build an adaptive trading system with multi-bar position management, contract-horizon-based bar intervals that ramp up frequency as resolution approaches (daily/15min/1h/4h tiers), and 5 rule-based exit rules (50% TP, 130% SL, 3-bar momentum, tier-based time stops, 24h resolution proximity). Deploy on Oracle Cloud VM for 15-minute cron collection with SQLite-backed position persistence.
-**Requirements**: CLASSIFY-TICKERS, CLASSIFY-TIERS, CLASSIFY-RECLASSIFY, POSITION-TRACK, EXIT-RULES, STRATEGY-ENTRY, STRATEGY-EXIT, STRATEGY-INTEGRATION, MODEL-SAVE-LOAD, TRADING-CYCLE, ORACLE-DEPLOY, ORACLE-CRON, ORACLE-KEEPALIVE, ORACLE-AUTOCOMMIT
+**Goal:** Build an adaptive trading system with multi-bar position management, contract-horizon-based bar intervals and rule-based exit strategy, deployed on Oracle Cloud VM
 **Depends on:** Phase 7.2
-**Plans:** 1/4 plans executed
+**Plans:** 4/4 complete
 
-Plans:
-- [ ] 07.3-01-PLAN.md -- Contract classifier: parse 8+ Kalshi ticker formats, API fallback for 374 year-only tickers, 4-tier classification with dynamic reclassification (TDD)
-- [ ] 07.3-02-PLAN.md -- Position manager: SQLite-backed position tracking with 5 exit rules (50% TP, 130% SL, 3-bar momentum, tier-based time stops, resolution proximity) (TDD)
-- [ ] 07.3-03-PLAN.md -- Trading strategy + trading_cycle.py: combines classifier + position manager + model inference, save/load for BasePredictor, LR+XGBoost pickle export
-- [ ] 07.3-04-PLAN.md -- Oracle Cloud deployment: setup script, 15-min cron, keep-alive, hourly auto-commit to GitHub
+</details>
 
-### Phase 8: Paper and Presentation
-**Goal**: The final paper and lightning talk slides are complete, presenting the complexity-vs-performance findings as an empirical contribution
-**Depends on**: Phase 7
-**Requirements**: DEL-01, DEL-02
+---
+
+## v1.1 Extended Evidence & Submission
+
+**Milestone Goal:** Strengthen every pillar of the paper's evidence base -- scaling, model variety, feature understanding, execution realism -- while the live system continues accumulating data. Produce a submission-ready paper (due Apr 27) that credibly signals continued deployment post-submission.
+
+**Deadline:** 2026-04-27
+
+- [ ] **Phase 8: Environment & Baseline Verification** - Clean venv, seed discipline, reproduce all Table 2 numbers identically
+- [ ] **Phase 9: Live vs Backtest Reconciliation** - Trade-level comparison of live paper-trading P&L against backtest predictions
+- [ ] **Phase 10: 250-Bar Scaling Checkpoint** - Third scale point in Table 5, test ranking invariance across 5x data growth
+- [ ] **Phase 11: TFT Training** - Temporal Fusion Transformer on 6,802 rows with pre-specified small-data hyperparameters
+- [ ] **Phase 12: Feature Ablation** - LOGO over 5 feature groups on LR + XGBoost with pre-registered protocol
+- [ ] **Phase 13: Ensemble Formalization** - Evidence-based production ensemble with concordance filter audit
+- [ ] **Phase 14: Paper Finalization + Presentation** - IEEE-styled figures, trimmed abstract, final PDF, lightning talk slides
+
+## Phase Details
+
+### Phase 8: Environment & Baseline Verification
+**Goal**: Every v1.1 experiment runs on a reproducible, verified foundation where Table 2 numbers are confirmed and training is deterministic
+**Depends on**: Nothing (gating phase for v1.1; blocks all downstream phases)
+**Requirements**: ENV-01, ENV-02, ENV-03, ENV-04, ENV-05
 **Success Criteria** (what must be TRUE):
-  1. The final paper follows standard academic structure (abstract, intro, related work, methodology, experiments, results, discussion, conclusion) and presents all three experiments with figures and tables
-  2. The paper frames PPO underperformance (if it occurs) as a finding about complexity-vs-performance tradeoffs, not a failure
-  3. Lightning talk slides (5-10 slides) summarize the research question, methodology, key results, and takeaways
-  4. Settlement divergence risk and transaction cost limitations are acknowledged in the paper discussion
+  1. `pytorch-forecasting==1.7.0`, `quantstats==0.0.81`, and `SciencePlots==2.2.1` are installed and importable in `.venv/` (Python 3.12 rebuild if 3.14 wheels unavailable)
+  2. A shared `src/utils/seed.py` is called at the top of every training script and running `experiments/verify_headline.py` twice produces identical Table 2 numbers within 1% tolerance (guards P6)
+  3. All PAPER_DRAFT.md Table 2 numbers reconcile against the `experiments/results/tier1/*.json` files currently on disk (no unexplained divergence between paper and code)
 **Plans**: TBD
 
 Plans:
 - [ ] 08-01: TBD
 - [ ] 08-02: TBD
 
+### Phase 9: Live vs Backtest Reconciliation
+**Goal**: A trade-level comparison proves that the live paper-trading system and the backtest simulator agree on P&L within documented tolerances, giving the paper unique live-deployment evidence
+**Depends on**: Phase 8
+**Requirements**: RECON-01, RECON-02, RECON-03, RECON-04, RECON-05, RECON-06, RECON-07, RECON-08, RECON-09, RECON-10
+**Success Criteria** (what must be TRUE):
+  1. `src/analysis/reconciliation.py` pairs live closed positions (April 11-25) against backtest predictions on `(pair_id, entry_ts_bucket)` using the single shared fee function from `src/evaluation/profit_sim.simulate_profit` (guards P2)
+  2. Summary comparison table shows live P&L vs simulated P&L, tracking error, matched/only-live/only-backtest counts, and `(only_live + only_backtest) / matched_trades < 20%` acceptance gate passes (or gap is diagnosed and named in paper)
+  3. Category-level (oil vs non-oil) and exit-reason attribution breakdowns are produced, directly testing Finding 6 on live data
+  4. Paper section 5.9 "Live vs Backtest Reconciliation" is written with findings and explicit paper-trading caveats (no slippage, no partial fills)
+**Plans**: TBD
+
+Plans:
+- [ ] 09-01: TBD
+- [ ] 09-02: TBD
+
+### Phase 10: 250-Bar Scaling Checkpoint
+**Goal**: The third scale point (250 bars/pair) fills Table 5 and either confirms ranking invariance across 5x data growth or documents a ranking shift
+**Depends on**: Phase 8
+**Requirements**: SCAL-01, SCAL-02, SCAL-03, SCAL-04, SCAL-05
+**Success Criteria** (what must be TRUE):
+  1. 250-bar auto-retrain checkpoint output is captured from SCC and Table 5 in the paper contains all three scale points (50 / 100 / 250 bars/pair)
+  2. Figure 2 is regenerated with explicit training-set-cap annotation ("plateau at N=6,802, fixed pair universe") so the scaling curve is not misread as universal evidence (guards P7)
+  3. Paper section 5.4 explicitly states whether model rankings are invariant across the 5x data growth or documents any ranking shift
+**Plans**: TBD
+
+Plans:
+- [ ] 10-01: TBD
+
+### Phase 11: TFT Training
+**Goal**: The deferred Temporal Fusion Transformer is trained with pre-specified small-data hyperparameters and produces either a competitive result or a documented negative finding that extends the simplicity-wins thesis
+**Depends on**: Phase 8
+**Requirements**: TFT-01, TFT-02, TFT-03, TFT-04, TFT-05, TFT-06, TFT-07, TFT-08
+**Success Criteria** (what must be TRUE):
+  1. `src/models/tft.py` implements `TFTPredictor(BasePredictor)` with pre-specified hyperparameters (`hidden_size=8`, `attention_head_size=1`, `dropout=0.3`, `QuantileLoss`, `GroupNormalizer`) and is evaluated on the identical protocol to GRU/LSTM (guards P1)
+  2. If TFT converges (val_loss beats GRU within 1-day time-box): TFT row appears in Tables 2 and 3, attention entropy audit passes (`entropy >= 0.5 * log(n_features)` and `max_variable_weight < 0.8`), and VSN heatmap is saved to `experiments/figures/`
+  3. If TFT does not converge: "TFT did not converge at N=6,802" is reported as a finding under Discussion section 6, and Phase 13 proceeds with TFT-excluding baseline
+  4. Either outcome (success or documented negative result) produces a paper-ready finding that extends the complexity-vs-performance analysis
+**Plans**: TBD
+
+Plans:
+- [ ] 11-01: TBD
+- [ ] 11-02: TBD
+
+### Phase 12: Feature Ablation
+**Goal**: A pre-registered LOGO ablation study identifies the minimum sufficient feature set for profitable trading and quantifies which feature groups are load-bearing vs droppable
+**Depends on**: Phase 8
+**Requirements**: ABLA-01, ABLA-02, ABLA-03, ABLA-04, ABLA-05, ABLA-06, ABLA-07, ABLA-08
+**Success Criteria** (what must be TRUE):
+  1. `.planning/ablation_protocol.md` is committed before `run_feature_ablation.py` executes, pre-registering the 5 feature groups, three-way split design, and analysis plan (guards P3)
+  2. LOGO ablation runs on both LR and XGBoost separately with bootstrap 95% CIs on per-group P&L deltas, and the results table reports ALL runs (not only favorable ones)
+  3. Minimum sufficient feature set is selected on ablation-holdout split only; final-test split is untouched until after selection is frozen
+  4. Paper section 5.X "Feature Ablation" contains the ablation table and parsimony discussion
+**Plans**: TBD
+
+Plans:
+- [ ] 12-01: TBD
+- [ ] 12-02: TBD
+
+### Phase 13: Ensemble Formalization
+**Goal**: The live deployment's LR+XGBoost ensemble is formally evaluated alongside alternative ensemble variants, with an honest concordance filter audit that surfaces any Sharpe inflation
+**Depends on**: Phase 11 (TFT outcome determines whether 5th ensemble variant is included)
+**Requirements**: ENSM-01, ENSM-02, ENSM-03, ENSM-04, ENSM-05, ENSM-06, ENSM-07
+**Success Criteria** (what must be TRUE):
+  1. `src/models/ensemble.py` implements `EnsemblePredictor(BasePredictor)` and evaluates 4+ ensemble variants (LR alone, LR+XGB equal-weight, LR+LSTM, majority-vote; plus TFT variant if Phase 11 succeeded)
+  2. Concordance filter audit shows BOTH filtered and unfiltered P&L in the same table, includes rejection rate and P&L on rejected trades, and flags if rejected trades are profitable in aggregate (guards P4)
+  3. Ensemble-weight sensitivity sweep (LR-weight 0.0 to 1.0 in 0.1 increments) produces a single plot proving the weight choice is not cherry-picked
+  4. `EnsemblePredictor` is NOT wired into `src/live/strategy.py` during v1.1 (live deployment stays hardcoded to current LR+XGB average; guards "breaking live system" risk)
+**Plans**: TBD
+
+Plans:
+- [ ] 13-01: TBD
+- [ ] 13-02: TBD
+
+### Phase 14: Paper Finalization + Presentation
+**Goal**: The paper and slides are submission-ready with IEEE-styled figures, corrected Sharpe numbers, all TODOs cleared, and explicit limitations documented
+**Depends on**: Phase 13 (and transitively all prior phases)
+**Requirements**: POL-01, POL-02, POL-03, POL-04, POL-05, POL-06, POL-07, POL-08, POL-09, POL-10, POL-11, POL-12
+**Success Criteria** (what must be TRUE):
+  1. Every figure uses `SciencePlots` IEEE styling with colorblind-safe palette, variable line styles/markers for B&W readability, and 300 DPI export; every figure is referenced in text with caption and axis labels carrying units
+  2. Abstract is 250 words or fewer; headline Sharpe in abstract uses per-pair-corrected number (approximately 3.2), not per-trade (0.44); per-trade Sharpe appears only in footnote/Table 8 (guards P5)
+  3. Survivorship-bias disclaimer appears in section 6.4 Limitations; scaling-curve cap annotation appears on Figure 2 caption (guards P7); AI-assistant disclosure in Acknowledgments
+  4. Final PDF reviewed cover-to-cover with all TODOs/placeholders cleared, code README updated with exact reproduction commands for every paper table, and 4-minute lightning-talk slides completed
+**Plans**: TBD
+
+Plans:
+- [ ] 14-01: TBD
+- [ ] 14-02: TBD
+- [ ] 14-03: TBD
+
 ## Progress
 
-**Execution Order:**
-Phases 1-4 are strictly sequential (data dependencies). Phases 5 and 6 can be parallelized. Phase 7 depends on both 5 and 6. Phase 8 depends on 7.
+**v1.1 Execution Order:**
+
+Phase 8 gates everything. After Phase 8, four phases run in parallel. Phase 13 waits for Phase 11. Phase 14 waits for all.
 
 ```
-1 -> 2 -> 2.1 -> 3 -> 4 -> 5 ─┐
-                           └─> 6 ─┤-> 7 -> 7.1 -> 7.2 -> 7.3 -> 8
+          +---> Phase 9  (reconciliation, leaf)
+          |
+Phase 8 --+---> Phase 10 (250-bar wait, passive)
+          |                                         +---> Phase 14 (paper, terminal)
+          +---> Phase 11 (TFT) ----------> Phase 13 (ensemble) ---+
+          |
+          +---> Phase 12 (ablation, independent)
 ```
 
-**Milestone Deadlines:**
-- TA Check-in (April 4): Phases 1-4 complete
-- Final Submission (April 27): All phases complete
+**Milestone Deadline:**
+- Final Submission (April 27): All v1.1 phases complete
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Data Ingestion | 0/3 | Planning complete | - |
-| 2. Market Matching | 0/0 | Not started | - |
-| 2.1. Trade-Based Data Reconstruction | 1/2 | Executing | - |
-| 3. Feature Engineering | 0/1 | Planning complete | - |
-| 4. Regression Baselines and Evaluation Framework | 1/2 | In Progress | - |
-| 5. Time Series Models | 5/5 | Complete | 2026-04-06 |
-| 6. RL and Autoencoder | 3/5 | In Progress|  |
-| 7. Experiments and Interpretability | 5/5 | Complete   | 2026-04-06 |
-| 7.1. Walk-Forward Backtesting | 2/2 | Complete   | 2026-04-06 |
-| 7.2. Live Paper Trading | 3/3 | Complete |  |
-| 7.3. Adaptive Trading System | 4/4 | Complete   | 2026-04-08 |
-| 8. Paper and Presentation | 0/0 | Not started | - |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 8. Environment & Baseline Verification | v1.1 | 0/0 | Not started | - |
+| 9. Live vs Backtest Reconciliation | v1.1 | 0/0 | Not started | - |
+| 10. 250-Bar Scaling Checkpoint | v1.1 | 0/0 | Not started | - |
+| 11. TFT Training | v1.1 | 0/0 | Not started | - |
+| 12. Feature Ablation | v1.1 | 0/0 | Not started | - |
+| 13. Ensemble Formalization | v1.1 | 0/0 | Not started | - |
+| 14. Paper Finalization + Presentation | v1.1 | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-04-01*
-*Last updated: 2026-04-08*
+*v1.0 shipped: 2026-04-08*
+*v1.1 roadmap created: 2026-04-17*
+*Last updated: 2026-04-17*
