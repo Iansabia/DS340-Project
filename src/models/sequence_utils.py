@@ -20,6 +20,8 @@ import pandas as pd
 import torch
 from sklearn.preprocessing import StandardScaler
 
+from src.utils.seed import set_all_seeds
+
 
 def create_sequences(
     X: np.ndarray,
@@ -114,24 +116,13 @@ class EarlyStopping:
 
 
 def set_seed(seed: int) -> None:
-    """Seed numpy, torch, and CUDA (if available) for reproducibility.
+    """Backward-compatible wrapper. Delegates to src/utils/seed.py.
 
-    Also sets ``torch.backends.cudnn.deterministic = True`` and disables
-    ``benchmark`` for fully deterministic training.  On Apple Silicon
-    (no CUDA), forces single-threaded execution to avoid a known
-    segfault in PyTorch's OpenMP/Accelerate backend.
+    Previously seeded numpy + torch directly; now delegates to
+    ``set_all_seeds`` which covers all 9 RNG sources including Python
+    ``random``, PYTHONHASHSEED, and torch.use_deterministic_algorithms.
     """
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
-    else:
-        # Workaround: PyTorch 2.x on Apple Silicon can segfault in
-        # multi-threaded GRU/LSTM forward when using the Accelerate
-        # backend.  Single-threaded execution avoids this.
-        torch.set_num_threads(1)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    set_all_seeds(seed)
 
 
 def get_device() -> torch.device:

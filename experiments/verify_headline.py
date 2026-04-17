@@ -19,6 +19,7 @@ from src.models.linear_regression import LinearRegressionPredictor
 from src.models.naive import NaivePredictor
 from src.models.volume import VolumePredictor
 from src.models.xgboost_model import XGBoostPredictor
+from src.utils.seed import set_all_seeds
 
 NON_FEATURE_COLUMNS = {
     "timestamp", "pair_id", "time_idx", "group_id", "spread_change_target",
@@ -64,6 +65,7 @@ def simulate_pnl(preds: np.ndarray, actuals: np.ndarray, fee: float = 0.02) -> d
 
 
 def main():
+    set_all_seeds(42)
     data_dir = Path("data/processed")
     train = build(pd.read_parquet(data_dir / "train.parquet"))
     test = build(pd.read_parquet(data_dir / "test.parquet"))

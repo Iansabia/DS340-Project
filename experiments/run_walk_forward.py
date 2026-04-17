@@ -42,6 +42,7 @@ from src.models.linear_regression import LinearRegressionPredictor  # noqa: E402
 from src.models.naive import NaivePredictor  # noqa: E402
 from src.models.volume import VolumePredictor  # noqa: E402
 from src.models.xgboost_model import XGBoostPredictor  # noqa: E402
+from src.utils.seed import set_all_seeds  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -342,6 +343,7 @@ def plot_walk_forward(
 
 
 def main(argv: list[str] | None = None) -> int:
+    set_all_seeds(42)
     parser = argparse.ArgumentParser(description="Walk-forward backtest (Tier 1 models)")
     parser.add_argument("--windows", type=int, default=12,
                         help="Number of time windows (default: 12)")

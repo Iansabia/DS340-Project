@@ -41,6 +41,7 @@ from experiments.run_baselines import (
 )
 from src.evaluation.backtester import WalkForwardBacktester, compute_break_even_fee
 from src.evaluation.results_store import load_all_results, save_results
+from src.utils.seed import set_all_seeds
 from src.models.autoencoder import AnomalyDetectorAutoencoder
 from src.models.gru import GRUPredictor
 from src.models.linear_regression import LinearRegressionPredictor
@@ -626,7 +627,7 @@ def format_backtest_table(results: list[dict]) -> str:
 def main(argv: list[str] | None = None) -> int:
     """Run backtests, generate figures, print comparison table."""
     import torch
-    torch.set_num_threads(1)  # Apple Silicon workaround
+    set_all_seeds(42)
 
     parser = argparse.ArgumentParser(
         description=(

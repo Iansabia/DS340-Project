@@ -39,6 +39,7 @@ import pandas as pd
 
 from src.evaluation.results_store import load_all_results, save_results
 from src.models.base import BasePredictor
+from src.utils.seed import set_all_seeds
 from src.models.gru import GRUPredictor
 from src.models.linear_regression import LinearRegressionPredictor
 from src.models.lstm import LSTMPredictor
@@ -488,6 +489,7 @@ def format_comparison_table(
 
 
 def main(argv: list[str] | None = None) -> int:
+    set_all_seeds(42)
     parser = argparse.ArgumentParser(
         description=(
             "Train and evaluate models on the Phase 3 matched-pairs dataset. "

@@ -52,6 +52,7 @@ from src.models.ppo_filtered import PPOFilteredPredictor
 from src.models.ppo_raw import PPORawPredictor
 from src.models.volume import VolumePredictor
 from src.models.xgboost_model import XGBoostPredictor
+from src.utils.seed import set_all_seeds
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -62,8 +63,7 @@ RESULTS_DIR = Path("experiments/results/ablation_threshold")
 FIGURES_DIR = Path("experiments/figures")
 DATA_DIR = Path("data/processed")
 
-# Apple Silicon thread safety (Phase 5 decision)
-torch.set_num_threads(1)
+# Apple Silicon thread safety handled by set_all_seeds() in main()
 
 
 def _slug(model_name: str) -> str:
@@ -428,6 +428,7 @@ def plot_grouped_bar(results: list[dict]) -> None:
 
 def main() -> int:
     """Run Experiment 3: threshold ablation across all 8 models."""
+    set_all_seeds(42)
     print("=" * 70)
     print("EXPERIMENT 3: SPREAD THRESHOLD ABLATION")
     print(f"Thresholds: {THRESHOLDS}")

@@ -44,6 +44,7 @@ from src.models.ppo_filtered import PPOFilteredPredictor
 from src.models.ppo_raw import PPORawPredictor
 from src.models.volume import VolumePredictor
 from src.models.xgboost_model import XGBoostPredictor
+from src.utils.seed import set_all_seeds
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -101,8 +102,8 @@ def _train_all_models(
 ) -> dict[str, np.ndarray]:
     """Train all 8 models and return {model_name: predictions_on_test}."""
 
-    # Apple Silicon workaround
-    torch.set_num_threads(1)
+    # Seed all RNG sources for deterministic training
+    set_all_seeds(42)
 
     X_train_flat, y_train_flat = prepare_xy(df_train, feature_cols)
     X_test_flat, y_test_flat = prepare_xy(df_test, feature_cols)
@@ -442,6 +443,7 @@ def _save_forest_plot(
 # ---------------------------------------------------------------------------
 
 def main() -> int:
+    set_all_seeds(42)
     print("=" * 60)
     print("Bootstrap 95% Confidence Intervals")
     print(f"  N_BOOTSTRAP={N_BOOTSTRAP}, CI_LEVEL={CI_LEVEL}")

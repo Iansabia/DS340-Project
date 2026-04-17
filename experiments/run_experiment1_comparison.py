@@ -24,6 +24,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 from src.evaluation.results_store import load_all_results  # noqa: E402
+from src.utils.seed import set_all_seeds  # noqa: E402
 
 # ---- Paths ----
 RESULTS_TIER1 = Path("experiments/results/tier1")
@@ -386,6 +387,7 @@ def format_text_table(results: list[dict]) -> str:
 
 def main() -> int:
     """Load all results, produce summary JSON, figures, and LaTeX table."""
+    set_all_seeds(42)
     print("=" * 60)
     print("Experiment 1: Cross-Tier Complexity vs Performance")
     print("=" * 60)

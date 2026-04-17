@@ -23,9 +23,10 @@ from pathlib import Path
 
 import numpy as np
 import torch
-torch.set_num_threads(1)  # Apple Silicon segfault workaround (Phase 5)
 
 import matplotlib.pyplot as plt
+
+from src.utils.seed import set_all_seeds
 
 from experiments.run_baselines import (
     load_train_test,
@@ -65,6 +66,7 @@ MODEL_CLASSES = [
 # ---------------------------------------------------------------------------
 
 def main() -> int:
+    set_all_seeds(42)
     # Load data
     try:
         train_raw, test_raw = load_train_test(DEFAULT_DATA_DIR)
