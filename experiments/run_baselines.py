@@ -38,6 +38,7 @@ import numpy as np
 import pandas as pd
 
 from src.evaluation.results_store import load_all_results, save_results
+from src.features.engineering import compute_derived_features
 from src.models.base import BasePredictor
 from src.utils.seed import set_all_seeds
 from src.models.gru import GRUPredictor
@@ -46,9 +47,9 @@ from src.models.lstm import LSTMPredictor
 from src.models.naive import NaivePredictor
 from src.models.volume import VolumePredictor
 from src.models.xgboost_model import XGBoostPredictor
-from src.models.ppo_raw import PPORawPredictor
-from src.models.ppo_filtered import PPOFilteredPredictor
-from src.models.autoencoder import AnomalyDetectorAutoencoder
+# PPO / autoencoder imports are deferred (lazy) to avoid ImportError when
+# stable_baselines3 is not installed. They are loaded inside build_models()
+# and run_tier3_with_seeds() only when Tier 3 is actually requested.
 
 
 DEFAULT_DATA_DIR = Path("data/processed")
@@ -98,7 +99,8 @@ def _build_split(df: pd.DataFrame) -> pd.DataFrame:
     Rows are dropped if the target is NaN (last bar of each pair), or if
     ``spread`` is NaN (missing bar, no price signal to predict from).
     """
-    df = df.sort_values(["pair_id", "time_idx"]).reset_index(drop=True)
+    sort_cols = [c for c in ["pair_id", "time_idx", "timestamp"] if c in df.columns]
+    df = df.sort_values(sort_cols).reset_index(drop=True)
     df[TARGET_COLUMN] = (
         df.groupby("pair_id")["spread"].shift(-1) - df["spread"]
     )
@@ -109,12 +111,15 @@ def _build_split(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _feature_columns(df: pd.DataFrame) -> list[str]:
-    """Return the list of columns to feed into the models."""
+    """Return the list of columns to feed into the models.
+
+    Uses select_dtypes(include=['number']) to match verify_headline.py's
+    feature selection, which excludes bool columns (e.g. kalshi_has_trade).
+    """
     return [
         c
-        for c in df.columns
+        for c in df.select_dtypes(include=["number"]).columns
         if c not in NON_FEATURE_COLUMNS
-        and pd.api.types.is_numeric_dtype(df[c])
     ]
 
 
@@ -136,8 +141,8 @@ def load_train_test(data_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
         )
         raise FileNotFoundError(msg)
 
-    train = pd.read_parquet(train_path)
-    test = pd.read_parquet(test_path)
+    train = compute_derived_features(pd.read_parquet(train_path))
+    test = compute_derived_features(pd.read_parquet(test_path))
     return train, test
 
 
@@ -187,10 +192,15 @@ def build_models(tier: str = "1") -> list[BasePredictor]:
         GRUPredictor(random_state=42),
         LSTMPredictor(random_state=42),
     ]
-    tier3 = [
-        PPORawPredictor(random_state=42),
-        PPOFilteredPredictor(random_state=42),
-    ]
+    if tier in ("3", "all"):
+        from src.models.ppo_raw import PPORawPredictor  # lazy: requires stable_baselines3
+        from src.models.ppo_filtered import PPOFilteredPredictor  # lazy: requires stable_baselines3
+    else:
+        PPORawPredictor = PPOFilteredPredictor = None  # type: ignore[assignment,misc]
+    tier3 = (
+        [PPORawPredictor(random_state=42), PPOFilteredPredictor(random_state=42)]
+        if tier in ("3", "all") else []
+    )
     if tier == "1":
         return tier1
     if tier == "2":
@@ -301,6 +311,10 @@ def run_tier3_with_seeds(
 
     X_train_seq, y_train = prepare_xy_for_seq(df_train, feature_cols)
     X_test_seq, y_test = prepare_xy_for_seq(df_test, feature_cols)
+
+    from src.models.ppo_raw import PPORawPredictor  # lazy: requires stable_baselines3
+    from src.models.ppo_filtered import PPOFilteredPredictor  # lazy: requires stable_baselines3
+    from src.models.autoencoder import AnomalyDetectorAutoencoder  # lazy
 
     # ---- PPO-Raw ----
     ppo_raw_seed_rmses: list[float] = []
