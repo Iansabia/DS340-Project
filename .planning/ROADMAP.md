@@ -120,11 +120,11 @@ Plans:
   2. Summary comparison table shows live P&L vs simulated P&L, tracking error, matched/only-live/only-backtest counts, and `(only_live + only_backtest) / matched_trades < 20%` acceptance gate passes (or gap is diagnosed and named in paper)
   3. Category-level (oil vs non-oil) and exit-reason attribution breakdowns are produced, directly testing Finding 6 on live data
   4. Paper section 5.9 "Live vs Backtest Reconciliation" is written with findings and explicit paper-trading caveats (no slippage, no partial fills)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
+- [ ] 09-01-PLAN.md -- Create src/analysis package, reconciliation.py module with shadow simulation, all unit tests, produce summary.json/per_position.csv/report.md
+- [ ] 09-02-PLAN.md -- CLI wrapper (run_live_reconciliation.py) and paper section 5.9 with actual numbers
 
 ### Phase 10: 250-Bar Scaling Checkpoint
 **Goal**: The third scale point (250 bars/pair) fills Table 5 and either confirms ranking invariance across 5x data growth or documents a ranking shift
@@ -222,7 +222,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 8. Environment & Baseline Verification | 2/2 | Complete   | 2026-04-17 | - |
-| 9. Live vs Backtest Reconciliation | v1.1 | 0/0 | Not started | - |
+| 9. Live vs Backtest Reconciliation | v1.1 | 0/2 | Not started | - |
 | 10. 250-Bar Scaling Checkpoint | v1.1 | 0/0 | Not started | - |
 | 11. TFT Training | v1.1 | 0/0 | Not started | - |
 | 12. Feature Ablation | v1.1 | 0/0 | Not started | - |
