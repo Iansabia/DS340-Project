@@ -4,7 +4,7 @@ milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: planning
 stopped_at: Completed 09-02-PLAN.md (CLI wrapper + paper §5.9) — awaiting human-verify checkpoint
-last_updated: "2026-04-21T15:53:35.049Z"
+last_updated: "2026-04-21T16:39:25.907Z"
 last_activity: 2026-04-17 -- v1.1 roadmap created
 progress:
   total_phases: 7
