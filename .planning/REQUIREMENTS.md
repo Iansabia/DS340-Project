@@ -155,14 +155,14 @@ Gating phase; blocks all downstream work.
 
 Leaf phase; starts immediately after Phase 8. **Unblocked** -- the pair_id schema bug was audited and confirmed resolved on 2026-04-17.
 
-- [ ] **RECON-01**: New `src/analysis/` subpackage with `reconciliation.py` module. Pure analysis logic, testable without CLI.
-- [ ] **RECON-02**: Reconciliation window: **April 11, 2026 -> April 25, 2026** (post pair_id fix through 2-day submission buffer). Pre-April-11 positions excluded (exit_reason=`force_close_schema_fix`).
-- [ ] **RECON-03**: Trade-level pairing on `(pair_id, entry_ts_bucket)` between `positions.db` closed positions and backtest predictions regenerated over same timestamps. Guards P2.
-- [ ] **RECON-04**: Single shared fee function (`src/evaluation/profit_sim.simulate_profit`) used by both live-capture and backtest-comparison sides. No parallel P&L calculator. Guards P2.
-- [ ] **RECON-05**: Summary comparison table: live P&L vs simulated P&L, tracking error, total trades matched, only-live count, only-backtest count.
-- [ ] **RECON-06**: Category-level breakdown (oil vs non-oil) comparing live vs simulated P&L per category. Directly tests Finding 6 on live data.
-- [ ] **RECON-07**: Exit-reason attribution table (TAKE_PROFIT, TIME_STOP, STOP_LOSS, MOMENTUM, RESOLUTION_EXIT) -- live vs simulated counts and P&L.
-- [ ] **RECON-08**: Acceptance gate: `(only_live + only_backtest) / matched_trades < 20%`. Any gap >= 20% is diagnosed and named in paper section 5.9.
+- [x] **RECON-01**: New `src/analysis/` subpackage with `reconciliation.py` module. Pure analysis logic, testable without CLI.
+- [x] **RECON-02**: Reconciliation window: **April 11, 2026 -> April 25, 2026** (post pair_id fix through 2-day submission buffer). Pre-April-11 positions excluded (exit_reason=`force_close_schema_fix`).
+- [x] **RECON-03**: Trade-level pairing on `(pair_id, entry_ts_bucket)` between `positions.db` closed positions and backtest predictions regenerated over same timestamps. Guards P2.
+- [x] **RECON-04**: Single shared fee function (`src/evaluation/profit_sim.simulate_profit`) used by both live-capture and backtest-comparison sides. No parallel P&L calculator. Guards P2.
+- [x] **RECON-05**: Summary comparison table: live P&L vs simulated P&L, tracking error, total trades matched, only-live count, only-backtest count.
+- [x] **RECON-06**: Category-level breakdown (oil vs non-oil) comparing live vs simulated P&L per category. Directly tests Finding 6 on live data.
+- [x] **RECON-07**: Exit-reason attribution table (TAKE_PROFIT, TIME_STOP, STOP_LOSS, MOMENTUM, RESOLUTION_EXIT) -- live vs simulated counts and P&L.
+- [x] **RECON-08**: Acceptance gate: `(only_live + only_backtest) / matched_trades < 20%`. Any gap >= 20% is diagnosed and named in paper section 5.9.
 - [ ] **RECON-09**: New paper section 5.9 "Live vs Backtest Reconciliation" written with findings, explicit paper-trading caveats (no slippage, no partial fills).
 - [ ] **RECON-10**: `experiments/run_live_reconciliation.py` CLI wrapper (~40 LOC) over `src/analysis/reconciliation.py`.
 
@@ -254,14 +254,14 @@ Terminal phase; consumes results from all prior phases.
 | ENV-03 | Phase 8 | Complete |
 | ENV-04 | Phase 8 | Complete |
 | ENV-05 | Phase 8 | Complete |
-| RECON-01 | Phase 9 | Pending |
-| RECON-02 | Phase 9 | Pending |
-| RECON-03 | Phase 9 | Pending |
-| RECON-04 | Phase 9 | Pending |
-| RECON-05 | Phase 9 | Pending |
-| RECON-06 | Phase 9 | Pending |
-| RECON-07 | Phase 9 | Pending |
-| RECON-08 | Phase 9 | Pending |
+| RECON-01 | Phase 9 | Complete |
+| RECON-02 | Phase 9 | Complete |
+| RECON-03 | Phase 9 | Complete |
+| RECON-04 | Phase 9 | Complete |
+| RECON-05 | Phase 9 | Complete |
+| RECON-06 | Phase 9 | Complete |
+| RECON-07 | Phase 9 | Complete |
+| RECON-08 | Phase 9 | Complete |
 | RECON-09 | Phase 9 | Pending |
 | RECON-10 | Phase 9 | Pending |
 | SCAL-01 | Phase 10 | Pending |

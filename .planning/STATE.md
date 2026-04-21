@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: planning
-stopped_at: Completed 08-02-PLAN.md (seed utility + reproducibility)
-last_updated: "2026-04-17T23:33:01.547Z"
+stopped_at: Completed 09-01-PLAN.md (reconciliation module + shadow simulation)
+last_updated: "2026-04-21T15:50:02.825Z"
 last_activity: 2026-04-17 -- v1.1 roadmap created
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 0
 ---
 
@@ -62,6 +62,8 @@ Recent decisions affecting current work:
 - [Phase 08-02]: run_baselines.py now calls compute_derived_features() + select_dtypes(['number']) to align with 51-feature pipeline used in verify_headline.py
 - [Phase 08-02]: PPO imports in run_baselines.py are lazy (deferred) to allow Tier 1 to run without stable_baselines3 installed
 - [Phase 08-02]: set_all_seeds(42) is the standard entry point seed call for all experiment scripts; P&L reconciliation skipped in ENV-05 check (different profit sim implementations)
+- [Phase 09-live-vs-backtest-reconciliation]: profit_sim.simulate_profit is canonical fee function for reconciliation (threshold-only model)
+- [Phase 09-live-vs-backtest-reconciliation]: Shadow simulation tracking error of $12.06 is a paper finding: model directional anti-correlation with live entry logic
 
 ### Pending Todos
 
@@ -75,7 +77,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T23:29:46.850Z
-Stopped at: Completed 08-02-PLAN.md (seed utility + reproducibility)
+Last session: 2026-04-21T15:50:02.823Z
+Stopped at: Completed 09-01-PLAN.md (reconciliation module + shadow simulation)
 Resume file: None
 Next action: `/gsd:plan-phase 8`

@@ -222,7 +222,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 8. Environment & Baseline Verification | 2/2 | Complete   | 2026-04-17 | - |
-| 9. Live vs Backtest Reconciliation | v1.1 | 0/2 | Not started | - |
+| 9. Live vs Backtest Reconciliation | 1/2 | In Progress|  | - |
 | 10. 250-Bar Scaling Checkpoint | v1.1 | 0/0 | Not started | - |
 | 11. TFT Training | v1.1 | 0/0 | Not started | - |
 | 12. Feature Ablation | v1.1 | 0/0 | Not started | - |
