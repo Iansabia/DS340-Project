@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: planning
-stopped_at: Completed 09-01-PLAN.md (reconciliation module + shadow simulation)
-last_updated: "2026-04-21T15:50:02.825Z"
+stopped_at: Completed 09-02-PLAN.md (CLI wrapper + paper §5.9) — awaiting human-verify checkpoint
+last_updated: "2026-04-21T15:53:35.049Z"
 last_activity: 2026-04-17 -- v1.1 roadmap created
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -64,6 +64,8 @@ Recent decisions affecting current work:
 - [Phase 08-02]: set_all_seeds(42) is the standard entry point seed call for all experiment scripts; P&L reconciliation skipped in ENV-05 check (different profit sim implementations)
 - [Phase 09-live-vs-backtest-reconciliation]: profit_sim.simulate_profit is canonical fee function for reconciliation (threshold-only model)
 - [Phase 09-live-vs-backtest-reconciliation]: Shadow simulation tracking error of $12.06 is a paper finding: model directional anti-correlation with live entry logic
+- [Phase 09-live-vs-backtest-reconciliation]: CLI wrapper delegates 100% of analysis to src/analysis/reconciliation.py — no inline logic
+- [Phase 09-live-vs-backtest-reconciliation]: Section 5.9 numbers sourced exclusively from experiments/results/reconciliation/summary.json — no fabrication
 
 ### Pending Todos
 
@@ -77,7 +79,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-21T15:50:02.823Z
-Stopped at: Completed 09-01-PLAN.md (reconciliation module + shadow simulation)
+Last session: 2026-04-21T15:53:35.046Z
+Stopped at: Completed 09-02-PLAN.md (CLI wrapper + paper §5.9) — awaiting human-verify checkpoint
 Resume file: None
 Next action: `/gsd:plan-phase 8`

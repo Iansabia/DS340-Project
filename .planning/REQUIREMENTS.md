@@ -163,8 +163,8 @@ Leaf phase; starts immediately after Phase 8. **Unblocked** -- the pair_id schem
 - [x] **RECON-06**: Category-level breakdown (oil vs non-oil) comparing live vs simulated P&L per category. Directly tests Finding 6 on live data.
 - [x] **RECON-07**: Exit-reason attribution table (TAKE_PROFIT, TIME_STOP, STOP_LOSS, MOMENTUM, RESOLUTION_EXIT) -- live vs simulated counts and P&L.
 - [x] **RECON-08**: Acceptance gate: `(only_live + only_backtest) / matched_trades < 20%`. Any gap >= 20% is diagnosed and named in paper section 5.9.
-- [ ] **RECON-09**: New paper section 5.9 "Live vs Backtest Reconciliation" written with findings, explicit paper-trading caveats (no slippage, no partial fills).
-- [ ] **RECON-10**: `experiments/run_live_reconciliation.py` CLI wrapper (~40 LOC) over `src/analysis/reconciliation.py`.
+- [x] **RECON-09**: New paper section 5.9 "Live vs Backtest Reconciliation" written with findings, explicit paper-trading caveats (no slippage, no partial fills).
+- [x] **RECON-10**: `experiments/run_live_reconciliation.py` CLI wrapper (~40 LOC) over `src/analysis/reconciliation.py`.
 
 ### Phase 10 -- 250-Bar Scaling Checkpoint
 
@@ -262,8 +262,8 @@ Terminal phase; consumes results from all prior phases.
 | RECON-06 | Phase 9 | Complete |
 | RECON-07 | Phase 9 | Complete |
 | RECON-08 | Phase 9 | Complete |
-| RECON-09 | Phase 9 | Pending |
-| RECON-10 | Phase 9 | Pending |
+| RECON-09 | Phase 9 | Complete |
+| RECON-10 | Phase 9 | Complete |
 | SCAL-01 | Phase 10 | Pending |
 | SCAL-02 | Phase 10 | Pending |
 | SCAL-03 | Phase 10 | Pending |
