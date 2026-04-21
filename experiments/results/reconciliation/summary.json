@@ -1,0 +1,84 @@
+{
+  "summary": {
+    "live_total_pnl": 6.029999999999997,
+    "sim_total_pnl": -6.029999999999997,
+    "tracking_error": 12.059999999999993,
+    "matched_count": 2530,
+    "unmatched_count": 0,
+    "gap_metric": 0.0,
+    "total_positions": 2530
+  },
+  "category_breakdown": {
+    "other": {
+      "live_pnl": 0.098,
+      "sim_pnl": -0.098,
+      "count": 1033,
+      "tracking_error": 0.196
+    },
+    "inflation": {
+      "live_pnl": 1.956,
+      "sim_pnl": -1.956,
+      "count": 1010,
+      "tracking_error": 3.912
+    },
+    "gdp": {
+      "live_pnl": -0.3465,
+      "sim_pnl": 0.3465,
+      "count": 192,
+      "tracking_error": -0.693
+    },
+    "politics_policy": {
+      "live_pnl": -0.0015,
+      "sim_pnl": 0.0015,
+      "count": 20,
+      "tracking_error": -0.003
+    },
+    "crypto": {
+      "live_pnl": 4.3325,
+      "sim_pnl": -4.3325,
+      "count": 261,
+      "tracking_error": 8.665
+    },
+    "fed_rates": {
+      "live_pnl": -0.0085,
+      "sim_pnl": 0.0085,
+      "count": 14,
+      "tracking_error": -0.017
+    }
+  },
+  "exit_reason_attribution": {
+    "RESOLUTION_EXIT": {
+      "live_count": 821,
+      "sim_count": 821,
+      "live_pnl": 4.8965,
+      "sim_pnl": -4.8965
+    },
+    "TIME_STOP": {
+      "live_count": 1508,
+      "sim_count": 1508,
+      "live_pnl": 2.935,
+      "sim_pnl": -2.935
+    },
+    "STOP_LOSS": {
+      "live_count": 10,
+      "sim_count": 10,
+      "live_pnl": -1.2365,
+      "sim_pnl": 1.2365
+    },
+    "MOMENTUM": {
+      "live_count": 190,
+      "sim_count": 190,
+      "live_pnl": -0.82,
+      "sim_pnl": 0.82
+    },
+    "TAKE_PROFIT": {
+      "live_count": 1,
+      "sim_count": 1,
+      "live_pnl": 0.255,
+      "sim_pnl": -0.255
+    }
+  },
+  "acceptance_gate_passed": true,
+  "window_start": "2026-04-11",
+  "window_end": "current"
+}
