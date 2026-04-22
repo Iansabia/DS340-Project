@@ -45,6 +45,7 @@ from src.models.gru import GRUPredictor
 from src.models.linear_regression import LinearRegressionPredictor
 from src.models.lstm import LSTMPredictor
 from src.models.naive import NaivePredictor
+from src.models.tft import TFTPredictor
 from src.models.volume import VolumePredictor
 from src.models.xgboost_model import XGBoostPredictor
 # PPO / autoencoder imports are deferred (lazy) to avoid ImportError when
@@ -87,6 +88,7 @@ _MODEL_ORDER = [
     "XGBoost",
     "GRU",
     "LSTM",
+    "TFT",
     "PPO-Raw",
     "PPO-Filtered",
 ]
@@ -238,7 +240,7 @@ def run_tier2_with_seeds(
     X_train_seq, y_train = prepare_xy_for_seq(df_train, feature_cols)
     X_test_seq, y_test = prepare_xy_for_seq(df_test, feature_cols)
 
-    model_classes: list[type[BasePredictor]] = [GRUPredictor, LSTMPredictor]
+    model_classes: list[type[BasePredictor]] = [GRUPredictor, LSTMPredictor, TFTPredictor]
 
     for cls in model_classes:
         seed_rmses: list[float] = []

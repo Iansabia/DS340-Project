@@ -188,6 +188,13 @@ def run_walk_forward(
     except ImportError:
         logger.info("torch not available — skipping Tier 2")
 
+    try:
+        from src.models.tft import TFTPredictor  # noqa: WPS433
+        model_factories["tft"] = TFTPredictor
+        logger.info("pytorch-forecasting available — including TFT")
+    except ImportError:
+        logger.info("pytorch-forecasting not available — skipping TFT")
+
     all_results = []
 
     # Start at window i_start — need enough prior windows for training.
@@ -258,7 +265,7 @@ def run_walk_forward(
         for name, factory in model_factories.items():
             model = factory()
             try:
-                if name in ("gru", "lstm"):
+                if name in ("gru", "lstm", "tft"):
                     # Sequence models need group_id for per-pair windowing
                     model.fit(X_train_seq, y_train_seq)
                     preds = model.predict(X_test_seq)
