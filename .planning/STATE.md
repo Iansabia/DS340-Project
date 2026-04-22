@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: in_progress
-stopped_at: Completed 11-01-PLAN.md (TFT training + experiment) — all tasks done
-last_updated: "2026-04-22T22:46:30Z"
+status: completed
+stopped_at: Completed 11-02-PLAN.md (TFT paper integration) — all tasks done
+last_updated: "2026-04-22T22:57:09.406Z"
 last_activity: 2026-04-22 -- Phase 11 plan 01 executed
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 4
+  total_plans: 7
+  completed_plans: 7
   percent: 75
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 ## Current Position
 
-Phase: 11 of 14 (TFT Training)
-Plan: 1 of 2 in current phase (complete)
-Status: Phase 11 plan 01 complete; Phase 11 plan 02 (paper integration) is next
-Last activity: 2026-04-22 -- Phase 11 plan 01 executed
+Phase: 11 of 14 (TFT Training) — COMPLETE
+Plan: 2 of 2 in current phase (complete)
+Status: Phase 11 fully complete (both plans); Phase 12 or 13 is next
+Last activity: 2026-04-22 -- Phase 11 plan 02 executed
 
 Progress: [████████░░] 75%
 
@@ -75,6 +75,8 @@ Recent decisions affecting current work:
 - [Phase 11-01-tft-training]: Round-based batch predict for TFT: K rounds x all_groups together (~11 rounds) instead of 1673 per-row calls; 150x speedup
 - [Phase 11-01-tft-training]: compute_derived_features drops group_id (not in OUTPUT_COLUMNS); must re-attach from raw parquet before prepare_xy_for_seq
 - [Phase 11-01-tft-training]: GroupNormalizer(transformation=None) confirmed correct for signed spread-change targets; softplus causes degenerate predictions
+- [Phase 11]: TFT negative result (Branch B): converged=False — 4-variant ensemble for Phase 13 (no TFT variant)
+- [Phase 11]: VSN attention is healthy (entropy=2.656, not degenerate) even when predictive performance is weak — data-volume bottleneck, not architecture failure
 
 ### Pending Todos
 
@@ -88,7 +90,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-22T22:46:30Z
-Stopped at: Completed 11-01-PLAN.md (TFT training + experiment) — all tasks done
+Last session: 2026-04-22T22:57:09.404Z
+Stopped at: Completed 11-02-PLAN.md (TFT paper integration) — all tasks done
 Resume file: None
 Next action: Phase 11 planning
