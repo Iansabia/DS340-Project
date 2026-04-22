@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: planning
-stopped_at: Completed 09-02-PLAN.md (CLI wrapper + paper §5.9) — awaiting human-verify checkpoint
-last_updated: "2026-04-21T16:39:25.907Z"
-last_activity: 2026-04-17 -- v1.1 roadmap created
+status: in-progress
+stopped_at: Completed 10-01-PLAN.md (250-bar scaling checkpoint) — all 3 tasks done
+last_updated: "2026-04-22T21:27:45Z"
+last_activity: 2026-04-22 -- Phase 10 plan 01 completed
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 0
+  completed_phases: 3
+  total_plans: 5
+  completed_plans: 5
+  percent: 71
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 ## Current Position
 
-Phase: 8 of 14 (Environment & Baseline Verification)
-Plan: 0 of 0 in current phase (not yet planned)
-Status: Ready to plan
-Last activity: 2026-04-17 -- v1.1 roadmap created
+Phase: 10 of 14 (250-Bar Scaling Checkpoint)
+Plan: 1 of 1 in current phase (complete)
+Status: Phase 10 complete
+Last activity: 2026-04-22 -- Phase 10 plan 01 executed
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███████░░░] 71%
 
 ## Performance Metrics
 
@@ -40,9 +40,9 @@ Progress: [░░░░░░░░░░] 0%
 - Total execution time: ~3 hours
 
 **v1.1 Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 5
+- Average duration: ~3 min
+- Total execution time: ~15 min
 
 *Updated after each plan completion*
 
@@ -67,6 +67,9 @@ Recent decisions affecting current work:
 - [Phase 09-live-vs-backtest-reconciliation]: CLI wrapper delegates 100% of analysis to src/analysis/reconciliation.py — no inline logic
 - [Phase 09-live-vs-backtest-reconciliation]: Section 5.9 numbers sourced exclusively from experiments/results/reconciliation/summary.json — no fabrication
 - [2026-04-22]: Phase 9 re-run on 8-day snapshot (10,154 trades, 577 pairs); §5.9 and Finding 23 updated; crypto regime flip and TAKE_PROFIT tail (n=88) documented
+- [Phase 10-250-bar-scaling-checkpoint]: GRU and LSTM trained successfully at 250 bars (torch env working); XGBoost > LR > GRU > LSTM ranking invariant across 5x data growth (50/100/250 bars)
+- [Phase 10-250-bar-scaling-checkpoint]: Auto-trigger root cause: run_data_scaling.py --auto reads only train.parquet (max 141 bars/pair); manual --bars-per-pair 250 required
+- [Phase 10-250-bar-scaling-checkpoint]: PYTHONPATH must be set to project root when running scripts from venv
 
 ### Pending Todos
 
@@ -80,7 +83,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-21T15:53:35.046Z
-Stopped at: Completed 09-02-PLAN.md (CLI wrapper + paper §5.9) — awaiting human-verify checkpoint
+Last session: 2026-04-22T21:27:45Z
+Stopped at: Completed 10-01-PLAN.md (250-bar scaling checkpoint) — all tasks done
 Resume file: None
-Next action: `/gsd:plan-phase 8`
+Next action: Phase 11 planning

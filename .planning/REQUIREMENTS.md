@@ -170,11 +170,11 @@ Leaf phase; starts immediately after Phase 8. **Unblocked** -- the pair_id schem
 
 Passive wait; parallelizes with Phases 11 and 12.
 
-- [ ] **SCAL-01**: 250-bar auto-retrain checkpoint output captured from SCC (ETA 12-24h from milestone start; may already have fired).
-- [ ] **SCAL-02**: Table 5 in paper updated with 3rd scale point (50 / 100 / 250 bars/pair).
-- [ ] **SCAL-03**: Figure 2 regenerated with explicit training-set-cap annotation ("plateau at N=6,802, fixed pair universe"). Guards P7.
-- [ ] **SCAL-04**: Finding 22 in `FINDINGS.md` filled in with actual numbers (currently marked pending).
-- [ ] **SCAL-05**: Paper section 5.4 updated to either confirm "ranking invariant across 5x data growth" or document any ranking shift.
+- [x] **SCAL-01**: 250-bar auto-retrain checkpoint output captured from SCC (ETA 12-24h from milestone start; may already have fired).
+- [x] **SCAL-02**: Table 5 in paper updated with 3rd scale point (50 / 100 / 250 bars/pair).
+- [x] **SCAL-03**: Figure 2 regenerated with explicit training-set-cap annotation ("plateau at N=6,802, fixed pair universe"). Guards P7.
+- [x] **SCAL-04**: Finding 22 in `FINDINGS.md` filled in with actual numbers (currently marked pending).
+- [x] **SCAL-05**: Paper section 5.4 updated to either confirm "ranking invariant across 5x data growth" or document any ranking shift.
 
 ### Phase 11 -- TFT (Temporal Fusion Transformer)
 
@@ -264,11 +264,11 @@ Terminal phase; consumes results from all prior phases.
 | RECON-08 | Phase 9 | Complete |
 | RECON-09 | Phase 9 | Complete |
 | RECON-10 | Phase 9 | Complete |
-| SCAL-01 | Phase 10 | Pending |
-| SCAL-02 | Phase 10 | Pending |
-| SCAL-03 | Phase 10 | Pending |
-| SCAL-04 | Phase 10 | Pending |
-| SCAL-05 | Phase 10 | Pending |
+| SCAL-01 | Phase 10 | Complete |
+| SCAL-02 | Phase 10 | Complete |
+| SCAL-03 | Phase 10 | Complete |
+| SCAL-04 | Phase 10 | Complete |
+| SCAL-05 | Phase 10 | Complete |
 | TFT-01 | Phase 11 | Pending |
 | TFT-02 | Phase 11 | Pending |
 | TFT-03 | Phase 11 | Pending |

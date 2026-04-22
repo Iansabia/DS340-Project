@@ -89,7 +89,7 @@
 
 - [x] **Phase 8: Environment & Baseline Verification** - Clean venv, seed discipline, reproduce all Table 2 numbers identically (completed 2026-04-17)
 - [x] **Phase 9: Live vs Backtest Reconciliation** - Trade-level comparison of live paper-trading P&L against backtest predictions (completed 2026-04-21)
-- [ ] **Phase 10: 250-Bar Scaling Checkpoint** - Third scale point in Table 5, test ranking invariance across 5x data growth
+- [x] **Phase 10: 250-Bar Scaling Checkpoint** - Third scale point in Table 5, test ranking invariance across 5x data growth (completed 2026-04-22)
 - [ ] **Phase 11: TFT Training** - Temporal Fusion Transformer on 6,802 rows with pre-specified small-data hyperparameters
 - [ ] **Phase 12: Feature Ablation** - LOGO over 5 feature groups on LR + XGBoost with pre-registered protocol
 - [ ] **Phase 13: Ensemble Formalization** - Evidence-based production ensemble with concordance filter audit
@@ -137,7 +137,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 10-01-PLAN.md -- Run 250-bar checkpoint manually (bypassing broken auto-trigger), regenerate Figure 2, update Table 5 + §5.4 + Finding 22, fix wrong figure path in paper
+- [x] 10-01-PLAN.md -- Run 250-bar checkpoint manually (bypassing broken auto-trigger), regenerate Figure 2, update Table 5 + §5.4 + Finding 22, fix wrong figure path in paper (completed 2026-04-22)
 
 ### Phase 11: TFT Training
 **Goal**: The deferred Temporal Fusion Transformer is trained with pre-specified small-data hyperparameters and produces either a competitive result or a documented negative finding that extends the simplicity-wins thesis
@@ -223,7 +223,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 |-------|-----------|----------------|--------|-----------|
 | 8. Environment & Baseline Verification | 2/2 | Complete   | 2026-04-17 | - |
 | 9. Live vs Backtest Reconciliation | 2/2 | Complete   | 2026-04-21 | - |
-| 10. 250-Bar Scaling Checkpoint | v1.1 | 0/1 | Not started | - |
+| 10. 250-Bar Scaling Checkpoint | 1/1 | Complete   | 2026-04-22 | - |
 | 11. TFT Training | v1.1 | 0/0 | Not started | - |
 | 12. Feature Ablation | v1.1 | 0/0 | Not started | - |
 | 13. Ensemble Formalization | v1.1 | 0/0 | Not started | - |
