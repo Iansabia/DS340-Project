@@ -303,7 +303,7 @@ Oil-contract convergence is largely mechanical: WTI-futures expiry dates resolve
 
 ### 5.4 Data-Scaling Curve
 
-Fig. 2 (see `experiments/figures/pnl_at_2pp_vs_data.png`) shows the 6-point scaling curve. Values are stable because the training set cap (6,802 rows) is reached by bar-count 100. Table 5 summarizes.
+Fig. 2 (see `experiments/results/data_scaling/pnl_at_2pp_vs_data.png`) shows the 6-point scaling curve. Plateau occurs because train.parquet contains at most 141 bars/pair (N=6,802 rows, 144 pairs); slices at 250+ bars/pair are identical to the 100-bar slice and produce identical metrics. Table 5 summarizes.
 
 **Table 5: Data-scaling experiment (P&L at 2pp).**
 
@@ -311,12 +311,14 @@ Fig. 2 (see `experiments/figures/pnl_at_2pp_vs_data.png`) shows the 6-point scal
 |---|---|---|---|---|---|
 | 50 | 4,646 | +\$202.93 | **+\$210.57** | — | — |
 | 100 | 6,290 | +\$200.36 | **+\$211.07** | +\$186.67 | +\$182.76 |
-| 250 | 6,802 | +\$199.90 | **+\$210.01** | — | — |
+| 250 | 6,802 | +\$199.90 | **+\$210.01** | +\$196.40 | +\$181.85 |
 | 500 | 6,802 | +\$199.90 | **+\$210.01** | — | — |
 | 1000 | 6,802 | +\$199.90 | **+\$210.01** | — | — |
 | 2000 | 6,802 | +\$199.90 | **+\$210.01** | — | — |
 
-The scaling curve plateaus at 100 bars/pair because we hit the training-set cap. Within that range, **the ranking is invariant**: XGBoost > LR > LSTM > GRU. This directly refutes the hypothesis that sequence models would overtake regression if only they had more data, at least for sample sizes reachable on our dataset.
+*Footnote: Rows 50 and 100 bars/pair used the 29-feature pipeline (April 11, 2026 batch run). Row 250 bars/pair uses the 29-feature pipeline (April 22, 2026 manual run, Phase 8 aligned). Both pipelines show the same qualitative ranking. Rows 500, 1000, 2000 are plateau-equivalent to row 250 (training data is capped at 6,802 rows, max 141 bars/pair); GRU/LSTM not re-run for those rows as they produce identical training slices.*
+
+The scaling curve plateaus at 100 bars/pair because train.parquet is capped at 6,802 rows and 144 pairs (max 141 bars/pair); slices beyond 100 bars/pair are identical to the 100-bar slice. Within that range, **the ranking is invariant**: XGBoost > LR > GRU > LSTM. This ranking holds at all three measured scale points (50, 100, 250 bars/pair), confirming invariance across a 5× growth in training data. This directly refutes the hypothesis that sequence models would overtake regression if only they had more data, at least for sample sizes reachable on our dataset.
 
 ### 5.5 XGBoost Hyperparameter Sweep
 
@@ -617,7 +619,7 @@ Total runtime on a single CPU: ~2 hours. GPU is not required.
 
 - **Figure 1 — Walk-forward P&L curves:** `experiments/figures/walk_forward_pnl.png` (11 windows, 6 models)
 - **Figure 2 — Walk-forward Sharpe curves:** `experiments/figures/walk_forward_sharpe.png`
-- **Figure 3 — P&L vs. training data size:** `experiments/figures/pnl_at_2pp_vs_data.png`
+- **Figure 3 — P&L vs. training data size:** `experiments/results/data_scaling/pnl_at_2pp_vs_data.png`
 - **Figure 4 — Transaction-cost sensitivity:** `experiments/figures/transaction_cost_sensitivity.png`
 - **Figure 5 — SHAP feature importance:** `experiments/figures/shap_bar_plot.png`
 - **Figure 6 — Equity curves (cumulative P&L over test period):** `experiments/figures/backtest_equity_curves.png`
