@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: completed
-stopped_at: Completed 11-02-PLAN.md (TFT paper integration) — all tasks done
-last_updated: "2026-04-22T23:01:32.824Z"
-last_activity: 2026-04-22 -- Phase 11 plan 02 executed
+status: in-progress
+stopped_at: Completed 12-01-PLAN.md (LOGO feature ablation) — all tasks done
+last_updated: "2026-04-22T23:55:49Z"
+last_activity: 2026-04-22 -- Phase 12 plan 01 executed
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 7
-  completed_plans: 7
-  percent: 75
+  total_plans: 8
+  completed_plans: 8
+  percent: 80
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 ## Current Position
 
-Phase: 11 of 14 (TFT Training) — COMPLETE
-Plan: 2 of 2 in current phase (complete)
-Status: Phase 11 fully complete (both plans); Phase 12 or 13 is next
-Last activity: 2026-04-22 -- Phase 11 plan 02 executed
+Phase: 12 of 14 (Feature Ablation) — IN PROGRESS
+Plan: 1 of 2 complete (Plan 01 done; Plan 02 next)
+Status: Phase 12 Plan 01 fully complete; Plan 02 (§5.10 paper integration) next
+Last activity: 2026-04-22 -- Phase 12 plan 01 executed
 
-Progress: [████████░░] 75%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
@@ -40,9 +40,9 @@ Progress: [████████░░] 75%
 - Total execution time: ~3 hours
 
 **v1.1 Velocity:**
-- Total plans completed: 5
-- Average duration: ~3 min
-- Total execution time: ~15 min
+- Total plans completed: 6
+- Average duration: ~4 min
+- Total execution time: ~21 min
 
 *Updated after each plan completion*
 
@@ -77,6 +77,10 @@ Recent decisions affecting current work:
 - [Phase 11-01-tft-training]: GroupNormalizer(transformation=None) confirmed correct for signed spread-change targets; softplus causes degenerate predictions
 - [Phase 11]: TFT negative result (Branch B): converged=False — 4-variant ensemble for Phase 13 (no TFT variant)
 - [Phase 11]: VSN attention is healthy (entropy=2.656, not degenerate) even when predictive performance is weak — data-volume bottleneck, not architecture failure
+- [Phase 12-01-feature-ablation]: Pre-registration via git commit ordering: ablation_protocol.md committed at b15534b before run_feature_ablation.py at 46b253a (ABLA-01)
+- [Phase 12-01-feature-ablation]: All 51-feature groups classified as droppable on ablation_holdout (1,021 rows) — CIs all straddle zero, |delta| < $10; insufficient statistical power at this holdout size
+- [Phase 12-01-feature-ablation]: Ablation holdout P&L (+$56.54 LR, +$54.00 XGB) differs from full train-test headline (+$232) due to smaller evaluation window (1,021 vs 6,800 rows)
+- [Phase 12-01-feature-ablation]: final_test (test.parquet, 1,673 rows) untouched — frozen for one-shot evaluation in §5.10 paper section
 
 ### Pending Todos
 
@@ -90,7 +94,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-22T22:57:09.404Z
-Stopped at: Completed 11-02-PLAN.md (TFT paper integration) — all tasks done
+Last session: 2026-04-22T23:55:49Z
+Stopped at: Completed 12-01-PLAN.md (LOGO feature ablation) — all tasks done
 Resume file: None
-Next action: Phase 11 planning
+Next action: Phase 12 Plan 02 (§5.10 paper integration)

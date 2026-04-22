@@ -193,13 +193,13 @@ Starts the TFT -> Ensemble critical path.
 
 Fast and independent; parallelizes with Phase 11.
 
-- [ ] **ABLA-01**: Pre-registered ablation protocol committed as `.planning/ablation_protocol.md` **before** `run_feature_ablation.py` executes. Guards P3.
-- [ ] **ABLA-02**: LOGO (leave-one-group-out) across 5 feature groups: (a) raw aligned OHLCV, (b) cross-platform basics (spread/mid/divergence), (c) rolling/momentum, (d) classical microstructure (Amihud/Kyle/Roll/Corwin-Schultz), (e) prediction-market-specific (favorite-longshot etc.). **Not LOFO** over individual features (noisier).
-- [ ] **ABLA-03**: Three-way temporal split: train / ablation-holdout / final-test. Minimum sufficient feature set selected on ablation-holdout only; final test untouched until after selection is frozen. Guards P3.
-- [ ] **ABLA-04**: Bootstrap 95% CIs on per-group P&L deltas (1,000 resamples).
-- [ ] **ABLA-05**: Ablation table reports ALL runs, not only favorable ones.
-- [ ] **ABLA-06**: Two-model comparison (LR vs XGBoost) separately -- feature importance differs by model family.
-- [ ] **ABLA-07**: New `experiments/run_feature_ablation.py` (~200 LOC). Filters `X[subset]` at experiment boundary; never modifies `BasePredictor.fit()` signature.
+- [x] **ABLA-01**: Pre-registered ablation protocol committed as `.planning/ablation_protocol.md` **before** `run_feature_ablation.py` executes. Guards P3.
+- [x] **ABLA-02**: LOGO (leave-one-group-out) across 5 feature groups: (a) raw aligned OHLCV, (b) cross-platform basics (spread/mid/divergence), (c) rolling/momentum, (d) classical microstructure (Amihud/Kyle/Roll/Corwin-Schultz), (e) prediction-market-specific (favorite-longshot etc.). **Not LOFO** over individual features (noisier).
+- [x] **ABLA-03**: Three-way temporal split: train / ablation-holdout / final-test. Minimum sufficient feature set selected on ablation-holdout only; final test untouched until after selection is frozen. Guards P3.
+- [x] **ABLA-04**: Bootstrap 95% CIs on per-group P&L deltas (1,000 resamples).
+- [x] **ABLA-05**: Ablation table reports ALL runs, not only favorable ones.
+- [x] **ABLA-06**: Two-model comparison (LR vs XGBoost) separately -- feature importance differs by model family.
+- [x] **ABLA-07**: New `experiments/run_feature_ablation.py` (~200 LOC). Filters `X[subset]` at experiment boundary; never modifies `BasePredictor.fit()` signature.
 - [ ] **ABLA-08**: Paper section 5.X "Feature Ablation" added with table and parsimony discussion.
 
 ### Phase 13 -- Ensemble Formalization
@@ -277,13 +277,13 @@ Terminal phase; consumes results from all prior phases.
 | TFT-06 | Phase 11 | Complete |
 | TFT-07 | Phase 11 | Complete |
 | TFT-08 | Phase 11 | Complete |
-| ABLA-01 | Phase 12 | Pending |
-| ABLA-02 | Phase 12 | Pending |
-| ABLA-03 | Phase 12 | Pending |
-| ABLA-04 | Phase 12 | Pending |
-| ABLA-05 | Phase 12 | Pending |
-| ABLA-06 | Phase 12 | Pending |
-| ABLA-07 | Phase 12 | Pending |
+| ABLA-01 | Phase 12 | Complete |
+| ABLA-02 | Phase 12 | Complete |
+| ABLA-03 | Phase 12 | Complete |
+| ABLA-04 | Phase 12 | Complete |
+| ABLA-05 | Phase 12 | Complete |
+| ABLA-06 | Phase 12 | Complete |
+| ABLA-07 | Phase 12 | Complete |
 | ABLA-08 | Phase 12 | Pending |
 | ENSM-01 | Phase 13 | Pending |
 | ENSM-02 | Phase 13 | Pending |
