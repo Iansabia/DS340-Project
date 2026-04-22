@@ -162,12 +162,12 @@ Plans:
   1. `.planning/ablation_protocol.md` is committed before `run_feature_ablation.py` executes, pre-registering the 5 feature groups, three-way split design, and analysis plan (guards P3)
   2. LOGO ablation runs on both LR and XGBoost separately with bootstrap 95% CIs on per-group P&L deltas, and the results table reports ALL runs (not only favorable ones)
   3. Minimum sufficient feature set is selected on ablation-holdout split only; final-test split is untouched until after selection is frozen
-  4. Paper section 5.X "Feature Ablation" contains the ablation table and parsimony discussion
-**Plans**: TBD
+  4. Paper section 5.10 "Feature Ablation" contains the ablation table and parsimony discussion
+**Plans**: 2 plans
 
 Plans:
-- [ ] 12-01: TBD
-- [ ] 12-02: TBD
+- [ ] 12-01-PLAN.md -- Pre-register ablation_protocol.md (commit first), implement run_feature_ablation.py, run all 12 LOGO configs with bootstrap CIs
+- [ ] 12-02-PLAN.md -- Write §5.10 Feature Ablation with actual numbers and Finding 25 (minimum sufficient set)
 
 ### Phase 13: Ensemble Formalization
 **Goal**: The live deployment's LR+XGBoost ensemble is formally evaluated alongside alternative ensemble variants, with an honest concordance filter audit that surfaces any Sharpe inflation
@@ -225,7 +225,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 9. Live vs Backtest Reconciliation | 2/2 | Complete   | 2026-04-21 | - |
 | 10. 250-Bar Scaling Checkpoint | 1/1 | Complete    | 2026-04-22 | - |
 | 11. TFT Training | 2/2 | Complete    | 2026-04-22 | - |
-| 12. Feature Ablation | v1.1 | 0/0 | Not started | - |
+| 12. Feature Ablation | v1.1 | 0/2 | Not started | - |
 | 13. Ensemble Formalization | v1.1 | 0/0 | Not started | - |
 | 14. Paper Finalization + Presentation | v1.1 | 0/0 | Not started | - |
 
