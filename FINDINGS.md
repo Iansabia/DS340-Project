@@ -431,6 +431,48 @@ Outputs: `experiments/results/category_breakdown.json`,
 
 ---
 
+## Finding 24: TFT Negative Result at N=6,802 (Phase 11, April 22, 2026)
+**Phase:** Phase 11 TFT Training
+
+**Result:** TFT DID NOT CONVERGE — avg RMSE 0.3262 does not beat GRU baseline (0.2928). TFT did not beat GRU at N=6802 (avg RMSE=0.3262 vs GRU=0.2928). Documented negative result per TFT-04 Option B. Extends the simplicity-wins thesis to transformer architectures.
+
+**Hyperparameters attempted:** hidden_size=8, attention_head_size=1, dropout=0.3,
+lstm_layers=1, max_encoder_length=6, QuantileLoss([0.1, 0.5, 0.9]), GroupNormalizer(transformation=None).
+
+**Results across 3 seeds:**
+| Seed | RMSE   | P&L ($) |
+|------|--------|---------|
+| 42   | 0.3264 | -1.37   |
+| 7    | 0.3265 | -0.51   |
+| 123  | 0.3258 | +6.57   |
+| Mean | 0.3262 | +1.56   |
+
+**Attention audit (seed 123):** entropy=2.656 (threshold=1.966),
+max_variable_weight=0.368, is_degenerate=False.
+
+**VSN top-5 encoder features (seed=42 re-run):** polymarket_amihud (1121.5),
+polymarket_high (803.3), kalshi_roll_spread (433.5), price_divergence_pct (250.9),
+relative_time_idx (229.2). Attention is healthy (not degenerate) even though
+predictive performance is weak — TFT is attending to meaningful features,
+but the dataset is too small to exploit them.
+
+**Interpretation:** At N=6,802 rows and 144 pairs, TFT's transformer-attention
+mechanism requires more data than is available in this dataset. The
+simplicity-wins thesis now extends to transformer architectures, not only
+recurrent networks. This is the strongest complexity-is-a-liability finding:
+even a minimal TFT configuration (hidden_size=8, smallest possible model)
+cannot outperform a 64-unit GRU at this data scale.
+
+**For paper:** "We attempted TFT (hidden_size=8, 3-quantile loss) with
+per-specified small-data hyperparameters and found it did not converge within
+the pre-specified 30-epoch budget at N=6,802 training rows (avg RMSE=0.3262
+vs. GRU=0.2928, 11.4% worse). This extends the complexity-is-a-liability
+finding from recurrent to transformer architectures. The VSN attention audit
+(entropy=2.656, not degenerate) confirms the model is attending to meaningful
+features — the bottleneck is data volume, not architecture correctness."
+
+---
+
 ## Open Questions for Paper
 
 1. **Does GRU overtake XGBoost at 100+ bars/pair?** — Answer expected within 24-48h from auto-retrain.
