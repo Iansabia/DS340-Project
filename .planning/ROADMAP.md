@@ -148,11 +148,11 @@ Plans:
   2. If TFT converges (val_loss beats GRU within 1-day time-box): TFT row appears in Tables 2 and 3, attention entropy audit passes (`entropy >= 0.5 * log(n_features)` and `max_variable_weight < 0.8`), and VSN heatmap is saved to `experiments/figures/`
   3. If TFT does not converge: "TFT did not converge at N=6,802" is reported as a finding under Discussion section 6, and Phase 13 proceeds with TFT-excluding baseline
   4. Either outcome (success or documented negative result) produces a paper-ready finding that extends the complexity-vs-performance analysis
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 11-01: TBD
-- [ ] 11-02: TBD
+- [ ] 11-01-PLAN.md -- TDD: implement TFTPredictor(BasePredictor), smoke tests, single-split experiment, wire into run_baselines + run_walk_forward
+- [ ] 11-02-PLAN.md -- VSN heatmap extraction, Finding 26, update PAPER_DRAFT.md Table 2 + §4.1 + §6.2.3
 
 ### Phase 12: Feature Ablation
 **Goal**: A pre-registered LOGO ablation study identifies the minimum sufficient feature set for profitable trading and quantifies which feature groups are load-bearing vs droppable
@@ -224,7 +224,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 8. Environment & Baseline Verification | 2/2 | Complete   | 2026-04-17 | - |
 | 9. Live vs Backtest Reconciliation | 2/2 | Complete   | 2026-04-21 | - |
 | 10. 250-Bar Scaling Checkpoint | 1/1 | Complete    | 2026-04-22 | - |
-| 11. TFT Training | v1.1 | 0/0 | Not started | - |
+| 11. TFT Training | v1.1 | 0/2 | Not started | - |
 | 12. Feature Ablation | v1.1 | 0/0 | Not started | - |
 | 13. Ensemble Formalization | v1.1 | 0/0 | Not started | - |
 | 14. Paper Finalization + Presentation | v1.1 | 0/0 | Not started | - |
