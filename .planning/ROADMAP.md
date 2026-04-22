@@ -134,10 +134,10 @@ Plans:
   1. 250-bar auto-retrain checkpoint output is captured from SCC and Table 5 in the paper contains all three scale points (50 / 100 / 250 bars/pair)
   2. Figure 2 is regenerated with explicit training-set-cap annotation ("plateau at N=6,802, fixed pair universe") so the scaling curve is not misread as universal evidence (guards P7)
   3. Paper section 5.4 explicitly states whether model rankings are invariant across the 5x data growth or documents any ranking shift
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 10-01: TBD
+- [ ] 10-01-PLAN.md -- Run 250-bar checkpoint manually (bypassing broken auto-trigger), regenerate Figure 2, update Table 5 + §5.4 + Finding 22, fix wrong figure path in paper
 
 ### Phase 11: TFT Training
 **Goal**: The deferred Temporal Fusion Transformer is trained with pre-specified small-data hyperparameters and produces either a competitive result or a documented negative finding that extends the simplicity-wins thesis
@@ -223,7 +223,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 |-------|-----------|----------------|--------|-----------|
 | 8. Environment & Baseline Verification | 2/2 | Complete   | 2026-04-17 | - |
 | 9. Live vs Backtest Reconciliation | 2/2 | Complete   | 2026-04-21 | - |
-| 10. 250-Bar Scaling Checkpoint | v1.1 | 0/0 | Not started | - |
+| 10. 250-Bar Scaling Checkpoint | v1.1 | 0/1 | Not started | - |
 | 11. TFT Training | v1.1 | 0/0 | Not started | - |
 | 12. Feature Ablation | v1.1 | 0/0 | Not started | - |
 | 13. Ensemble Formalization | v1.1 | 0/0 | Not started | - |
@@ -233,4 +233,4 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 *Roadmap created: 2026-04-01*
 *v1.0 shipped: 2026-04-08*
 *v1.1 roadmap created: 2026-04-17*
-*Last updated: 2026-04-17*
+*Last updated: 2026-04-22*
