@@ -396,6 +396,39 @@ batch. No manual action needed.
 
 ---
 
+## Finding 23: Extended Live Reconciliation (April 22, 2026)
+**Phase:** Phase 9 re-run on 8-day dataset
+
+**Dataset:** 10,154 closed positions, April 14–22, 2026 (8 days, 7 hours); 577 unique pairs; 145,136 bars across 8,421 pairs. This is a 4× expansion over the April 16 snapshot (2,530 positions, 263 pairs, 88,671 bars).
+
+**Prior snapshot (April 16, 3 days) vs current (April 22, 8 days):**
+
+| Metric | April 16 (3-day) | April 22 (8-day) | Change |
+|--------|-----------------|-----------------|--------|
+| Positions | 2,530 | 10,154 | +4× |
+| Unique pairs | 263 | 577 | +2.2× |
+| Live P&L | +$6.03 | +$1.53 | −$4.50 |
+| Shadow-sim P&L | −$6.03 | −$1.53 | +$4.50 |
+| Tracking error | +$12.06 | +$3.06 | −$9.00 |
+| TAKE\_PROFIT count | 1 | 88 | +87× |
+| Match rate | 100% | 100% | — |
+
+**Key findings:**
+
+1. **Directional anti-correlation is a structural law, not noise.** The exact +/− symmetry between live and shadow-sim P&L holds across a 4× data expansion. Per-trade tracking error *decreased* ($12.06/2,530 = $0.0048 → $3.06/10,154 = $0.0003), confirming the relationship is stable and not amplifying.
+
+2. **Positive-skew tail is now statistically meaningful.** TAKE\_PROFIT (88 trades, +$32.60, avg +$0.370/trade) accounts for more than 21× the net live P&L. With only 1 TAKE\_PROFIT at the 3-day mark, the tail was invisible; at 8 days it is the defining structural feature of the return distribution.
+
+3. **Crypto regime flip documents non-stationarity.** Crypto was the top-performing category at 3 days (+$4.33, 261 trades) and is the worst at 8 days (−$19.87, 915 trades). This is the first documented intra-study regime reversal and serves as a direct stationarity caveat for any per-category claims.
+
+4. **Category tagging gaps inflate "other" bucket.** 59% of all trades (6,005) fall into "other." Top misclassifications: KXPAYROLLS (525 trades, should be `employment`) and KXEZCPIYOYF (86 trades, should be `inflation`). The directional anti-correlation conclusion is unaffected, but per-category P&L breakdowns are understated for inflation and employment.
+
+5. **Oil absence confirmed at 8 days.** Zero WTI/OIL/CRUDE positions closed. Finding 6's oil edge remains a backtest-only finding.
+
+**Implication for paper:** §5.9 is updated to reflect the 8-day dataset. The core transparency finding (anti-correlation is structural, not directional) is now supported by 4× the evidence. The crypto regime flip is added as a stationarity caveat. The TAKE\_PROFIT tail characterization moves from anecdote (n=1) to pattern (n=88).
+
+---
+
 ## Open Questions for Paper
 
 1. **Does GRU overtake XGBoost at 100+ bars/pair?** — Answer expected within 24-48h from auto-retrain.

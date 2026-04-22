@@ -376,12 +376,12 @@ The per-trade Sharpe of 0.436 (XGBoost, Table 2) does not annualize trivially. T
 
 The live paper-trading system was deployed on the BU Shared Computing Cluster (SCC) on April 11, 2026, running a 15-minute trade cycle and retraining models every six hours. It accumulated closed positions that can be independently verified by replaying each position's entry bar through the same deployed models (Linear Regression and XGBoost, the Tier 1 ensemble used in production). This shadow simulation constitutes a true out-of-sample live deployment test: the models were not updated between position entry and the reconciliation run, so there is no look-ahead contamination.
 
-**Data window and coverage.** The live positions database (`data/live/positions.db`) contains 2,530 closed positions with entry timestamps spanning April 14–16, 2026 (three days of live operation after the system stabilized post-deployment). All 2,530 positions were successfully matched to an entry bar in `data/live/bars.parquet`, yielding a 100% match rate. The acceptance gate threshold of 80% was exceeded with no margin needed (gap metric: 0.00%).
+**Data window and coverage.** The live positions database (`data/live/positions.db`) contains 10,154 closed positions with entry timestamps spanning April 14–22, 2026 (eight days of live operation after the system stabilized post-deployment), accumulating 145,136 bars across 8,421 pairs. All 10,154 positions were successfully matched to an entry bar in `data/live/bars.parquet`, yielding a 100% match rate. The acceptance gate threshold of 80% was exceeded with no margin needed (gap metric: 0.00%).
 
 | Metric | Value |
 |--------|-------|
-| Total positions in window | 2,530 |
-| Matched to entry bar | 2,530 (100.0%) |
+| Total positions in window | 10,154 |
+| Matched to entry bar | 10,154 (100.0%) |
 | Unmatched | 0 |
 | Acceptance gate | **PASSED** (threshold: ≥80%) |
 
@@ -391,41 +391,43 @@ The live paper-trading system was deployed on the BU Shared Computing Cluster (S
 
 | Metric | Value |
 |--------|-------|
-| Live realized P&L | +\$6.03 |
-| Shadow-simulation P&L | −\$6.03 |
-| Tracking error (live − sim) | +\$12.06 |
+| Live realized P&L | +\$1.53 |
+| Shadow-simulation P&L | −\$1.53 |
+| Tracking error (live − sim) | +\$3.06 |
 | Gap metric (unmatched / total) | 0.00% |
 
 **Category breakdown.**
 
 | Category | Count | Live P&L | Sim P&L | Tracking Error |
 |----------|-------|----------|---------|----------------|
-| crypto | 261 | +\$4.33 | −\$4.33 | +\$8.67 |
-| inflation | 1,010 | +\$1.96 | −\$1.96 | +\$3.91 |
-| gdp | 192 | −\$0.35 | +\$0.35 | −\$0.69 |
-| other | 1,033 | +\$0.10 | −\$0.10 | +\$0.20 |
-| politics\_policy | 20 | −\$0.00 | +\$0.00 | −\$0.00 |
-| fed\_rates | 14 | −\$0.01 | +\$0.01 | −\$0.02 |
+| other | 6,005 | +\$22.04 | −\$22.04 | +\$44.08 |
+| inflation | 2,654 | +\$0.23 | −\$0.23 | +\$0.46 |
+| crypto | 915 | −\$19.87 | +\$19.87 | −\$39.74 |
+| gdp | 459 | −\$0.65 | +\$0.65 | −\$1.30 |
+| politics\_policy | 71 | −\$0.20 | +\$0.20 | −\$0.40 |
+| fed\_rates | 50 | −\$0.01 | +\$0.01 | −\$0.02 |
 
 **Exit-reason attribution.**
 
 | Exit Reason | Count | Live P&L | Sim P&L | Tracking Error |
 |-------------|-------|----------|---------|----------------|
-| RESOLUTION\_EXIT | 821 | +\$4.90 | −\$4.90 | +\$9.79 |
-| TIME\_STOP | 1,508 | +\$2.94 | −\$2.94 | +\$5.87 |
-| STOP\_LOSS | 10 | −\$1.24 | +\$1.24 | −\$2.47 |
-| MOMENTUM | 190 | −\$0.82 | +\$0.82 | −\$1.64 |
-| TAKE\_PROFIT | 1 | +\$0.26 | −\$0.26 | +\$0.51 |
+| TAKE\_PROFIT | 88 | +\$32.60 | −\$32.60 | +\$65.20 |
+| TIME\_STOP | 3,819 | +\$11.83 | −\$11.83 | +\$23.66 |
+| RESOLUTION\_EXIT | 5,502 | −\$9.90 | +\$9.90 | −\$19.80 |
+| MOMENTUM | 634 | −\$5.70 | +\$5.70 | −\$11.40 |
+| STOP\_LOSS | 111 | −\$27.31 | +\$27.31 | −\$54.62 |
 
 **Findings.**
 
-- **Systematic directional anti-correlation.** The shadow simulation produces exactly the inverse P&L of the live system (+\$6.03 vs −\$6.03), with a tracking error of \$12.06. This is not statistical noise — it is a structural consequence of model semantics. The deployed regression models predict the *next-bar spread change* (a mean-reversion signal: large positive spread → predict positive Δspread). The live strategy enters *short\_spread* on large spreads (betting the spread closes). Shadow simulation uses `sign(prediction)` as trade direction and therefore takes a long-spread position, exactly opposing the live entry. The strategy's edge comes from spread-magnitude thresholding, not from directional alignment with the model predictions. This is a transparency finding: the deployed models are correctly capturing spread dynamics but are not being consumed directionally by the live strategy.
+- **Systematic directional anti-correlation persists at 4× the data.** The shadow simulation produces exactly the inverse P&L of the live system (+\$1.53 vs −\$1.53), with a tracking error of \$3.06. This exact anti-correlation now holds across 10,154 trades and eight days of operation, confirming it is not statistical noise. It is a structural consequence of model semantics: the deployed regression models predict the *next-bar spread change* (a mean-reversion signal: large positive spread → predict positive Δspread). The live strategy enters *short\_spread* on large spreads (betting the spread closes). Shadow simulation uses `sign(prediction)` as trade direction and therefore takes a long-spread position, exactly opposing the live entry. Notably, the per-trade tracking error has *decreased* relative to the April 16 snapshot ($12.06 on 2,530 trades vs $3.06 on 10,154 trades), indicating the anti-correlation is stable and does not amplify with volume. The strategy's edge comes from spread-magnitude thresholding, not from directional alignment with the model predictions.
 
-- **Crypto and inflation drive live profitability.** Crypto (261 trades, +\$4.33) and inflation (1,010 trades, +\$1.96) together account for +\$6.29 of the +\$6.03 total live P&L. GDP contracts are the only category with negative live P&L (−\$0.35 across 192 trades). The concentration in crypto and inflation is consistent with the finding in §5.3 that these categories have the largest persistent spread magnitudes.
+- **Positive-skew pattern dramatically confirmed.** TAKE\_PROFIT triggered 88 times (0.87% of all trades) and generated +\$32.60 — more than 21× the net live P&L of +\$1.53. This is the classic asymmetric payoff structure documented in Finding 14: many small scratches absorbed by STOP\_LOSS (111 trades, −\$27.31) and MOMENTUM exits (634 trades, −\$5.70), offset by infrequent but large TAKE\_PROFIT events. At the April 16 snapshot, only 1 TAKE\_PROFIT event had been observed; the 8-day data now provides a statistically meaningful characterization of this tail.
 
-- **Resolution and time exits are the profitable tail.** RESOLUTION\_EXIT (821 trades, +\$4.90) and TIME\_STOP (1,508 trades, +\$2.94) together account for 92.1% of all trades and all positive live P&L. STOP\_LOSS (10 trades, −\$1.24) and MOMENTUM (190 trades, −\$0.82) are net-negative, as expected — these are designed to limit downside, not generate P&L.
+- **Crypto regime flip: non-stationarity caveat.** At the April 16 snapshot, crypto was the best-performing category (+\$4.33 across 261 trades). At the April 22 8-day snapshot, crypto has become the worst-performing category with real volume (−\$19.87 across 915 trades). This regime flip illustrates a genuine risk for per-category claims in the paper: category-level P&L can reverse sign over days, not months. Any strategy that calibrated on the 3-day crypto performance would have been systematically wrong at 8 days. We report this as a stationarity limitation.
 
-**Finding: WTI oil contracts absent.** WTI oil contracts were not present in the April 14–16 live trading window. The commodity discovery gap (Kalshi 429 rate-limiting + Polymarket shallow pagination) was patched on April 11, but WTI contracts discovered after that date either expired before accumulating trades or had not yet entered positions by the reconciliation window. Finding 6 (oil near-expiry edge, §5.3) cannot be independently tested on live data; this is explicitly acknowledged as a limitation. The oil edge finding (76.5% win rate, +\$0.41/trade, +142.7% P&L vs pooled) remains a backtest finding and cannot be directly validated on live data within this study's time window.
+- **"Other" category dominates volume and has tagging limitations.** The "other" bucket contains 6,005 trades (59% of total) and generates the largest gross live P&L contribution (+\$22.04). Investigation of the top ticker prefixes reveals that KXPAYROLLS (525 trades, employment) and KXEZCPIYOYF (86 trades, EZ CPI inflation) are being misclassified by the `derive_category_from_ticker` function. These should be tagged as `employment` and `inflation` respectively. This is a category.py limitation that does not affect the reconciliation's directional conclusions — the anti-correlation finding is ticker-agnostic — but it means per-category P&L breakdowns understate inflation and do not capture any employment-category signal. We flag this as future work.
+
+**Finding: WTI oil contracts absent.** WTI oil contracts were not present even in the expanded April 14–22 live trading window (zero closed positions). The commodity discovery gap (Kalshi 429 rate-limiting + Polymarket shallow pagination) was patched on April 11, but WTI contracts discovered after that date either have not yet entered and exited positions within this window or have insufficient price divergence to cross the entry threshold. Finding 6 (oil near-expiry edge, §5.3) cannot be independently tested on live data; this is explicitly acknowledged as a limitation. The oil edge finding (76.5% win rate, +\$0.41/trade, +142.7% P&L vs pooled) remains a backtest finding and cannot be directly validated on live data within this study's time window.
 
 **Paper-trading caveats.** No slippage is modeled: trades execute at mid-price with zero market impact. No partial fills: all trades are assumed fully filled at the stated price. No margin: capital is notional (the system does not track margin consumption or liquidation risk). These idealizations mean live P&L represents an upper bound on what a real-money implementation would achieve. In practice, Kalshi maker orders pay \$0 fee and Polymarket charges approximately 1 pp in Polygon gas, consistent with our 2 pp simulation assumption being conservative.
 
