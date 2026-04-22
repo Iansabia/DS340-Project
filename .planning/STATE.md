@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: completed
-stopped_at: Completed 10-01-PLAN.md (250-bar scaling checkpoint) — all tasks done
-last_updated: "2026-04-22T21:33:38.293Z"
-last_activity: 2026-04-22 -- Phase 10 plan 01 executed
+status: in_progress
+stopped_at: Completed 11-01-PLAN.md (TFT training + experiment) — all tasks done
+last_updated: "2026-04-22T22:46:30Z"
+last_activity: 2026-04-22 -- Phase 11 plan 01 executed
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
-  percent: 71
+  total_plans: 6
+  completed_plans: 6
+  percent: 75
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 ## Current Position
 
-Phase: 10 of 14 (250-Bar Scaling Checkpoint)
-Plan: 1 of 1 in current phase (complete)
-Status: Phase 10 complete
-Last activity: 2026-04-22 -- Phase 10 plan 01 executed
+Phase: 11 of 14 (TFT Training)
+Plan: 1 of 2 in current phase (complete)
+Status: Phase 11 plan 01 complete; Phase 11 plan 02 (paper integration) is next
+Last activity: 2026-04-22 -- Phase 11 plan 01 executed
 
-Progress: [███████░░░] 71%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
@@ -70,6 +70,11 @@ Recent decisions affecting current work:
 - [Phase 10-250-bar-scaling-checkpoint]: GRU and LSTM trained successfully at 250 bars (torch env working); XGBoost > LR > GRU > LSTM ranking invariant across 5x data growth (50/100/250 bars)
 - [Phase 10-250-bar-scaling-checkpoint]: Auto-trigger root cause: run_data_scaling.py --auto reads only train.parquet (max 141 bars/pair); manual --bars-per-pair 250 required
 - [Phase 10-250-bar-scaling-checkpoint]: PYTHONPATH must be set to project root when running scripts from venv
+- [Phase 11-01-tft-training]: TFT does NOT beat GRU at N=6802 (RMSE 0.3262 vs 0.2928) — documented negative result per Option B; extends simplicity-wins thesis to transformers
+- [Phase 11-01-tft-training]: Use lightning.pytorch Trainer (NOT pytorch_lightning) with pytorch_forecasting 1.7.0 — different LightningModule base class causes TypeError
+- [Phase 11-01-tft-training]: Round-based batch predict for TFT: K rounds x all_groups together (~11 rounds) instead of 1673 per-row calls; 150x speedup
+- [Phase 11-01-tft-training]: compute_derived_features drops group_id (not in OUTPUT_COLUMNS); must re-attach from raw parquet before prepare_xy_for_seq
+- [Phase 11-01-tft-training]: GroupNormalizer(transformation=None) confirmed correct for signed spread-change targets; softplus causes degenerate predictions
 
 ### Pending Todos
 
@@ -83,7 +88,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-22T21:27:45Z
-Stopped at: Completed 10-01-PLAN.md (250-bar scaling checkpoint) — all tasks done
+Last session: 2026-04-22T22:46:30Z
+Stopped at: Completed 11-01-PLAN.md (TFT training + experiment) — all tasks done
 Resume file: None
 Next action: Phase 11 planning

@@ -180,12 +180,12 @@ Passive wait; parallelizes with Phases 11 and 12.
 
 Starts the TFT -> Ensemble critical path.
 
-- [ ] **TFT-01**: New `src/models/tft.py` implementing `TFTPredictor(BasePredictor)` -- mirrors `GRUPredictor` pattern, hides `TimeSeriesDataSet` plumbing inside `fit()`, exposes row-aligned `predict()`.
-- [ ] **TFT-02**: Hyperparameters pre-specified for small-data regime: `hidden_size=8`, `attention_head_size=1`, `dropout=0.3`, `QuantileLoss`, `GroupNormalizer` per-pair. No implementation-time tuning. Guards P1.
-- [ ] **TFT-03**: Evaluated on identical protocol to GRU/LSTM: single-split backtest + walk-forward.
-- [ ] **TFT-04**: Hard 1-day time-box. If val_loss does not beat GRU within 24 hours, report "TFT did not converge at N=6,802" as a paper finding and move on. Go/no-go: **Option B** -- always include Phase 11 outcome (success or documented negative result); Phase 13 proceeds regardless with TFT-excluding baseline, and if TFT worked it's added as one more variant.
+- [x] **TFT-01**: New `src/models/tft.py` implementing `TFTPredictor(BasePredictor)` -- mirrors `GRUPredictor` pattern, hides `TimeSeriesDataSet` plumbing inside `fit()`, exposes row-aligned `predict()`.
+- [x] **TFT-02**: Hyperparameters pre-specified for small-data regime: `hidden_size=8`, `attention_head_size=1`, `dropout=0.3`, `QuantileLoss`, `GroupNormalizer` per-pair. No implementation-time tuning. Guards P1.
+- [x] **TFT-03**: Evaluated on identical protocol to GRU/LSTM: single-split backtest + walk-forward.
+- [x] **TFT-04**: Hard 1-day time-box. If val_loss does not beat GRU within 24 hours, report "TFT did not converge at N=6,802" as a paper finding and move on. Go/no-go: **Option B** -- always include Phase 11 outcome (success or documented negative result); Phase 13 proceeds regardless with TFT-excluding baseline, and if TFT worked it's added as one more variant.
 - [ ] **TFT-05**: Attention entropy audit after training. Flag degenerate if `entropy(attention_weights) < 0.5 * log(n_features)` or `max_variable_weight > 0.8`. Guards P1.
-- [ ] **TFT-06**: New `experiments/run_tft.py` thin wrapper (~80 LOC) over `run_tier2_with_seeds`.
+- [x] **TFT-06**: New `experiments/run_tft.py` thin wrapper (~80 LOC) over `run_tier2_with_seeds`.
 - [ ] **TFT-07**: TFT row added to Tables 2 and 3 in paper. Paper section 4.1 updated to list 5 tiers if TFT converged, or note TFT attempt under section 6 Discussion if it did not.
 - [ ] **TFT-08**: VSN feature-weight heatmap produced via `model.interpret_output` and saved to `experiments/figures/tft_variable_importance.png` (included as a differentiator figure).
 
@@ -269,12 +269,12 @@ Terminal phase; consumes results from all prior phases.
 | SCAL-03 | Phase 10 | Complete |
 | SCAL-04 | Phase 10 | Complete |
 | SCAL-05 | Phase 10 | Complete |
-| TFT-01 | Phase 11 | Pending |
-| TFT-02 | Phase 11 | Pending |
-| TFT-03 | Phase 11 | Pending |
-| TFT-04 | Phase 11 | Pending |
+| TFT-01 | Phase 11 | Complete |
+| TFT-02 | Phase 11 | Complete |
+| TFT-03 | Phase 11 | Complete |
+| TFT-04 | Phase 11 | Complete |
 | TFT-05 | Phase 11 | Pending |
-| TFT-06 | Phase 11 | Pending |
+| TFT-06 | Phase 11 | Complete |
 | TFT-07 | Phase 11 | Pending |
 | TFT-08 | Phase 11 | Pending |
 | ABLA-01 | Phase 12 | Pending |
