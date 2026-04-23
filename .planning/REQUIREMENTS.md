@@ -222,12 +222,12 @@ Terminal phase; consumes results from all prior phases.
 - [x] **POL-02**: Colorblind-safe palette across all plots (`seaborn.set_theme(palette='colorblind')` or SciencePlots default). Variable line styles and markers for B&W print readability.
 - [x] **POL-03**: All figures saved at 300 DPI.
 - [x] **POL-04**: Abstract trimmed to <= 250 words (current draft: ~412 words).
-- [ ] **POL-05**: Citation format consistent throughout (numbered bracket style, alphabetical by first author in references).
-- [ ] **POL-06**: Every figure referenced in text with caption; axis labels carry units.
+- [x] **POL-05**: Citation format consistent throughout (numbered bracket style, alphabetical by first author in references).
+- [x] **POL-06**: Every figure referenced in text with caption; axis labels carry units.
 - [x] **POL-07**: Headline Sharpe in abstract uses per-pair-corrected number (approximately 3.2), not per-trade (0.44). Per-trade Sharpe in footnote/Table 8 only. Guards P5.
-- [ ] **POL-08**: Survivorship-bias disclaimer appears in section 6.4 Limitations. Scaling-curve cap annotation appears on Figure 2 caption. Guards P7.
-- [ ] **POL-09**: AI-assistant disclosure in Acknowledgments: "We used Anthropic Claude (Sonnet 4.5 and Opus 4.6) as a pair-programming assistant; all design decisions and empirical interpretations are our own."
-- [ ] **POL-10**: Final PDF reviewed cover-to-cover; all TODOs / placeholders cleared.
+- [x] **POL-08**: Survivorship-bias disclaimer appears in section 6.4 Limitations. Scaling-curve cap annotation appears on Figure 2 caption. Guards P7.
+- [x] **POL-09**: AI-assistant disclosure in Acknowledgments: "We used Anthropic Claude (Sonnet 4.5 and Opus 4.6) as a pair-programming assistant; all design decisions and empirical interpretations are our own."
+- [x] **POL-10**: Final PDF reviewed cover-to-cover; all TODOs / placeholders cleared.
 - [ ] **POL-11**: Code README updated with exact reproduction commands for every paper table.
 - [ ] **POL-12**: 4-minute lightning-talk slides covering Team / Problem / Methods / Challenge / Results / Conclusions. Delivered before Apr 28.
 
@@ -296,12 +296,12 @@ Terminal phase; consumes results from all prior phases.
 | POL-02 | Phase 14 | Complete |
 | POL-03 | Phase 14 | Complete |
 | POL-04 | Phase 14 | Complete |
-| POL-05 | Phase 14 | Pending |
-| POL-06 | Phase 14 | Pending |
+| POL-05 | Phase 14 | Complete |
+| POL-06 | Phase 14 | Complete |
 | POL-07 | Phase 14 | Complete |
-| POL-08 | Phase 14 | Pending |
-| POL-09 | Phase 14 | Pending |
-| POL-10 | Phase 14 | Pending |
+| POL-08 | Phase 14 | Complete |
+| POL-09 | Phase 14 | Complete |
+| POL-10 | Phase 14 | Complete |
 | POL-11 | Phase 14 | Pending |
 | POL-12 | Phase 14 | Pending |
 

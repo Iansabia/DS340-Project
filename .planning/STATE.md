@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: planning
-stopped_at: Completed 14-01-PLAN.md — IEEE figures + abstract scrub done; Plan 14-02 unblocked
-last_updated: "2026-04-23T18:39:53.985Z"
-last_activity: 2026-04-23 -- Phase 14 plan 01 executed (IEEE figures regenerated, abstract trimmed to 244 words, Sharpe scrub complete)
+status: completed
+stopped_at: Completed 14-02-PLAN.md — paper integrity pass done; Plan 14-03 (README + slides) unblocked
+last_updated: "2026-04-23T18:48:12.179Z"
+last_activity: 2026-04-23 -- Phase 14 plan 02 executed (Tables 9/10 renumber, Appendix B reorder, §6.4 expansion, references alphabetized, check_paper.sh validator live)
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 15
-  completed_plans: 13
-  percent: 87
+  completed_plans: 14
+  percent: 93
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 14 of 14 (Paper Finalization + Presentation) — IN PROGRESS
-Plan: 1 of 3 complete (IEEE figures + abstract scrub done; 14-02 figure-reference renumbering + 14-03 README/slides remaining)
-Status: Plan 14-01 COMPLETE; Plan 14-02 unblocked (figures now stamped with correct numbers on-disk, Fig 2 cap annotation live)
-Last activity: 2026-04-23 -- Phase 14 plan 01 executed (IEEE figures regenerated, abstract trimmed to 244 words, Sharpe scrub complete)
+Plan: 2 of 3 complete (IEEE figures + abstract scrub done; paper integrity pass done; 14-03 README/slides remaining)
+Status: Plan 14-02 COMPLETE; Plan 14-03 unblocked (paper structure now stable — Tables 1-10 unique, 11-entry Appendix B in in-text order, scripts/check_paper.sh integrity validator runs green)
+Last activity: 2026-04-23 -- Phase 14 plan 02 executed (Tables 9/10 renumber, Appendix B reorder, §6.4 expansion, references alphabetized, check_paper.sh validator live)
 
-Progress: [█████████░] 87%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [█████████░] 87%
 *Updated after each plan completion*
 | Phase 13-ensemble-formalization P03 | 48min | 3 tasks | 3 files |
 | Phase 14-paper-finalization-presentation P01 | 20min | 3 tasks | 17 files |
+| Phase 14-paper-finalization-presentation P02 | 5min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,11 @@ Recent decisions affecting current work:
 - [Phase 14-01-paper-finalization]: Abstract landed at 244 words (6 words of headroom under 250 cap) leaving room for Plan 14-02 adjustments
 - [Phase 14-01-paper-finalization]: Figure 2 SCAL-03/POL-08 cap annotation embedded on-figure via red dotted axvline + text ("plateau at N=6,802, fixed pair universe") — readable without body text
 - [Phase 14-01-paper-finalization]: Stale "per-trade Sharpe 0.59 / 4.3" claim on §1.4 item 7 + dead §4.6 cross-reference both removed; per-pair ≈ 3.2 (Table 8) is now the consistent headline across abstract, §1.4, §8
+- [Phase 14-02-paper-integrity]: [Anonymous] arXiv entry placed as reference #1 (sorts before alphabetical authors); Cont, Kukanov & Stoikov (2014) inserted as #4 to resolve stale in-text citation at §6.2.1 line 536
+- [Phase 14-02-paper-integrity]: Rule 1 bug fix during Task 1: §1.4 item 6 stale (Table 6) → (Table 7) for transaction-cost analysis (unrelated to 5.10/5.11 renumber, caught via full grep sweep)
+- [Phase 14-02-paper-integrity]: check_paper.sh uses sed -n '/^## X$/,/^## Y$/p' for section ranges not awk '/^## X/,/^## /' — awk range collapses when start pattern also matches the end
+- [Phase 14-02-paper-integrity]: Appendix B rewritten in in-text appearance order (11 figures Fig 1-Fig 11); Fig 10 resolves 'Figure 2b' ghost; Fig 11 resolves '[Insert Figure]' placeholder
+- [Phase 14-02-paper-integrity]: §6.4 now has 8 items: preserved original 1-5 (POL-08 regression check); added live-cohort truncation (6), category-tagging gaps (7), crypto regime flip (8) from Finding 23
 
 ### Pending Todos
 
@@ -121,7 +127,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T18:39:53.982Z
-Stopped at: Completed 14-01-PLAN.md — IEEE figures + abstract scrub done; Plan 14-02 unblocked
+Last session: 2026-04-23T18:48:12.176Z
+Stopped at: Completed 14-02-PLAN.md — paper integrity pass done; Plan 14-03 (README + slides) unblocked
 Resume file: None
 Next action: Phase 14 plan 02 (paper integrity — figure/table renumbering, citation alphabetization, TODO scrub)
