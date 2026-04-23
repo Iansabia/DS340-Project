@@ -93,7 +93,7 @@
 - [x] **Phase 11: TFT Training** - Temporal Fusion Transformer on 6,802 rows with pre-specified small-data hyperparameters (completed 2026-04-22)
 - [x] **Phase 12: Feature Ablation** - LOGO over 5 feature groups on LR + XGBoost with pre-registered protocol (completed 2026-04-23)
 - [x] **Phase 13: Ensemble Formalization** - Evidence-based production ensemble with concordance filter audit (completed 2026-04-23)
-- [ ] **Phase 14: Paper Finalization + Presentation** - IEEE-styled figures, trimmed abstract, final PDF, lightning talk slides
+- [x] **Phase 14: Paper Finalization + Presentation** - IEEE-styled figures, trimmed abstract, final PDF, lightning talk slides (completed 2026-04-23)
 
 ## Phase Details
 
@@ -228,7 +228,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 11. TFT Training | 2/2 | Complete    | 2026-04-22 | - |
 | 12. Feature Ablation | 2/2 | Complete    | 2026-04-23 | - |
 | 13. Ensemble Formalization | 3/3 | Complete    | 2026-04-23 | - |
-| 14. Paper Finalization + Presentation | 2/3 | In Progress|  | - |
+| 14. Paper Finalization + Presentation | 3/3 | Complete   | 2026-04-23 | - |
 
 ---
 *Roadmap created: 2026-04-01*

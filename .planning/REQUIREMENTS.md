@@ -65,8 +65,8 @@
 
 ### Deliverables
 
-- [ ] **DEL-01**: Final paper documenting methodology, experiments, and findings
-- [ ] **DEL-02**: Lightning talk slides
+- [x] **DEL-01**: Final paper documenting methodology, experiments, and findings
+- [x] **DEL-02**: Lightning talk slides
 
 ## v2 Requirements
 
@@ -123,8 +123,8 @@
 | EXP-02 | Phase 7 | Complete |
 | EXP-03 | Phase 7 | Complete |
 | EXP-04 | Phase 7 | Complete |
-| DEL-01 | Phase 14 | Pending |
-| DEL-02 | Phase 14 | Pending |
+| DEL-01 | Phase 14 | Complete |
+| DEL-02 | Phase 14 | Complete |
 
 **Coverage:**
 - v1 requirements: 36 total
@@ -228,8 +228,8 @@ Terminal phase; consumes results from all prior phases.
 - [x] **POL-08**: Survivorship-bias disclaimer appears in section 6.4 Limitations. Scaling-curve cap annotation appears on Figure 2 caption. Guards P7.
 - [x] **POL-09**: AI-assistant disclosure in Acknowledgments: "We used Anthropic Claude (Sonnet 4.5 and Opus 4.6) as a pair-programming assistant; all design decisions and empirical interpretations are our own."
 - [x] **POL-10**: Final PDF reviewed cover-to-cover; all TODOs / placeholders cleared.
-- [ ] **POL-11**: Code README updated with exact reproduction commands for every paper table.
-- [ ] **POL-12**: 4-minute lightning-talk slides covering Team / Problem / Methods / Challenge / Results / Conclusions. Delivered before Apr 28.
+- [x] **POL-11**: Code README updated with exact reproduction commands for every paper table.
+- [x] **POL-12**: 4-minute lightning-talk slides covering Team / Problem / Methods / Challenge / Results / Conclusions. Delivered before Apr 28.
 
 ### v1.1 Non-Goals (Explicit Out of Scope)
 
@@ -302,8 +302,8 @@ Terminal phase; consumes results from all prior phases.
 | POL-08 | Phase 14 | Complete |
 | POL-09 | Phase 14 | Complete |
 | POL-10 | Phase 14 | Complete |
-| POL-11 | Phase 14 | Pending |
-| POL-12 | Phase 14 | Pending |
+| POL-11 | Phase 14 | Complete |
+| POL-12 | Phase 14 | Complete |
 
 **Coverage (v1.1):**
 - Requirements: 55 total (5 + 10 + 5 + 8 + 8 + 7 + 12)

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: completed
-stopped_at: Completed 14-02-PLAN.md — paper integrity pass done; Plan 14-03 (README + slides) unblocked
-last_updated: "2026-04-23T18:48:12.179Z"
-last_activity: 2026-04-23 -- Phase 14 plan 02 executed (Tables 9/10 renumber, Appendix B reorder, §6.4 expansion, references alphabetized, check_paper.sh validator live)
+stopped_at: Completed 14-03-PLAN.md — README + Marp slides shipped; two fix cycles closed residual paper-integrity gaps; user approved at human-verify checkpoint. Phase 14 complete; submission-ready.
+last_updated: "2026-04-23T21:52:35.466Z"
+last_activity: 2026-04-23 -- Phase 14 plan 03 executed (README.md reproduction table, slides.md + slides.pdf, §5.12/§5.13 writeups, Appendix B placeholder repair, abstract oil qualifier, §6.4 item 9, 56-file AI attribution)
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 15
-  completed_plans: 14
-  percent: 93
+  completed_plans: 15
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 ## Current Position
 
-Phase: 14 of 14 (Paper Finalization + Presentation) — IN PROGRESS
-Plan: 2 of 3 complete (IEEE figures + abstract scrub done; paper integrity pass done; 14-03 README/slides remaining)
-Status: Plan 14-02 COMPLETE; Plan 14-03 unblocked (paper structure now stable — Tables 1-10 unique, 11-entry Appendix B in in-text order, scripts/check_paper.sh integrity validator runs green)
-Last activity: 2026-04-23 -- Phase 14 plan 02 executed (Tables 9/10 renumber, Appendix B reorder, §6.4 expansion, references alphabetized, check_paper.sh validator live)
+Phase: 14 of 14 (Paper Finalization + Presentation) — COMPLETE
+Plan: 3 of 3 complete (IEEE figures + abstract scrub done; paper integrity pass done; README + slides + final polish done)
+Status: Phase 14 COMPLETE; v1.1 milestone COMPLETE. Repository submission-ready — README reproduction table committed, slides.md/slides.pdf rendered for 4-minute lightning talk, §5.12/§5.13 writeups added, Appendix B placeholders repaired, abstract oil claim narrowed, §6.4 item 9 documents commodity-matching limitation, 56 src/*.py files carry AI-attribution headers (POL-09 substantive).
+Last activity: 2026-04-23 -- Phase 14 plan 03 executed (README.md reproduction table, slides.md + slides.pdf, §5.12/§5.13 writeups, Appendix B placeholder repair, abstract oil qualifier, §6.4 item 9, 56-file AI attribution)
 
-Progress: [█████████░] 93%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [█████████░] 93%
 | Phase 13-ensemble-formalization P03 | 48min | 3 tasks | 3 files |
 | Phase 14-paper-finalization-presentation P01 | 20min | 3 tasks | 17 files |
 | Phase 14-paper-finalization-presentation P02 | 5min | 3 tasks | 2 files |
+| Phase 14-paper-finalization-presentation P03 | 90min | 3 tasks | 60 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,11 @@ Recent decisions affecting current work:
 - [Phase 14-02-paper-integrity]: check_paper.sh uses sed -n '/^## X$/,/^## Y$/p' for section ranges not awk '/^## X/,/^## /' — awk range collapses when start pattern also matches the end
 - [Phase 14-02-paper-integrity]: Appendix B rewritten in in-text appearance order (11 figures Fig 1-Fig 11); Fig 10 resolves 'Figure 2b' ghost; Fig 11 resolves '[Insert Figure]' placeholder
 - [Phase 14-02-paper-integrity]: §6.4 now has 8 items: preserved original 1-5 (POL-08 regression check); added live-cohort truncation (6), category-tagging gaps (7), crypto regime flip (8) from Finding 23
+- [Phase 14-03-readme-slides]: README.md is the canonical reproduction map; PAPER_DRAFT.md Appendix A deprecated to a single pointer — prevents drift between paper commands and code
+- [Phase 14-03-readme-slides]: Marp CLI (Node toolchain) chosen over Beamer/LaTeX for lightning-talk slides — faster iteration, PDF committed alongside source
+- [Phase 14-03-readme-slides]: Two Rule 1/2 fix cycles at human-verify checkpoint — added §5.12 (lookback) and §5.13 (threshold) body writeups to close orphan-table references; repaired Appendix B Fig 10/Fig 11 placeholders missed in 14-02 renumber
+- [Phase 14-03-readme-slides]: Abstract oil claim narrowed to "where the matched cohort is representable" — honest scope given ~30% cross-platform matching rate; §6.4 item 9 documents commodity-matching cohort as generalization limit
+- [Phase 14-03-readme-slides]: POL-09 upgraded from Acknowledgments-only disclosure to per-file AI-attribution headers on 56 src/**/*.py modules — survivorship-proof evidence of AI involvement
 
 ### Pending Todos
 
@@ -127,7 +133,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T18:48:12.176Z
-Stopped at: Completed 14-02-PLAN.md — paper integrity pass done; Plan 14-03 (README + slides) unblocked
+Last session: 2026-04-23T21:52:35.466Z
+Stopped at: Completed 14-03-PLAN.md — Phase 14 complete, v1.1 milestone 100%, repository submission-ready (paper + README + slides)
 Resume file: None
-Next action: Phase 14 plan 02 (paper integrity — figure/table renumbering, citation alphabetization, TODO scrub)
+Next action: Run `/gsd:verify-work` on Phase 14; Alvin readability pass on §1 + §8; render final PDF via pandoc for April 27 submission
