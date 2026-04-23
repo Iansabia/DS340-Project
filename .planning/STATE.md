@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: completed
-stopped_at: Completed 12-02-PLAN.md (§5.10 Feature Ablation + Finding 25)
-last_updated: "2026-04-23T00:06:34.980Z"
-last_activity: 2026-04-23 -- Phase 12 plan 02 executed
+stopped_at: Completed 13-01-PLAN.md (EnsemblePredictor TDD)
+last_updated: "2026-04-23T15:52:20.720Z"
+last_activity: 2026-04-23 -- Phase 13 plan 01 executed (EnsemblePredictor TDD)
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
   percent: 85
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** v1.1 -- Extended Evidence & Submission (Phase 8 ready to plan)
+**Current focus:** v1.1 -- Extended Evidence & Submission (Phase 13 ensemble formalization in progress)
 
 ## Current Position
 
-Phase: 12 of 14 (Feature Ablation) — COMPLETE
-Plan: 2 of 2 complete (both plans done)
-Status: Phase 12 fully complete; Phase 13 (PPO/RL evaluation) is next
-Last activity: 2026-04-23 -- Phase 12 plan 02 executed
+Phase: 13 of 14 (Ensemble Formalization) — IN PROGRESS
+Plan: 1 of 3 complete (EnsemblePredictor TDD done; 13-02 per-member routing next)
+Status: Phase 13 plan 01 complete; 13-02 (per-member feature routing) ready to execute
+Last activity: 2026-04-23 -- Phase 13 plan 01 executed (EnsemblePredictor TDD)
 
-Progress: [████████░░] 85%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -83,6 +83,11 @@ Recent decisions affecting current work:
 - [Phase 12-01-feature-ablation]: final_test (test.parquet, 1,673 rows) untouched — frozen for one-shot evaluation in §5.10 paper section
 - [Phase 12-02-feature-ablation-paper]: §5.10 written with honest power-limitation framing — N=1,021 ablation holdout insufficient to detect effects < $10; all 51 features retained per pre-registered protocol
 - [Phase 12-02-feature-ablation-paper]: Finding 25 documents pre-registered null result; ablation should be re-run at 250+ bars/pair for tighter inference (§7 item 8 added)
+- [Phase 13-01-ensemble-formalization]: EnsemblePredictor uses all-members-agree concordance semantics ('strict' mode: np.sign(preds) constant across member axis) — generalizes strategy.py's binary LR/XGB check to N members without pairwise-voting complexity
+- [Phase 13-01-ensemble-formalization]: Weight normalization inside predict(), not __init__() — lets sweep runner mutate _weights in-place without re-instantiating (simplifies Plan 13-03)
+- [Phase 13-01-ensemble-formalization]: set_all_seeds(seed) called inside fit(), not constructor — constructor stays a pure metadata builder
+- [Phase 13-01-ensemble-formalization]: No custom pickle hooks — BasePredictor.save/load handles ensemble serialization natively because all supported member types are already picklable
+- [Phase 13-01-ensemble-formalization]: ENSM-05 guard held — src/live/strategy.py untouched; ensemble wiring deferred to post-v1.1 per roadmap decision
 
 ### Pending Todos
 
@@ -96,7 +101,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T00:08:00Z
-Stopped at: Completed 12-02-PLAN.md (§5.10 Feature Ablation + Finding 25)
+Last session: 2026-04-23T15:52:20.718Z
+Stopped at: Completed 13-01-PLAN.md (EnsemblePredictor TDD)
 Resume file: None
-Next action: Phase 13 (PPO / RL evaluation)
+Next action: Phase 13 plan 02 (per-member feature routing)
