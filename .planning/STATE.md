@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: completed
-stopped_at: Completed 14-03-PLAN.md — README + Marp slides shipped; two fix cycles closed residual paper-integrity gaps; user approved at human-verify checkpoint. Phase 14 complete; submission-ready.
-last_updated: "2026-04-23T21:52:35.466Z"
+stopped_at: Completed 14-03-PLAN.md — Phase 14 complete, v1.1 milestone 100%, repository submission-ready (paper + README + slides)
+last_updated: "2026-04-23T23:53:18.558Z"
 last_activity: 2026-04-23 -- Phase 14 plan 03 executed (README.md reproduction table, slides.md + slides.pdf, §5.12/§5.13 writeups, Appendix B placeholder repair, abstract oil qualifier, §6.4 item 9, 56-file AI attribution)
 progress:
   total_phases: 7
