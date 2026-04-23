@@ -676,23 +676,7 @@ We thank Professor Kevin Gold for the course instruction and for the pivotal fee
 
 ## Appendix A: Code Availability
 
-All code is available at `https://github.com/iansabia/DS340-Project` (final commit tagged `v1.0-submission`). Reproducing the main result requires:
-
-```bash
-git clone https://github.com/iansabia/DS340-Project.git
-cd DS340-Project
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python -m experiments.run_baselines              # Table 2
-python -m experiments.run_walk_forward --windows 12  # Table 3, Fig 1
-python -m experiments.run_category_breakdown     # Table 4
-python -m experiments.run_data_scaling           # Table 5, Fig 2
-python -m experiments.run_xgb_hyperparam_sweep   # Table 6
-python -m experiments.run_transaction_cost_sensitivity  # Table 7
-python -m experiments.run_shap_analysis          # SHAP plots
-```
-
-Total runtime on a single CPU: ~2 hours. GPU is not required.
+Full source code and reproduction commands are available at `https://github.com/iansabia/DS340-Project`. See `README.md` at the repository root for exact command-line invocations mapped to every paper table and figure.
 
 ## Appendix B: Figures Referenced
 
