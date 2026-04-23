@@ -6,6 +6,7 @@ Fetches raw trades via platform APIs, normalizes to a common schema
 This module is standalone -- it does not depend on KalshiAdapter or
 PolymarketAdapter classes.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import logging
 from datetime import datetime, timezone
 from pathlib import Path

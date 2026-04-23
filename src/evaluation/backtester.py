@@ -15,6 +15,7 @@ Key parameters (from CONTEXT.md):
     - Exit cost: 2pp of contract price
     - Annualization: sqrt(365) on daily returns (24/7 markets)
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import math

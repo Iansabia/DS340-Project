@@ -3,6 +3,7 @@
 Merges keyword overlap (Stage 1) and semantic similarity (Stage 2)
 into a single 0-1 confidence score using a weighted formula.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from src.matching.keyword_matcher import generate_candidates
 from src.matching.semantic_matcher import SemanticMatcher, score_candidates
 

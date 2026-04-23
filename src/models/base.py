@@ -5,6 +5,7 @@ networks, RL policies -- inherits from ``BasePredictor`` and therefore
 plugs into the shared evaluation pipeline (regression metrics + profit
 simulation) via ``BasePredictor.evaluate``.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import pickle

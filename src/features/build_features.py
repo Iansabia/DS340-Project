@@ -4,6 +4,7 @@ Reads aligned_pairs.parquet from Phase 2.1, computes derived features,
 performs temporal train/test split, adds PyTorch Forecasting columns,
 and saves train.parquet and test.parquet.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import argparse
 import logging
 import os

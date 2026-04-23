@@ -7,6 +7,7 @@ Filters out false positives caused by:
 
 Applied after scoring and deduplication, before curation.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import logging
 import re
 from datetime import datetime, timedelta

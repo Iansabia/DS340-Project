@@ -17,6 +17,7 @@ compatibility: hold(0)->0.0, long(1)->+0.03, short(2)->-0.03.
 Exports:
     PPORawPredictor -- Tier 3 RL baseline for spread-change prediction
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 from collections import OrderedDict

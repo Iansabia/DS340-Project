@@ -4,6 +4,7 @@ First-class regression baseline per CLAUDE.md: trains on the flat feature
 matrix and predicts spread change. Plugs into the shared evaluate() pipeline
 via ``BasePredictor``.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import numpy as np

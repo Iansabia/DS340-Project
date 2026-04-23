@@ -12,6 +12,7 @@ Usage:
     python -m src.live.trading_cycle --export-models # train + save pickles
     python -m src.live.trading_cycle --help
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import argparse

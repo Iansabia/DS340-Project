@@ -12,6 +12,7 @@ Usage:
     ax.legend()
     save_ieee_fig(fig, 'experiments/figures/myfig.png')
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from pathlib import Path
 
 import matplotlib as mpl

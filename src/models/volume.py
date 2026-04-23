@@ -5,6 +5,7 @@ one platform's volume dominates, the closer the prediction is to full
 reversion. When the two platforms have equal volume, the prediction is
 a half reversion (no directional signal).
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import numpy as np

@@ -1,4 +1,5 @@
 """Resilient HTTP client with retry, rate limiting, and logging."""
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import time
 import logging
 import requests

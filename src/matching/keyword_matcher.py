@@ -3,6 +3,7 @@
 Normalizes numbers (80k -> 80000), maps synonyms (btc -> bitcoin),
 filters by compatible categories, and scores pairs by token overlap.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import re
 
 # Map platform-specific category names to normalized categories

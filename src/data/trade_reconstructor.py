@@ -6,6 +6,7 @@ microstructure columns. Only bars containing at least one trade are emitted.
 This module is standalone -- it does not depend on KalshiAdapter or
 PolymarketAdapter classes.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import logging
 
 import pandas as pd

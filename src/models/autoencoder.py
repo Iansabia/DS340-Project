@@ -15,6 +15,7 @@ Architecture (from CONTEXT.md):
 Exports:
     AnomalyDetectorAutoencoder -- anomaly detection via reconstruction error
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import numpy as np

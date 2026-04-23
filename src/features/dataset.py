@@ -5,6 +5,7 @@ model training: chronological train/test split, PyTorch Forecasting
 compatibility columns (time_idx, group_id), and a TimeSeriesDataSet
 constructor for TFT models.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import numpy as np
 import pandas as pd
 

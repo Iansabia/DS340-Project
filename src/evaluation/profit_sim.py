@@ -15,6 +15,7 @@ the inflation that comes from computing Sharpe only over trades.
 Annualization uses 4-hour bars: 6 bars/day * 365 days/year = 2190 bars/year.
 Prediction markets trade 24/7, so no trading-day adjustment.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import math

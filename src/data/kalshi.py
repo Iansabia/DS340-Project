@@ -5,6 +5,7 @@ via the /series -> /events chain, fetches minute-level candlesticks with
 automatic time-window chunking, and routes to historical vs live endpoints
 based on the dynamic /historical/cutoff response.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import logging
 import time
 from pathlib import Path

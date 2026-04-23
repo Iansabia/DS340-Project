@@ -30,6 +30,7 @@ With a content-addressed pair_id, the same (kalshi_ticker, poly_id)
 always produces the same string across all modules and all runs
 regardless of discovery or filter state.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 # Length of the poly_id prefix we keep in the pair_id. 10 chars of hex

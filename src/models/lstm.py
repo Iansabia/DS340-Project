@@ -12,6 +12,7 @@ scaling, and warm-up stitching are internal -- callers pass flat DataFrames.
 Exports:
     LSTMPredictor -- Tier 2 recurrent model implementing BasePredictor
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import numpy as np

@@ -12,6 +12,7 @@ Exit rules (priority order):
     4. MOMENTUM         -- 3 consecutive bars moving against position
     5. TIME_STOP        -- bars_held >= tier-specific max hold
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import enum

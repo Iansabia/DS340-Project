@@ -7,6 +7,7 @@ Discovers resolved markets via Gamma API keyword filtering,
 fetches price history from CLOB API (with Data API trade fallback),
 and saves as parquet files. Idempotent: re-running skips already-cached markets.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import argparse
 import json
 import logging

@@ -1,4 +1,5 @@
 """Abstract base class for platform-specific market data adapters."""
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from abc import ABC, abstractmethod
 from pathlib import Path
 import logging

@@ -5,6 +5,7 @@ flat feature matrix and predicts spread change. Accepts hyperparameters
 (n_estimators, max_depth, learning_rate, random_state) via the constructor
 so experiment scripts can override defaults.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import numpy as np

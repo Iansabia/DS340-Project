@@ -10,6 +10,7 @@ Quality filters exclude pairs with:
 - Staleness ratio >= 0.80 (fraction of bars where both platforms lack trades)
 - Mean absolute spread >= 0.30 (non-mean-reverting)
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import logging
 from pathlib import Path
 

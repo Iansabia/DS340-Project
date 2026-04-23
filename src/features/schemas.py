@@ -3,6 +3,7 @@
 Defines the column contract between the aligned_pairs.parquet input
 (from Phase 2.1 aligner) and the feature engineering output.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 
 # Columns inherited from aligned_pairs.parquet (31 columns from Phase 2.1)
 ALIGNED_COLUMNS = [

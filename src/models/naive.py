@@ -3,6 +3,7 @@
 This is the lower-bound reference every other model must beat. It uses
 no features beyond the current ``spread`` value and performs no learning.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import numpy as np

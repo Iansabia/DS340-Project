@@ -4,6 +4,7 @@ Used by ``experiments/run_baselines.py`` (Phase 4) and every downstream
 model tier (Phase 5, 6, 7) to write a single per-model JSON file that
 ``load_all_results`` re-assembles into a comparison table.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import datetime as _dt

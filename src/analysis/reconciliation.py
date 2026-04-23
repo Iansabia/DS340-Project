@@ -19,6 +19,7 @@ paper uses the verify_headline deduction model (2pp subtracted from each
 winning trade).  The two are NOT directly comparable in absolute terms;
 this module focuses on directional accuracy and tracking error.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import json

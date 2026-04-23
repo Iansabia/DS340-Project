@@ -5,6 +5,7 @@ Uses three separate APIs:
   - CLOB API: Pre-aggregated price history (prices-history)
   - Data API: Raw trade records (trades) as fallback
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import json
 import logging
 import time

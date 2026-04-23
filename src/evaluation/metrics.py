@@ -4,6 +4,7 @@ Provides a single entry point, ``compute_regression_metrics``, which every
 model tier (regression, recurrent, RL) uses to produce the same set of
 numbers for head-to-head comparison.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import numpy as np

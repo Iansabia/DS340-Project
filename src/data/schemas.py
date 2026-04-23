@@ -1,4 +1,5 @@
 """Parquet schemas and data validation for market data."""
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from dataclasses import dataclass, field
 import pandas as pd
 

@@ -11,6 +11,7 @@ Low-liquidity filtering (FEAT-03) is enforced upstream by
 src/data/aligner.py (MIN_TRADES_PER_PLATFORM=20). No additional
 filtering is needed here.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import numpy as np
 import pandas as pd
 

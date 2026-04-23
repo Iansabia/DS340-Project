@@ -15,6 +15,7 @@ Usage:
     python -m src.live.contract_classifier               # classify all 615 pairs
     python -m src.live.contract_classifier --no-api       # regex-only, skip API
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 
 import argparse
 import calendar

@@ -11,6 +11,7 @@ Exports:
     fit_feature_scaler -- fits StandardScaler with bool casting + zero-variance guard
     apply_feature_scaler -- applies a fitted scaler with bool casting
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 from collections import OrderedDict

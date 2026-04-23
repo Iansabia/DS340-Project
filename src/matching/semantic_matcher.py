@@ -3,6 +3,7 @@
 Uses all-MiniLM-L6-v2 to encode market questions into 384-dim embeddings
 and compute pairwise cosine similarity for candidate pairs.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import numpy as np
 from sentence_transformers import SentenceTransformer, util
 

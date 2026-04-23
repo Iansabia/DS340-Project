@@ -21,6 +21,7 @@ Answers two related questions:
 The policy logic is pure (no I/O) so it can be unit-tested and reused
 from both the trading cycle and offline experiment runners.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field

@@ -12,6 +12,7 @@ Usage:
 
 Tip: --skip-tier3 is recommended for development; PPO models take ~10 min each.
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 import argparse

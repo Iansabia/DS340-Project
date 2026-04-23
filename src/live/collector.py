@@ -10,6 +10,7 @@ Usage:
     python -m src.live.collector --demo       # synthetic bars for testing
     python -m src.live.collector --build-mapping  # create pair_mapping.json
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import argparse
 import json
 import logging

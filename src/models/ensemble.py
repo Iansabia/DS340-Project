@@ -18,6 +18,7 @@ Design contract:
 This module MUST NOT import from ``src/live/`` or ``experiments/`` and MUST
 NOT touch ``src/live/strategy.py`` (ENSM-05 safety guard).
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 from __future__ import annotations
 
 from typing import List, Optional

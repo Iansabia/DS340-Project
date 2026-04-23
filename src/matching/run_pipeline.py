@@ -5,6 +5,7 @@ Usage:
         [--poly-dir data/raw/polymarket] [--output data/processed/matched_pairs.json] \
         [--min-keyword-score 0.1] [--alpha 0.3] [--skip-curation] [--skip-enrichment]
 """
+# AI-assisted authorship: written with Anthropic Claude (Sonnet 4.5 / Opus 4.6) as pair-programming assistant. All design decisions and interpretations are the authors'.
 import argparse
 import json
 import logging
