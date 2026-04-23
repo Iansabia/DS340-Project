@@ -62,7 +62,7 @@ This paper makes the following contributions:
 
 5. **A six-point data-scaling curve** (Table 4) directly addressing the "would more data flip the ranking?" question — it does not.
 
-6. **A transaction-cost sensitivity analysis** (Table 6) showing the system remains profitable at all realistic fee levels from 0 pp to 7 pp.
+6. **A transaction-cost sensitivity analysis** (Table 7) showing the system remains profitable at all realistic fee levels from 0 pp to 7 pp.
 
 7. **An honest Sharpe-ratio accounting** (§5.8, Table 8) showing that the per-pair annualized Sharpe — treating each of 144 matched pairs as one independent bet — is ≈ 3.2, while the per-trade Sharpe of 0.44 is a separate statistic reported for transparency. Both numbers are likely inflated by the short test window; we discuss this explicitly in §6.4.
 
@@ -226,7 +226,7 @@ Table 2 shows the single-split backtest at 2 pp transaction costs on the full 1,
 | 3 | PPO-Raw | — | — | *negative* | — | negative | — |
 | 3 | PPO + Autoencoder | — | — | **−\$7,724** | — | negative | — |
 
-†TFT: did not converge at N=6,802 (30-epoch budget, hidden_size=8, avg RMSE=0.3262 vs GRU=0.2928). VSN encoder weights extracted and visualized in Figure 2b (see `experiments/figures/tft_variable_importance.png`). See §6.2.3 for full analysis.
+†TFT: did not converge at N=6,802 (30-epoch budget, hidden_size=8, avg RMSE=0.3262 vs GRU=0.2928). VSN encoder weights extracted and visualized in Fig. 10 (see `experiments/figures/tft_variable_importance.png`). See §6.2.3 for full analysis.
 
 Three observations. **First**, the ranking is unambiguous: **Tier 1 (regression) > Tier 2 (sequence) > Tier 3 (RL)**. The Tier-0 → Tier-1 gap is very large (≈6.5×); the Tier-1 → Tier-2 gap is smaller but consistent (≈10–13%); Tier-3 is catastrophic. **Second**, LR and XGBoost are *essentially tied* (\$201.69 vs \$201.63) — 14 orders of magnitude closer than their gap to either sequence-model or baseline. Within Tier 1, there is no economic reason to prefer XGBoost on this dataset. **Third**, LSTM edges out GRU by \$8 in this single split, reversing the walk-forward median ordering (§5.2); both sit well below Tier 1.
 
@@ -447,9 +447,9 @@ To guard against p-hacking, we pre-registered the ablation protocol at `.plannin
 
 **Feature Groups.** The 51 model features were partitioned into five non-overlapping, pre-specified groups: (A) raw aligned OHLCV (15 features), (B) cross-platform basics including spread and divergence metrics (10 features), (C) rolling and momentum indicators (6 features), (D) classical microstructure estimators — Amihud illiquidity, Kyle's lambda, Roll spread, Corwin–Schultz implied spread, high-low volatility (13 features), and (E) prediction-market-specific dynamics including longshot bias score and trade-size extremes (7 features).
 
-**Results.** Table 6 presents all 12 LOGO configurations (6 per model). No configurations were omitted.
+**Results.** Table 9 presents all 12 LOGO configurations (6 per model). No configurations were omitted.
 
-**Table 6.** LOGO feature-ablation results on ablation\_holdout (1,021 rows). P&L evaluated at 2 pp fee threshold. ΔP&L and 95% CI computed via 1,000 paired-bootstrap resamples of trade indices. All CIs computed on ablation\_holdout only; final\_test is frozen.
+**Table 9.** LOGO feature-ablation results on ablation\_holdout (1,021 rows). P&L evaluated at 2 pp fee threshold. ΔP&L and 95% CI computed via 1,000 paired-bootstrap resamples of trade indices. All CIs computed on ablation\_holdout only; final\_test is frozen.
 
 | Model | Dropped Group | # Features | P&L @ 2pp | ΔP&L | 95% CI of ΔP&L | RMSE | Dir. Acc. | Classification |
 |---|---|---|---|---|---|---|---|---|
@@ -476,7 +476,7 @@ To guard against p-hacking, we pre-registered the ablation protocol at `.plannin
 
 The live trading system deploys an LR + XGBoost ensemble with a concordance filter: trades are skipped when the two models disagree on direction (sign disagreement). We formally evaluate four ensemble variants and audit the concordance filter's effect on reported performance. All numbers below are sourced verbatim from `experiments/results/ensemble/summary.json` produced by `experiments/run_ensemble_sweep.py`.
 
-**Table 7.** Ensemble-variant comparison with concordance audit on the held-out test set (1,673 rows). P&L is reported at the 2 pp fee threshold, both with the concordance filter applied ("filtered") and with the filter removed ("unfiltered"). Rejected P&L is the counterfactual cumulative P&L that the concordance filter *discarded* — i.e., what the rejected trades would have earned had they been taken. The P4 flag fires when rejected P&L is net positive (the filter throws away profitable trades).
+**Table 10.** Ensemble-variant comparison with concordance audit on the held-out test set (1,673 rows). P&L is reported at the 2 pp fee threshold, both with the concordance filter applied ("filtered") and with the filter removed ("unfiltered"). Rejected P&L is the counterfactual cumulative P&L that the concordance filter *discarded* — i.e., what the rejected trades would have earned had they been taken. The P4 flag fires when rejected P&L is net positive (the filter throws away profitable trades).
 
 | Variant | Members | Concordance | Trades (filtered) | Trades (unfiltered) | P&L (filtered) | P&L (unfiltered) | Rejection Rate | P&L (rejected) | P4 flag |
 |---|---|---|---|---|---|---|---|---|---|
@@ -489,7 +489,7 @@ The live trading system deploys an LR + XGBoost ensemble with a concordance filt
 
 **Weight Sensitivity.** To test whether the equal-weight choice is cherry-picked, we sweep LR-weight from 0.0 to 1.0 in 0.1 increments for the LR + XGB variant, holding XGB-weight = 1 − LR-weight, and re-evaluate both filtered and unfiltered P&L at each point. A fresh `EnsemblePredictor` is fit at each weight step (rather than in-place weight mutation) to guarantee train-time isolation, and `set_all_seeds(42)` is invoked before every fit.
 
-[Insert Figure: `experiments/figures/ensemble_weight_sweep.png` — Caption: "Figure 11: Ensemble weight sensitivity for LR+XGB. P&L is near-flat across all 11 tested LR-weight values (filtered span $4.68, unfiltered span $6.30), confirming that the weight choice is not the primary driver of performance. The concordance filter, not the weighting scheme, is the dominant discriminator."]
+**Fig. 11** (`experiments/figures/ensemble_weight_sweep.png`) plots walk-forward P&L at 2 pp fees across the 11-point LR-weight sweep (0.0 → 1.0). The spread across weights is $4.68; the curve is essentially flat, confirming that weight choice is not cherry-picked.
 
 The weight sweep is near-flat across all 11 tested values. Filtered P&L spans only $4.68 (from $+199.54 at w=0.0 to $+204.22 at w=1.0); unfiltered P&L spans $6.30 (from $+201.63 at w=0.0 to $+207.21 at w=0.2). This is consistent with the Phase-13 prior expectation: LR and XGBoost are functionally tied on this dataset (LR solo P&L = $+201.69, XGB solo P&L — the w=0.0 point of the filtered sweep — = $+199.54), so convex combinations of them produce only second-order variation. The LR-XGB weight choice is not material.
 
@@ -689,12 +689,14 @@ Total runtime on a single CPU: ~2 hours. GPU is not required.
 
 ## Appendix B: Figures Referenced
 
-- **Figure 1 — Walk-forward P&L curves:** `experiments/figures/walk_forward_pnl.png` (11 windows, 6 models)
-- **Figure 2 — Walk-forward Sharpe curves:** `experiments/figures/walk_forward_sharpe.png`
-- **Figure 3 — P&L vs. training data size:** `experiments/results/data_scaling/pnl_at_2pp_vs_data.png`
-- **Figure 4 — Transaction-cost sensitivity:** `experiments/figures/transaction_cost_sensitivity.png`
-- **Figure 5 — SHAP feature importance:** `experiments/figures/shap_bar_plot.png`
-- **Figure 6 — Equity curves (cumulative P&L over test period):** `experiments/figures/backtest_equity_curves.png`
-- **Figure 7 — Bootstrap CI for RMSE:** `experiments/figures/bootstrap_ci_rmse.png`
-- **Figure 8 — Lookback-window ablation:** `experiments/figures/experiment2_lookback_pnl.png`
-- **Figure 9 — Threshold-sweep heatmap:** `experiments/figures/experiment3_threshold_heatmap.png`
+- **Fig. 1** — `experiments/figures/walk_forward_pnl.png` — Out-of-sample P&L across 11 walk-forward windows (§5.2)
+- **Fig. 2** — `experiments/results/data_scaling/pnl_at_2pp_vs_data.png` — P&L vs training-set size; plateau at N=6,802 (fixed pair universe) — referenced in §5.4
+- **Fig. 3** — `experiments/figures/walk_forward_sharpe.png` — Walk-forward per-trade Sharpe trajectory (§5.2 supplemental)
+- **Fig. 4** — `experiments/figures/transaction_cost_sensitivity.png` — P&L vs round-trip fee (§5.6)
+- **Fig. 5** — `experiments/figures/shap_bar_plot.png` — Mean |SHAP| by feature (§5.7)
+- **Fig. 6** — `experiments/figures/backtest_equity_curves.png` — Cumulative P&L by model (§5.x)
+- **Fig. 7** — `experiments/figures/bootstrap_ci_rmse.png` — Bootstrap 95% CI on RMSE by model (§5.x)
+- **Fig. 8** — `experiments/figures/experiment2_lookback_pnl.png` — P&L vs lookback window (§5.x / Experiment 2)
+- **Fig. 9** — `experiments/figures/experiment3_threshold_heatmap.png` — P&L heatmap by model × minimum-spread threshold (§5.x / Experiment 3)
+- **Fig. 10** — `experiments/figures/tft_variable_importance.png` — TFT VSN variable-selection weights (§6.2.3)
+- **Fig. 11** — `experiments/figures/ensemble_weight_sweep.png` — Ensemble LR-weight sweep (§5.11)
