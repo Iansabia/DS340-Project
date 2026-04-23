@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: in-progress
-stopped_at: Completed 12-02-PLAN.md (§5.10 Feature Ablation + Finding 25) — all tasks done
-last_updated: "2026-04-23T00:08:00Z"
+status: completed
+stopped_at: Completed 12-02-PLAN.md (§5.10 Feature Ablation + Finding 25)
+last_updated: "2026-04-23T00:06:34.980Z"
 last_activity: 2026-04-23 -- Phase 12 plan 02 executed
 progress:
   total_phases: 7
-  completed_phases: 4
-  total_plans: 8
+  completed_phases: 5
+  total_plans: 9
   completed_plans: 9
   percent: 85
 ---
