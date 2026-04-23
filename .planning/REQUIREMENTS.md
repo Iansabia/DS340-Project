@@ -207,11 +207,11 @@ Fast and independent; parallelizes with Phase 11.
 Waits on Phase 11; ships with TFT-excluding baseline regardless.
 
 - [x] **ENSM-01**: New `src/models/ensemble.py` implementing `EnsemblePredictor(BasePredictor)`. Picklable via `BasePredictor.save/load`.
-- [ ] **ENSM-02**: Four ensemble variants evaluated: (a) LR alone, (b) LR + XGBoost equal-weight, (c) LR + LSTM, (d) majority-vote LR + XGBoost + LSTM. If TFT converged: 5th variant adds TFT.
-- [ ] **ENSM-03**: Concordance filter audit with BOTH filtered and unfiltered P&L in the same table. Includes rejection rate and P&L on rejected trades. If rejected trades are profitable in aggregate, flag as "concordance filter is hurting real P&L while inflating paper Sharpe." Guards P4.
-- [ ] **ENSM-04**: Ensemble-weight sensitivity sweep: LR-weight from 0.0 to 1.0 in 0.1 increments (XGBoost-weight = 1 - LR-weight). One plot showing sweep is not cherry-picked.
+- [x] **ENSM-02**: Four ensemble variants evaluated: (a) LR alone, (b) LR + XGBoost equal-weight, (c) LR + LSTM, (d) majority-vote LR + XGBoost + LSTM. If TFT converged: 5th variant adds TFT.
+- [x] **ENSM-03**: Concordance filter audit with BOTH filtered and unfiltered P&L in the same table. Includes rejection rate and P&L on rejected trades. If rejected trades are profitable in aggregate, flag as "concordance filter is hurting real P&L while inflating paper Sharpe." Guards P4.
+- [x] **ENSM-04**: Ensemble-weight sensitivity sweep: LR-weight from 0.0 to 1.0 in 0.1 increments (XGBoost-weight = 1 - LR-weight). One plot showing sweep is not cherry-picked.
 - [x] **ENSM-05**: `EnsemblePredictor` **not** wired into `src/live/strategy.py` during v1.1 (live deployment stays hardcoded to current LR+XGB average; rollout is a future-work bullet). Guards "breaking live system" risk.
-- [ ] **ENSM-06**: New `experiments/run_ensemble_sweep.py` (~100 LOC).
+- [x] **ENSM-06**: New `experiments/run_ensemble_sweep.py` (~100 LOC).
 - [ ] **ENSM-07**: Paper section 4.4 (Live System Architecture) rewritten with evidence-based ensemble justification; new ensemble table added to section 5.
 
 ### Phase 14 -- Paper Finalization + Presentation
@@ -286,11 +286,11 @@ Terminal phase; consumes results from all prior phases.
 | ABLA-07 | Phase 12 | Complete |
 | ABLA-08 | Phase 12 | Complete |
 | ENSM-01 | Phase 13 | Complete |
-| ENSM-02 | Phase 13 | Pending |
-| ENSM-03 | Phase 13 | Pending |
-| ENSM-04 | Phase 13 | Pending |
+| ENSM-02 | Phase 13 | Complete |
+| ENSM-03 | Phase 13 | Complete |
+| ENSM-04 | Phase 13 | Complete |
 | ENSM-05 | Phase 13 | Complete |
-| ENSM-06 | Phase 13 | Pending |
+| ENSM-06 | Phase 13 | Complete |
 | ENSM-07 | Phase 13 | Pending |
 | POL-01 | Phase 14 | Pending |
 | POL-02 | Phase 14 | Pending |

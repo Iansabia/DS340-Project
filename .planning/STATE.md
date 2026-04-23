@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: completed
-stopped_at: Completed 13-01-PLAN.md (EnsemblePredictor TDD)
-last_updated: "2026-04-23T15:52:20.720Z"
-last_activity: 2026-04-23 -- Phase 13 plan 01 executed (EnsemblePredictor TDD)
+stopped_at: Completed 13-02-PLAN.md (ensemble sweep + concordance audit + weight sweep)
+last_updated: "2026-04-23T15:58:04.224Z"
+last_activity: 2026-04-23 -- Phase 13 plan 02 executed (ensemble sweep + concordance audit + weight sweep)
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 12
-  completed_plans: 10
-  percent: 85
+  completed_plans: 11
+  percent: 92
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 13 of 14 (Ensemble Formalization) — IN PROGRESS
-Plan: 1 of 3 complete (EnsemblePredictor TDD done; 13-02 per-member routing next)
-Status: Phase 13 plan 01 complete; 13-02 (per-member feature routing) ready to execute
-Last activity: 2026-04-23 -- Phase 13 plan 01 executed (EnsemblePredictor TDD)
+Plan: 2 of 3 complete (EnsemblePredictor TDD + ensemble sweep done; 13-03 paper §5.11 next)
+Status: Phase 13 plan 02 complete; 13-03 (paper §5.11) ready to execute
+Last activity: 2026-04-23 -- Phase 13 plan 02 executed (ensemble sweep + concordance audit + weight sweep)
 
-Progress: [████████░░] 83%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -40,9 +40,13 @@ Progress: [████████░░] 83%
 - Total execution time: ~3 hours
 
 **v1.1 Velocity:**
-- Total plans completed: 6
+- Total plans completed: 7
 - Average duration: ~4 min
-- Total execution time: ~21 min
+- Total execution time: ~23 min
+
+| Phase                     | Plan | Duration | Tasks | Files |
+| ------------------------- | ---- | -------- | ----- | ----- |
+| 13-ensemble-formalization | 02   | 2min     | 2     | 7     |
 
 *Updated after each plan completion*
 
@@ -88,6 +92,11 @@ Recent decisions affecting current work:
 - [Phase 13-01-ensemble-formalization]: set_all_seeds(seed) called inside fit(), not constructor — constructor stays a pure metadata builder
 - [Phase 13-01-ensemble-formalization]: No custom pickle hooks — BasePredictor.save/load handles ensemble serialization natively because all supported member types are already picklable
 - [Phase 13-01-ensemble-formalization]: ENSM-05 guard held — src/live/strategy.py untouched; ensemble wiring deferred to post-v1.1 per roadmap decision
+- [Phase 13-02-ensemble-formalization]: Per-member feature routing lives at the experiment-script level (fit_mixed_ensemble / predict_mixed_members helpers) — keeps EnsemblePredictor's single-X contract intact and avoids invalidating the 13 tests from Plan 13-01
+- [Phase 13-02-ensemble-formalization]: Variant (a) LR-solo P&L = $+201.69 exactly equals variant (c) LR-member P&L (sanity cross-check verified group_id does not leak into LR via variant (c))
+- [Phase 13-02-ensemble-formalization]: P4 concordance trap fires on 3/4 filtered variants (rejected P&L +$1.95, +$9.52, +$13.08 for LR+XGB, LR+LSTM, LR+XGB+LSTM) — documented empirically for §5.11
+- [Phase 13-02-ensemble-formalization]: Weight sweep P&L spread $4.68 across 11 LR-weight points (0.0→1.0) — weight choice is immaterial; concordance filter is the discriminator
+- [Phase 13-02-ensemble-formalization]: ENSM-05 guard re-verified — git diff src/live/strategy.py empty; strategy.py lines 427-429 still contain live concordance check
 
 ### Pending Todos
 
@@ -101,7 +110,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T15:52:20.718Z
-Stopped at: Completed 13-01-PLAN.md (EnsemblePredictor TDD)
+Last session: 2026-04-23T15:58:04.224Z
+Stopped at: Completed 13-02-PLAN.md (ensemble sweep + concordance audit + weight sweep)
 Resume file: None
-Next action: Phase 13 plan 02 (per-member feature routing)
+Next action: Phase 13 plan 03 (paper §5.11 — consume summary.json)

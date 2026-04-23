@@ -227,7 +227,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 10. 250-Bar Scaling Checkpoint | 1/1 | Complete    | 2026-04-22 | - |
 | 11. TFT Training | 2/2 | Complete    | 2026-04-22 | - |
 | 12. Feature Ablation | 2/2 | Complete    | 2026-04-23 | - |
-| 13. Ensemble Formalization | 1/3 | In Progress|  | - |
+| 13. Ensemble Formalization | 2/3 | In Progress|  | - |
 | 14. Paper Finalization + Presentation | v1.1 | 0/0 | Not started | - |
 
 ---
