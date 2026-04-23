@@ -230,6 +230,8 @@ Table 2 shows the single-split backtest at 2 pp transaction costs on the full 1,
 
 Three observations. **First**, the ranking is unambiguous: **Tier 1 (regression) > Tier 2 (sequence) > Tier 3 (RL)**. The Tier-0 → Tier-1 gap is very large (≈6.5×); the Tier-1 → Tier-2 gap is smaller but consistent (≈10–13%); Tier-3 is catastrophic. **Second**, LR and XGBoost are *essentially tied* (\$201.69 vs \$201.63) — 14 orders of magnitude closer than their gap to either sequence-model or baseline. Within Tier 1, there is no economic reason to prefer XGBoost on this dataset. **Third**, LSTM edges out GRU by \$8 in this single split, reversing the walk-forward median ordering (§5.2); both sit well below Tier 1.
 
+Two supplementary figures accompany this headline split. Fig. 6 (`experiments/figures/backtest_equity_curves.png`) plots cumulative test-set P&L bar-by-bar for the four ML models and shows the Tier-1 vs. Tier-2 separation opening gradually rather than in a single jump — consistent with a stable per-trade edge rather than one lucky window. Fig. 7 (`experiments/figures/bootstrap_ci_rmse.png`) reports bootstrap 95% confidence intervals on RMSE (1,000 resamples); the LR / XGBoost / GRU / LSTM intervals overlap heavily on RMSE even though their P&L separates cleanly, confirming that the P&L gap is driven by *directional accuracy* and *trade selection*, not raw regression error.
+
 ### 5.2 Walk-Forward Validation
 
 Fig. 1 (see `experiments/figures/walk_forward_pnl.png`) shows per-window P&L for all six models across 11 windows spanning January to April 2026. Training uses an expanding-window protocol: window $i$ trains on all data from windows $\{0, \ldots, i-1\}$ and tests on window $i$. Table 3 reports per-window P&L; Table 3b reports per-trade Sharpe across the same windows (the key stability statistic).
@@ -501,6 +503,50 @@ This is the P4 concordance-filter denominator trap identified in the Phase-13 re
 
 The `EnsemblePredictor` class is formalized and tested (`tests/models/test_ensemble.py`, 13 passing tests; Phase 13 Plan 01) but *not wired into the live strategy during v1.1 evaluation* — the live system remains hardcoded to the current LR+XGB average for safety. Wiring `EnsemblePredictor` into `src/live/strategy.py` is a post-v1.1 refactor (`ENSM-05` guard; see §7).
 
+### 5.12 Lookback Window Sensitivity (Proposal Experiment 2)
+
+The original project proposal (Experiment 2) asked whether the length of the historical lookback window materially affects sequence-model performance — i.e., does feeding GRU/LSTM a longer history of prior bars improve P&L? To answer this, we sweep lookback ∈ {2, 6, 12, 18} bars (corresponding to 8 h, 24 h, 48 h, 72 h of hourly data) for both GRU and LSTM while holding all other hyperparameters, the feature set (31 sequence features), the train/test split (6,802 train rows / 1,673 test rows), and the decision threshold (2 pp) fixed at the Phase-12 defaults. Results are sourced from `experiments/results/ablation_lookback/*.json` and plotted in Fig. 8 (`experiments/figures/experiment2_lookback_pnl.png`).
+
+**Table 11: Sequence-model P&L vs lookback window (2 pp threshold, 1,673-row test set).**
+
+| Model | Lookback (bars) | Window (hours) | P&L (\$) | Per-trade Sharpe | Dir. Acc. | # trades |
+|---|---|---|---|---|---|---|
+| GRU | 2 | 8 h | **+226.42** | 0.489 | 66.4% | 1532 |
+| GRU | 6 | 24 h | +224.35 | 0.485 | 64.5% | 1529 |
+| GRU | 12 | 48 h | +219.17 | 0.473 | 65.8% | 1511 |
+| GRU | 18 | 72 h | +191.90 | 0.400 | 62.8% | 1561 |
+| LSTM | 2 | 8 h | **+214.47** | 0.456 | 65.0% | 1540 |
+| LSTM | 6 | 24 h | +220.37 | 0.475 | 65.9% | 1526 |
+| LSTM | 12 | 48 h | +216.42 | 0.465 | 65.6% | 1529 |
+| LSTM | 18 | 72 h | +209.42 | 0.453 | 64.5% | 1519 |
+
+**Finding: longer lookbacks do not help, and at 72 h they meaningfully hurt.** For GRU, P&L declines monotonically from \$+226.42 at 2 bars to \$+191.90 at 18 bars (a 15% drop, −\$34.52); per-trade Sharpe falls from 0.489 to 0.400. LSTM is flatter — the best lookback is 6 bars (\$+220.37) and the worst is 18 bars (\$+209.42) — but the same direction holds. Neither architecture rewards additional history on this dataset.
+
+This is directly consistent with the "simplicity wins" thesis (§5.1, §6.1). Longer sequences *increase* the model's effective parameter count (more BPTT timesteps, larger hidden-state carry) without providing proportionally more signal — at 47 bars/pair on average, an 18-bar window covers nearly 40% of a pair's lifetime and is dominated by stale information from before the contract's active trading phase. The data regime does not yet reward the inductive bias that sequence models are supposed to exploit. Section 6.2.3 projects that once bars-per-pair grows past 250 under the live auto-retrain system, longer lookbacks should become viable and the sign of this sweep may invert.
+
+### 5.13 Minimum Spread Threshold (Proposal Experiment 3)
+
+The original project proposal (Experiment 3) asked whether requiring a minimum absolute spread before trading improves risk-adjusted P&L. The intuition: small predicted moves may be dominated by noise and fees, so filtering them out should raise per-trade Sharpe. To test this we sweep the decision threshold ∈ {0.00, 0.02, 0.05, 0.10} (expressed as absolute predicted spread change in probability units) across all eight models — the two Tier-1 regressors (LR, XGBoost), the two Tier-2 sequence models (GRU, LSTM), both PPO variants (PPO-raw, PPO + autoencoder filter), and both naive baselines (spread-closes, volume). Results are sourced from `experiments/results/ablation_threshold/*.json` and visualized in Fig. 9 (`experiments/figures/experiment3_threshold_heatmap.png`).
+
+**Table 12: P&L by model × minimum-spread threshold (1,673-row test set).**
+
+| Model | thr=0.00 | thr=0.02 | thr=0.05 | thr=0.10 | Best threshold (P&L) | Best threshold (Sharpe) |
+|---|---|---|---|---|---|---|
+| Linear Regression | +227.45 | **+230.14** | +227.95 | +210.11 | 0.02 | 0.10 (0.606) |
+| XGBoost | **+243.38** | +238.41 | +230.40 | +207.46 | 0.00 | 0.10 (0.620) |
+| GRU | +221.45 | **+224.35** | +217.16 | +189.42 | 0.02 | 0.10 (0.598) |
+| LSTM | **+221.60** | +220.37 | +208.23 | +184.05 | 0.00 | 0.10 (0.571) |
+| PPO-raw | +172.30 | +172.30 | 0.00 | 0.00 | 0.00 | 0.02 (0.335) |
+| PPO + autoencoder | −29.41 | −29.41 | 0.00 | 0.00 | (all bad) | — |
+| Naive (spread closes) | +59.50 | +58.12 | +65.53 | **+80.53** | 0.10 | 0.10 (0.212) |
+| Volume (higher wins) | +59.50 | +59.81 | +69.20 | **+83.20** | 0.10 | 0.10 (0.227) |
+
+**Two findings, and they differ sharply by model tier.**
+
+*First*, for Tier-1 and Tier-2 models, P&L peaks at the fee-consistent threshold (0.00 or 0.02, matching the 2 pp round-trip fee assumption) and declines monotonically above that, because raising the threshold discards trades faster than it improves their hit rate. XGBoost loses \$35.92 (−15%) going from thr=0.00 to thr=0.10; GRU loses \$32.03 (−14%); LSTM loses \$37.55 (−17%). However — and this is the honest caveat — **per-trade Sharpe rises monotonically with threshold for every ML model**. XGBoost's Sharpe climbs from 0.498 at thr=0.00 to 0.620 at thr=0.10 (+24%), and the other three ML models show the same pattern. A threshold selection that optimizes Sharpe (not P&L) prefers thr=0.10 across Tier 1 and Tier 2; a selection that optimizes absolute P&L prefers thr=0.00 or 0.02. The paper's main results (§5.1, §5.2) use 2 pp as the fee-consistent baseline.
+
+*Second*, the naive baselines show the *opposite* pattern — P&L rises with threshold, from +\$59.50 at thr=0.00 to +\$80.53 (spread-closes) or +\$83.20 (volume) at thr=0.10. This is a useful sanity check: the naive rules have no predictive content, so filtering to large-spread trades is the only thing that helps them. The ML models already concentrate their signal in high-magnitude predictions; naives don't, so the threshold acts as a crude selector. PPO variants are threshold-insensitive (or have zero trades above 0.05 because their predictions rarely exceed 5 pp), confirming they are not a serious competitor regardless of threshold. Overall, the threshold sweep confirms the main conclusion of the paper: the useful model-family discrimination happens at thr=0.02, where Tier-1 models win cleanly, and threshold selection is a second-order tuning knob compared to choice of model tier.
+
 ---
 
 ## 6. Discussion
@@ -685,9 +731,9 @@ Full source code and reproduction commands are available at `https://github.com/
 - **Fig. 3** — `experiments/figures/walk_forward_sharpe.png` — Walk-forward per-trade Sharpe trajectory (§5.2 supplemental)
 - **Fig. 4** — `experiments/figures/transaction_cost_sensitivity.png` — P&L vs round-trip fee (§5.6)
 - **Fig. 5** — `experiments/figures/shap_bar_plot.png` — Mean |SHAP| by feature (§5.7)
-- **Fig. 6** — `experiments/figures/backtest_equity_curves.png` — Cumulative P&L by model (§5.x)
-- **Fig. 7** — `experiments/figures/bootstrap_ci_rmse.png` — Bootstrap 95% CI on RMSE by model (§5.x)
-- **Fig. 8** — `experiments/figures/experiment2_lookback_pnl.png` — P&L vs lookback window (§5.x / Experiment 2)
-- **Fig. 9** — `experiments/figures/experiment3_threshold_heatmap.png` — P&L heatmap by model × minimum-spread threshold (§5.x / Experiment 3)
+- **Fig. 6** — `experiments/figures/backtest_equity_curves.png` — Cumulative P&L by model (§5.1)
+- **Fig. 7** — `experiments/figures/bootstrap_ci_rmse.png` — Bootstrap 95% CI on RMSE by model (§5.1)
+- **Fig. 8** — `experiments/figures/experiment2_lookback_pnl.png` — P&L vs lookback window (§5.12 / Proposal Experiment 2)
+- **Fig. 9** — `experiments/figures/experiment3_threshold_heatmap.png` — P&L heatmap by model × minimum-spread threshold (§5.13 / Proposal Experiment 3)
 - **Fig. 10** — `experiments/figures/tft_variable_importance.png` — TFT VSN variable-selection weights (§6.2.3)
 - **Fig. 11** — `experiments/figures/ensemble_weight_sweep.png` — Ensemble LR-weight sweep (§5.11)
