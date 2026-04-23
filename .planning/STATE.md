@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: completed
-stopped_at: Completed 13-02-PLAN.md (ensemble sweep + concordance audit + weight sweep)
-last_updated: "2026-04-23T15:58:04.224Z"
-last_activity: 2026-04-23 -- Phase 13 plan 02 executed (ensemble sweep + concordance audit + weight sweep)
+status: planning
+stopped_at: Completed 13-03-PLAN.md — Phase 13 complete; Phase 14 ready to plan
+last_updated: "2026-04-23T16:51:00.900Z"
+last_activity: 2026-04-23 -- Phase 13 plan 03 executed (paper §5.11 ensemble formalization, §4.4 update, Finding 26)
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 12
-  completed_plans: 11
-  percent: 92
+  completed_plans: 12
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 ## Current Position
 
-Phase: 13 of 14 (Ensemble Formalization) — IN PROGRESS
-Plan: 2 of 3 complete (EnsemblePredictor TDD + ensemble sweep done; 13-03 paper §5.11 next)
-Status: Phase 13 plan 02 complete; 13-03 (paper §5.11) ready to execute
-Last activity: 2026-04-23 -- Phase 13 plan 02 executed (ensemble sweep + concordance audit + weight sweep)
+Phase: 13 of 14 (Ensemble Formalization) — COMPLETE
+Plan: 3 of 3 complete (EnsemblePredictor TDD + ensemble sweep + paper §5.11 all done)
+Status: Phase 13 COMPLETE; Phase 14 (Paper Finalization + Presentation) unblocked and ready to plan
+Last activity: 2026-04-23 -- Phase 13 plan 03 executed (paper §5.11 ensemble formalization, §4.4 update, Finding 26)
 
-Progress: [█████████░] 92%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [█████████░] 92%
 | 13-ensemble-formalization | 02   | 2min     | 2     | 7     |
 
 *Updated after each plan completion*
+| Phase 13-ensemble-formalization P03 | 48min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,10 @@ Recent decisions affecting current work:
 - [Phase 13-02-ensemble-formalization]: P4 concordance trap fires on 3/4 filtered variants (rejected P&L +$1.95, +$9.52, +$13.08 for LR+XGB, LR+LSTM, LR+XGB+LSTM) — documented empirically for §5.11
 - [Phase 13-02-ensemble-formalization]: Weight sweep P&L spread $4.68 across 11 LR-weight points (0.0→1.0) — weight choice is immaterial; concordance filter is the discriminator
 - [Phase 13-02-ensemble-formalization]: ENSM-05 guard re-verified — git diff src/live/strategy.py empty; strategy.py lines 427-429 still contain live concordance check
+- [Phase 13-03-ensemble-formalization]: §5.11 reports per-trade Sharpe (0.437 unfiltered vs 0.455 filtered) to quantify concordance filter's Sharpe boost — directly exposes P4 trap magnitude numerically
+- [Phase 13-03-ensemble-formalization]: §5.11 framing: weight immateriality first, then concordance filter as true discriminator, then P4 flag with dollar cost — prevents filter being described as pure risk control
+- [Phase 13-03-ensemble-formalization]: §4.4 updated via one-paragraph addition (not rewrite); preserves existing architecture narrative; explicitly references ENSM-05 guard (strategy.py untouched)
+- [Phase 13-03-ensemble-formalization]: Finding 26 mirrors Finding 25 format exactly; keeps FINDINGS.md scanable rather than a prose collection
 
 ### Pending Todos
 
@@ -110,7 +115,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T15:58:04.224Z
-Stopped at: Completed 13-02-PLAN.md (ensemble sweep + concordance audit + weight sweep)
+Last session: 2026-04-23T16:51:00.898Z
+Stopped at: Completed 13-03-PLAN.md — Phase 13 complete; Phase 14 ready to plan
 Resume file: None
 Next action: Phase 13 plan 03 (paper §5.11 — consume summary.json)
