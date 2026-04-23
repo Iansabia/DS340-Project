@@ -228,7 +228,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 11. TFT Training | 2/2 | Complete    | 2026-04-22 | - |
 | 12. Feature Ablation | 2/2 | Complete    | 2026-04-23 | - |
 | 13. Ensemble Formalization | 3/3 | Complete    | 2026-04-23 | - |
-| 14. Paper Finalization + Presentation | v1.1 | 0/0 | Not started | - |
+| 14. Paper Finalization + Presentation | 1/3 | In Progress|  | - |
 
 ---
 *Roadmap created: 2026-04-01*

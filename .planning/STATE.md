@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: planning
-stopped_at: Completed 13-03-PLAN.md — Phase 13 complete; Phase 14 ready to plan
-last_updated: "2026-04-23T16:54:08.839Z"
-last_activity: 2026-04-23 -- Phase 13 plan 03 executed (paper §5.11 ensemble formalization, §4.4 update, Finding 26)
+stopped_at: Completed 14-01-PLAN.md — IEEE figures + abstract scrub done; Plan 14-02 unblocked
+last_updated: "2026-04-23T18:39:53.985Z"
+last_activity: 2026-04-23 -- Phase 14 plan 01 executed (IEEE figures regenerated, abstract trimmed to 244 words, Sharpe scrub complete)
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_plans: 15
+  completed_plans: 13
+  percent: 87
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** v1.1 -- Extended Evidence & Submission (Phase 13 ensemble formalization in progress)
+**Current focus:** v1.1 -- Extended Evidence & Submission (Phase 14 paper finalization in progress)
 
 ## Current Position
 
-Phase: 13 of 14 (Ensemble Formalization) — COMPLETE
-Plan: 3 of 3 complete (EnsemblePredictor TDD + ensemble sweep + paper §5.11 all done)
-Status: Phase 13 COMPLETE; Phase 14 (Paper Finalization + Presentation) unblocked and ready to plan
-Last activity: 2026-04-23 -- Phase 13 plan 03 executed (paper §5.11 ensemble formalization, §4.4 update, Finding 26)
+Phase: 14 of 14 (Paper Finalization + Presentation) — IN PROGRESS
+Plan: 1 of 3 complete (IEEE figures + abstract scrub done; 14-02 figure-reference renumbering + 14-03 README/slides remaining)
+Status: Plan 14-01 COMPLETE; Plan 14-02 unblocked (figures now stamped with correct numbers on-disk, Fig 2 cap annotation live)
+Last activity: 2026-04-23 -- Phase 14 plan 01 executed (IEEE figures regenerated, abstract trimmed to 244 words, Sharpe scrub complete)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 87%
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Progress: [██████████] 100%
 
 *Updated after each plan completion*
 | Phase 13-ensemble-formalization P03 | 48min | 3 tasks | 3 files |
+| Phase 14-paper-finalization-presentation P01 | 20min | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,11 @@ Recent decisions affecting current work:
 - [Phase 13-03-ensemble-formalization]: §5.11 framing: weight immateriality first, then concordance filter as true discriminator, then P4 flag with dollar cost — prevents filter being described as pure risk control
 - [Phase 13-03-ensemble-formalization]: §4.4 updated via one-paragraph addition (not rewrite); preserves existing architecture narrative; explicitly references ENSM-05 guard (strategy.py untouched)
 - [Phase 13-03-ensemble-formalization]: Finding 26 mirrors Finding 25 format exactly; keeps FINDINGS.md scanable rather than a prose collection
+- [Phase 14-01-paper-finalization]: Consolidated figure regeneration via scripts/regenerate_figures.py rather than editing 11 separate experiment scripts — keeps IEEE styling in one place and makes regeneration idempotent
+- [Phase 14-01-paper-finalization]: TFT VSN weights persisted to experiments/results/tft/vsn_importance.json (via patched extract_tft_heatmap.py) so downstream figure regenerations skip the ~8-minute TFT retrain
+- [Phase 14-01-paper-finalization]: Abstract landed at 244 words (6 words of headroom under 250 cap) leaving room for Plan 14-02 adjustments
+- [Phase 14-01-paper-finalization]: Figure 2 SCAL-03/POL-08 cap annotation embedded on-figure via red dotted axvline + text ("plateau at N=6,802, fixed pair universe") — readable without body text
+- [Phase 14-01-paper-finalization]: Stale "per-trade Sharpe 0.59 / 4.3" claim on §1.4 item 7 + dead §4.6 cross-reference both removed; per-pair ≈ 3.2 (Table 8) is now the consistent headline across abstract, §1.4, §8
 
 ### Pending Todos
 
@@ -115,7 +121,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T16:51:00.898Z
-Stopped at: Completed 13-03-PLAN.md — Phase 13 complete; Phase 14 ready to plan
+Last session: 2026-04-23T18:39:53.982Z
+Stopped at: Completed 14-01-PLAN.md — IEEE figures + abstract scrub done; Plan 14-02 unblocked
 Resume file: None
-Next action: Phase 13 plan 03 (paper §5.11 — consume summary.json)
+Next action: Phase 14 plan 02 (paper integrity — figure/table renumbering, citation alphabetization, TODO scrub)
