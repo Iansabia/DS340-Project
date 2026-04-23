@@ -506,6 +506,66 @@ None. No group met all load-bearing criteria on the 1,021-row ablation holdout.
 
 ---
 
+## Finding 26: Ensemble Weight Is Immaterial; Concordance Filter Is the Primary Discriminator (Phase 13, April 2026)
+
+**Experiment:** Formal ensemble evaluation across four variants and an 11-point LR-weight sensitivity sweep for the LR+XGB variant, with a concordance audit computing filtered / unfiltered / rejected P&L in one pass. Runner: `experiments/run_ensemble_sweep.py`. Machine-readable results: `experiments/results/ensemble/summary.json`. Figure: `experiments/figures/ensemble_weight_sweep.png`.
+
+**Protocol:** Four variants on the held-out test set (1,673 rows) at the 2 pp fee threshold:
+- (a) LR alone — no concordance filter (1 member)
+- (b) LR + XGB equal-weight — strict concordance filter (live system)
+- (c) LR + LSTM equal-weight — strict concordance filter
+- (d) LR + XGB + LSTM equal-weight — strict concordance filter (3 members, all must agree)
+
+Strict concordance: a trade is taken only when *all* members agree on the sign of the predicted spread change. For each variant we compute P&L with the filter on ("filtered"), with the filter off ("unfiltered"), and the counterfactual P&L of the trades the filter *rejected*. Rejected P&L > 0 raises the P4 flag — the filter is discarding net-positive expected value.
+
+**Weight sweep.** For variant (b) LR+XGB, sweep LR-weight from 0.0 to 1.0 in 0.1 increments (11 points), holding XGB-weight = 1 − LR-weight. Fresh `EnsemblePredictor` instance per step, `set_all_seeds(42)` before each fit.
+
+**Results — concordance audit:**
+
+| Variant                    | # trades filtered | # trades unfiltered | Rejection rate | P&L filtered | P&L unfiltered | P&L rejected | P4 flag |
+| -------------------------- | ----------------- | ------------------- | -------------- | ------------ | -------------- | ------------ | ------- |
+| (a) LR alone               | 1549              | 1549                | 0.00%          | $+201.69     | $+201.69       | $+0.00       | ok      |
+| (b) LR + XGB equal-weight  | 1489              | 1564                | 4.80%          | $+202.14     | $+204.09       | $+1.95       | WARN    |
+| (c) LR + LSTM equal-weight | 1441              | 1550                | 7.03%          | $+191.79     | $+201.31       | $+9.52       | WARN    |
+| (d) LR + XGB + LSTM strict | 1373              | 1554                | 11.65%         | $+194.86     | $+207.93       | $+13.08      | WARN    |
+
+**Results — weight sweep (LR+XGB):**
+
+| LR weight | P&L filtered | P&L unfiltered |
+| --------- | ------------ | -------------- |
+| 0.0       | $+199.54     | $+201.63       |
+| 0.1       | $+200.99     | $+204.50       |
+| 0.2       | $+202.60     | $+207.21       |
+| 0.3       | $+202.61     | $+205.77       |
+| 0.4       | $+202.52     | $+206.50       |
+| 0.5       | $+202.14     | $+204.09       |
+| 0.6       | $+202.64     | $+204.09       |
+| 0.7       | $+202.48     | $+203.38       |
+| 0.8       | $+202.60     | $+203.11       |
+| 0.9       | $+202.80     | $+202.09       |
+| 1.0       | $+204.22     | $+201.69       |
+
+Filtered span: $4.68 across the full 0.0 → 1.0 LR-weight range. Unfiltered span: $6.30. Weight choice is effectively noise.
+
+**Core finding 1 — Weight immateriality.** The 11-point LR-weight sweep produces a near-flat P&L curve. Filtered P&L ranges from $+199.54 (w=0.0, XGB-only combination) to $+204.22 (w=1.0, LR-only combination), spread of only $4.68. Unfiltered P&L ranges from $+201.63 to $+207.21, spread of $6.30. Because LR-solo ($+201.69) and XGB-solo ($+199.54 at the w=0.0 filtered point of the sweep) are functionally tied on this dataset, any convex combination of them produces only second-order variation. The equal-weight choice in the live system is not cherry-picked.
+
+**Core finding 2 — Concordance filter fires P4 on all filtered variants.** The concordance filter rejects trades where the ensemble members disagree on sign. Empirically, those rejected trades are *profitable in aggregate* for all three filtered variants:
+- Variant (b): 75 trades rejected, $+1.95 rejected P&L, 49.3% win rate among rejects
+- Variant (c): 109 trades rejected, $+9.52 rejected P&L, 53.2% win rate among rejects
+- Variant (d): 181 trades rejected, $+13.08 rejected P&L, 52.5% win rate among rejects
+
+This is the P4 concordance-filter denominator trap: the filter improves per-trade Sharpe (variant (d) filtered Sharpe 0.475 vs. unfiltered 0.452) by selectively eliminating ambiguous trades, but some of those trades had positive expected value. Filtered P&L of variant (d) is $13.07 *lower* than unfiltered P&L — the filter is explicitly trading real P&L for variance reduction.
+
+**Core finding 3 — Concordance filter, not weighting, is the primary discriminator.** The cross-variant P&L spread ($+191.79 to $+204.22 filtered, $+201.31 to $+207.93 unfiltered) is dominated by *which members are in the ensemble and whether a filter is applied*, not by how the members are weighted. Variant (c) LR+LSTM underperforms LR-solo on filtered P&L ($+191.79 < $+201.69) — the LSTM member's sign disagreements drag down the composite. Variant (b) LR+XGB filtered ($+202.14) exceeds LR-solo ($+201.69) by only $0.45. The ensemble's practical contribution over the simplest baseline is small, and the filter explains more of the variance than the weight scheme.
+
+**Cross-validation — sanity check.** Variant (a) LR-solo P&L ($+201.69) exactly equals variant (c)'s LR-member P&L ($+201.69), confirming that the LSTM-induced `group_id` feature does not leak into the LR member via variant (c)'s mixed-feature routing path (RESEARCH.md Pitfall 2 guard held). The per-member feature routing helpers (`fit_mixed_ensemble` / `predict_mixed_members` in the experiment runner) dispatch flat vs. sequence views correctly.
+
+**Implication for live system.** The LR+XGB concordance filter deployed in `src/live/strategy.py` is evidence-based risk control, not a cherry-picked configuration. The equal-weight choice is not material (sweep span $4.68). The filter has a quantified cost (4.80% of trades rejected, $+1.95 rejected P&L for variant b) which we report alongside filtered P&L in §5.11 of the paper to prevent Sharpe inflation. The formal `EnsemblePredictor` class (Phase 13, 13 passing unit tests) is *not* wired into the live strategy during v1.1 evaluation — ENSM-05 guard held throughout Phase 13 (`git diff src/live/strategy.py` empty). Wiring EnsemblePredictor into the live loop is a post-v1.1 refactor.
+
+**Caveat — single test set.** These numbers are measured on the 1,673-row held-out test set at the 2 pp fee threshold. The concordance audit is a one-shot evaluation, not a cross-validated estimate. Rejected-P&L magnitudes ($+1.95 to $+13.08) are small relative to total P&L (~$200), so the P4 flag is correctly characterized as "filter has a measurable cost" rather than "filter destroys alpha." Re-running the audit at 250+ bars/pair (future work, §7 item 8) would tighten the rejected-P&L confidence interval and clarify whether the filter's cost grows, shrinks, or stays flat as data scale grows.
+
+---
+
 ## Open Questions for Paper
 
 1. **Does GRU overtake XGBoost at 100+ bars/pair?** — Answer expected within 24-48h from auto-retrain.
