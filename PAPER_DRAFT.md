@@ -439,6 +439,39 @@ The live paper-trading system was deployed on the BU Shared Computing Cluster (S
 
 ---
 
+### 5.10 Feature Ablation
+
+To guard against p-hacking, we pre-registered the ablation protocol at `.planning/ablation_protocol.md` before any experiment script was written (the protocol commit `b15534b` predates the runner commit `46b253a`, verifiable in the repository history). We applied Leave-One-Group-Out (LOGO) ablation across five pre-specified feature groups on both LR and XGBoost, using a three-way temporal split: train\_proper (earliest 85% of training data, 5,781 rows), ablation\_holdout (latest 15%, 1,021 rows) for feature-set selection, and final\_test (1,673 rows, the original held-out test set) frozen until after selection was determined.
+
+**Feature Groups.** The 51 model features were partitioned into five non-overlapping, pre-specified groups: (A) raw aligned OHLCV (15 features), (B) cross-platform basics including spread and divergence metrics (10 features), (C) rolling and momentum indicators (6 features), (D) classical microstructure estimators — Amihud illiquidity, Kyle's lambda, Roll spread, Corwin–Schultz implied spread, high-low volatility (13 features), and (E) prediction-market-specific dynamics including longshot bias score and trade-size extremes (7 features).
+
+**Results.** Table 6 presents all 12 LOGO configurations (6 per model). No configurations were omitted.
+
+**Table 6.** LOGO feature-ablation results on ablation\_holdout (1,021 rows). P&L evaluated at 2 pp fee threshold. ΔP&L and 95% CI computed via 1,000 paired-bootstrap resamples of trade indices. All CIs computed on ablation\_holdout only; final\_test is frozen.
+
+| Model | Dropped Group | # Features | P&L @ 2pp | ΔP&L | 95% CI of ΔP&L | RMSE | Dir. Acc. | Classification |
+|---|---|---|---|---|---|---|---|---|
+| LR | — (baseline) | 51 | $+56.54 | $0.00 | — | 0.2192 | 62.0% | baseline |
+| XGBoost | — (baseline) | 51 | $+54.00 | $0.00 | — | 0.2234 | 60.8% | baseline |
+| LR | A — Raw OHLCV | 36 | $+53.21 | $-3.33 | [-6.80, -0.12] | 0.2241 | 61.2% | droppable |
+| LR | B — Cross-platform | 41 | $+56.72 | $+0.18 | [-0.51, +1.05] | 0.2191 | 62.0% | droppable |
+| LR | C — Rolling/momentum | 45 | $+56.23 | $-0.31 | [-2.06, +1.32] | 0.2168 | 61.8% | droppable |
+| LR | D — Microstructure | 38 | $+56.54 | $-0.00 | [-0.88, +0.72] | 0.2187 | 61.9% | droppable |
+| LR | E — Pred-market | 44 | $+56.77 | $+0.23 | [-0.30, +0.99] | 0.2193 | 61.9% | droppable |
+| XGBoost | A — Raw OHLCV | 36 | $+52.32 | $-1.68 | [-5.67, +2.40] | 0.2248 | 61.4% | droppable |
+| XGBoost | B — Cross-platform | 41 | $+55.08 | $+1.08 | [-1.48, +4.05] | 0.2265 | 60.7% | droppable |
+| XGBoost | C — Rolling/momentum | 45 | $+53.59 | $-0.41 | [-3.74, +2.99] | 0.2242 | 61.2% | droppable |
+| XGBoost | D — Microstructure | 38 | $+53.43 | $-0.57 | [-4.30, +2.66] | 0.2295 | 60.7% | droppable |
+| XGBoost | E — Pred-market | 44 | $+52.85 | $-1.15 | [-4.56, +2.01] | 0.2316 | 61.1% | droppable |
+
+**Statistical Power Limitation.** At N=1,021 ablation-holdout rows, we could not detect statistically significant load-bearing effects for any feature group. All 10 drop-group configurations have 95% CIs whose absolute delta is less than $10, and nine of the ten CIs straddle zero. The one exception — LR drop-A, 95% CI [−6.80, −0.12] — is technically entirely below zero but has a mean delta of only −$3.33, placing it well below the $10 load-bearing threshold. This is not a finding that all feature groups are equivalent; it is an honest statement about statistical power. Paired-bootstrap CIs computed on 1,021 rows are wide by construction, and real group-level effects smaller than ~$10 are undetectable at this holdout size.
+
+**Minimum Sufficient Set Determination.** Because no group meets the pre-registered load-bearing criteria (95% CI fully below zero AND |delta| > $10 for both models), the ablation yields an inconclusive classification for all groups under the pre-specified protocol. We therefore conservatively retain all 51 features as the operational feature set. This decision preserves the full model from §5.1–§5.2 without modification and avoids any post-hoc feature selection that could introduce look-ahead bias. The final\_test set (1,673 rows) was not evaluated on any reduced-feature variant; the one-shot generalization metric for feature selection is deferred to a future ablation run with sufficient statistical power.
+
+**Future Work.** Classical microstructure estimators (Group D: Amihud illiquidity, Kyle's lambda, Roll spread, Corwin–Schultz spread) are Nyquist-starved at the current 4-hour bar interval and limited sample size; ablation should be re-run at 250+ bars/pair where these estimators become identifiable with less noise (see §7, item 8). At that scale, the ablation-holdout will contain substantially more rows and bootstrap CIs will be tight enough to classify individual groups as load-bearing or droppable with high confidence.
+
+---
+
 ## 6. Discussion
 
 ### 6.1 Why Does Simpler Beat More Complex?
@@ -546,6 +579,8 @@ We are transparent about these:
 6. **Formal settlement-divergence model.** Tracking resolution-source mismatches (Kalshi uses `CME settle`, Polymarket uses various oracles) and pricing the divergence risk into trade sizing.
 
 7. **Open-sourcing the matching pipeline.** The 10-rule quality filter encodes a lot of domain knowledge. Releasing it as a library could help other researchers and market participants.
+
+8. **Re-run feature ablation at 250+ bars/pair.** The pre-registered LOGO ablation (§5.10) was statistically underpowered at N=1,021 ablation-holdout rows: all 95% CIs for delta-P&L had absolute mean below $10. As the live dataset grows past 250 bars/pair, the paired-bootstrap CIs will narrow enough to distinguish load-bearing groups from droppable ones. Group D (classical microstructure: Amihud, Kyle's lambda, Roll spread, Corwin–Schultz) is the primary target — these estimators are theoretically motivated (Finding 5, §5.3) but Nyquist-starved at the current bar frequency and dataset size. A well-powered ablation re-run could definitively answer whether the 13 microstructure features carry independent signal beyond raw OHLCV and cross-platform spread features.
 
 ---
 

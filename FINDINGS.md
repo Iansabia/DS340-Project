@@ -473,6 +473,39 @@ features — the bottleneck is data volume, not architecture correctness."
 
 ---
 
+## Finding 25: Pre-Registered LOGO Ablation — Statistically Underpowered at N=1,021 (Phase 12, April 2026)
+
+**Experiment:** Leave-One-Group-Out (LOGO) feature ablation, pre-registered at `.planning/ablation_protocol.md` (commit `b15534b`) before any experiment script was written (runner committed at `46b253a` — audit trail verifiable in git log).
+
+**Protocol:** 12 configurations = {LR, XGBoost} × {baseline, drop\_A, drop\_B, drop\_C, drop\_D, drop\_E}. Three-way temporal split: train\_proper (5,781 rows), ablation\_holdout (1,021 rows for feature-set selection), final\_test (1,673 rows, frozen until after selection).
+
+**Load-bearing groups (pre-registered criteria: 95% CI fully below zero AND |delta| > $10 for both models):**
+
+None. No group met all load-bearing criteria on the 1,021-row ablation holdout.
+
+**Droppable / inconclusive groups (all 10 drop configurations):**
+- Group A (Raw OHLCV, 15 features): LR delta −$3.33 (95% CI [−6.80, −0.12]); XGBoost delta −$1.68 (95% CI [−5.67, +2.40]) — LR CI excludes zero but |delta| < $10 threshold → inconclusive
+- Group B (Cross-platform, 10 features): LR delta +$0.18 (95% CI [−0.51, +1.05]); XGBoost delta +$1.08 (95% CI [−1.48, +4.05]) — CI straddles zero → droppable
+- Group C (Rolling/momentum, 6 features): LR delta −$0.31 (95% CI [−2.06, +1.32]); XGBoost delta −$0.41 (95% CI [−3.74, +2.99]) — CI straddles zero → droppable
+- Group D (Microstructure, 13 features): LR delta −$0.00 (95% CI [−0.88, +0.72]); XGBoost delta −$0.57 (95% CI [−4.30, +2.66]) — CI straddles zero → droppable
+- Group E (Pred-market, 7 features): LR delta +$0.23 (95% CI [−0.30, +0.99]); XGBoost delta −$1.15 (95% CI [−4.56, +2.01]) — CI straddles zero → droppable
+
+**Baseline reference:**
+- LR (all 51 features): ablation\_holdout P&L = +$56.54, RMSE = 0.2192, Dir. Acc. = 62.0%
+- XGBoost (all 51 features): ablation\_holdout P&L = +$54.00, RMSE = 0.2234, Dir. Acc. = 60.8%
+
+**Minimum sufficient set:** Inconclusive — no group classified load-bearing. All 51 features retained as the operational feature set per pre-registered protocol.
+
+**Final-test P&L (minimum set):** Not evaluated. Because no feature subset was selected by the pre-registered protocol, the one-shot final-test evaluation was not performed. The frozen final\_test set (1,673 rows) remains untouched.
+
+**Power analysis.** At 1,021 ablation-holdout rows and 977 trades (LR baseline), the paired-bootstrap 95% CIs are wide by construction. The pre-registered load-bearing threshold of |delta| > $10 corresponds to roughly a 18% change in LR P&L (+$56.54 baseline). Groups with true effects smaller than $10 are undetectable at this sample size. This is a power limitation of the holdout size, not evidence that the feature groups are uninformative.
+
+**Implication:** The ablation is a methodologically sound pre-registered null result at current data scale. It does not license the claim that any feature group is uninformative — only that we cannot detect effects smaller than approximately $10 P&L. The experiment should be re-run when the dataset reaches 250+ bars/pair, at which point the ablation holdout will contain substantially more rows and bootstrap CIs will be tight enough to classify individual groups with confidence (see §7, item 8).
+
+**Caveat:** Ablation-holdout P&L ($56.54 LR) is much lower than the full-split headline ($232.67 LR) because the holdout uses a train\_proper of only 5,781 rows evaluated on 1,021 rows rather than the full 6,802-row training set on 1,673 test rows. Ablation-holdout P&L is the feature-selection metric only; it is not the generalization metric. The only reportable generalization number is the full-split test result ($232.67 LR) documented in §5.1.
+
+---
+
 ## Open Questions for Paper
 
 1. **Does GRU overtake XGBoost at 100+ bars/pair?** — Answer expected within 24-48h from auto-retrain.
