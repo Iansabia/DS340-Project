@@ -77,8 +77,15 @@ def main() -> int:
     models_data: dict[str, dict] = {}
 
     for r in all_results:
-        name = r["model_name"]
-        m = r["metrics"]
+        # Tolerate alternate schema: TFT.json uses a flat layout with
+        # "model" + top-level metric fields, while every other result JSON
+        # uses "model_name" + a nested "metrics" dict.
+        name = r.get("model_name") or r.get("model")
+        if name is None:
+            continue
+        m = r.get("metrics", r)
+        if "total_pnl" not in m or "num_trades" not in m:
+            continue
         total_pnl = float(m["total_pnl"])
         num_trades = int(m["num_trades"])
 
