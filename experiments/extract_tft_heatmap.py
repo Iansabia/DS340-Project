@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 FIGURES_DIR = Path("experiments/figures")
 OUT_PATH = FIGURES_DIR / "tft_variable_importance.png"
+VSN_JSON_PATH = Path("experiments/results/tft/vsn_importance.json")
 FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -113,8 +114,23 @@ def _extract_vsn_weights(model, feature_cols: list[str]) -> tuple[list[str], np.
     return sorted_names, sorted_weights
 
 
+def _save_vsn_json(names: list[str], weights) -> None:
+    """Persist VSN weights to JSON for downstream re-plotting without retraining."""
+    import json
+    VSN_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "features": list(names),
+        "weights": [float(w) for w in weights],
+        "note": "TFT Variable Selection Network encoder importance (mean over training set).",
+    }
+    with VSN_JSON_PATH.open("w") as f:
+        json.dump(payload, f, indent=2)
+    print(f"Saved VSN weights JSON: {VSN_JSON_PATH}  ({len(names)} features)")
+
+
 def _save_heatmap(names: list[str], weights: np.ndarray, top_n: int = 15) -> None:
     """Plot horizontal bar chart of top-N encoder VSN importances."""
+    _save_vsn_json(names, weights)
     if len(names) > top_n:
         names = names[:top_n]
         weights = weights[:top_n]
