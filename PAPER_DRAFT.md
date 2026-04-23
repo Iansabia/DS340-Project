@@ -593,6 +593,12 @@ We are transparent about these:
 
 5. **Regime-specific edge.** The inflation and oil edges dominate. If those categories lose liquidity, the system's overall edge would shrink.
 
+6. **Live-cohort truncation (April 11+ only).** The April 11–22 live paper-trading window excludes all pre-April-11 positions, which were force-closed as a side effect of the `pair_id` schema fix committed on April 11 (see §5.9 and `.planning/STATE.md`). This is a distinct survivorship bias from item 3 — it is a cohort-level truncation of the *live* data, not the training data. Pre-fix live P&L cannot be cleanly compared against backtest predictions and is therefore excluded from §5.9 numbers.
+
+7. **Category-tagging gaps in live data.** Finding 23 documents that ≈59% of live trades fall into the `other` category because `derive_category_from_ticker` does not classify payroll (`KXPAYROLLS`) or energy/CPI (`KXEZCPIYOYF`) tickers into their intended groups. Per-category live vs. simulated breakdowns in §5.9 are therefore noisier than the backtest-only per-category results in §5.3.
+
+8. **Crypto regime flip within the reconciliation window.** Finding 23 also shows that the crypto sub-category sign-flipped P&L (positive → negative) over the 5-day reconciliation window. The aggregated §5.9 crypto number averages across this flip; a longer live window would either re-stabilize or confirm regime instability, which we cannot distinguish at N=10,154 closed positions over 8 days.
+
 ---
 
 ## 7. Future Work
@@ -651,19 +657,20 @@ We thank Professor Kevin Gold for the course instruction and for the pivotal fee
 
 ## References
 
-1. Amihud, Y. (2002). Illiquidity and stock returns: cross-section and time-series effects. *Journal of Financial Markets* 5(1), 31–56.
-2. Burgi, C., Tuccella, J., & Zitzewitz, E. (2026). Favorite–longshot bias on Kalshi and Polymarket. *Working paper*.
-3. Corwin, S. A., & Schultz, P. (2012). A simple way to estimate bid-ask spreads from daily high and low prices. *Journal of Finance* 67(2), 719–760.
-4. Grinsztajn, L., Oyallon, E., & Varoquaux, G. (2022). Why do tree-based models still outperform deep learning on tabular data? *NeurIPS 2022 Datasets & Benchmarks*.
-5. Kyle, A. S. (1985). Continuous auctions and insider trading. *Econometrica* 53(6), 1315–1335.
-6. Lundberg, S. M., & Lee, S.-I. (2017). A unified approach to interpreting model predictions. *NeurIPS 2017*.
-7. Manski, C. F. (2006). Interpreting the predictions of prediction markets. *Economics Letters* 91(3), 425–429.
-8. Parkinson, M. (1980). The extreme value method for estimating the variance of the rate of return. *Journal of Business* 53(1), 61–65.
-9. Roll, R. (1984). A simple implicit measure of the effective bid-ask spread in an efficient market. *Journal of Finance* 39(4), 1127–1139.
-10. Schulman, J., Wolski, F., Dhariwal, P., Radford, A., & Klimov, O. (2017). Proximal policy optimization algorithms. *arXiv:1707.06347*.
-11. Wolfers, J., & Zitzewitz, E. (2004). Prediction markets. *Journal of Economic Perspectives* 18(2), 107–126.
-12. [Anonymous]. (2026). Matched filter feature engineering for investor flow prediction. *arXiv:2601.07131*.
-13. Reimers, N., & Gurevych, I. (2019). Sentence-BERT: sentence embeddings using Siamese BERT-networks. *EMNLP 2019*.
+1. [Anonymous]. (2026). Matched filter feature engineering for investor flow prediction. *arXiv:2601.07131*.
+2. Amihud, Y. (2002). Illiquidity and stock returns: cross-section and time-series effects. *Journal of Financial Markets* 5(1), 31–56.
+3. Burgi, C., Tuccella, J., & Zitzewitz, E. (2026). Favorite–longshot bias on Kalshi and Polymarket. *Working paper*.
+4. Cont, R., Kukanov, A., & Stoikov, S. (2014). The price impact of order book events. *Journal of Financial Econometrics* 12(1), 47–88.
+5. Corwin, S. A., & Schultz, P. (2012). A simple way to estimate bid-ask spreads from daily high and low prices. *Journal of Finance* 67(2), 719–760.
+6. Grinsztajn, L., Oyallon, E., & Varoquaux, G. (2022). Why do tree-based models still outperform deep learning on tabular data? *NeurIPS 2022 Datasets & Benchmarks*.
+7. Kyle, A. S. (1985). Continuous auctions and insider trading. *Econometrica* 53(6), 1315–1335.
+8. Lundberg, S. M., & Lee, S.-I. (2017). A unified approach to interpreting model predictions. *NeurIPS 2017*.
+9. Manski, C. F. (2006). Interpreting the predictions of prediction markets. *Economics Letters* 91(3), 425–429.
+10. Parkinson, M. (1980). The extreme value method for estimating the variance of the rate of return. *Journal of Business* 53(1), 61–65.
+11. Reimers, N., & Gurevych, I. (2019). Sentence-BERT: sentence embeddings using Siamese BERT-networks. *EMNLP 2019*.
+12. Roll, R. (1984). A simple implicit measure of the effective bid-ask spread in an efficient market. *Journal of Finance* 39(4), 1127–1139.
+13. Schulman, J., Wolski, F., Dhariwal, P., Radford, A., & Klimov, O. (2017). Proximal policy optimization algorithms. *arXiv:1707.06347*.
+14. Wolfers, J., & Zitzewitz, E. (2004). Prediction markets. *Journal of Economic Perspectives* 18(2), 107–126.
 
 ---
 
