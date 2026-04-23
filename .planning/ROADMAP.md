@@ -178,11 +178,12 @@ Plans:
   2. Concordance filter audit shows BOTH filtered and unfiltered P&L in the same table, includes rejection rate and P&L on rejected trades, and flags if rejected trades are profitable in aggregate (guards P4)
   3. Ensemble-weight sensitivity sweep (LR-weight 0.0 to 1.0 in 0.1 increments) produces a single plot proving the weight choice is not cherry-picked
   4. `EnsemblePredictor` is NOT wired into `src/live/strategy.py` during v1.1 (live deployment stays hardcoded to current LR+XGB average; guards "breaking live system" risk)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 13-01: TBD
-- [ ] 13-02: TBD
+- [ ] 13-01-PLAN.md -- TDD: EnsemblePredictor(BasePredictor) class + 11 tests (concordance modes, save/load, weight normalization)
+- [ ] 13-02-PLAN.md -- run_ensemble_sweep.py: 4 variants + concordance audit + 11-point weight sweep + figure
+- [ ] 13-03-PLAN.md -- Paper §5.11 Ensemble Formalization + §4.4 update + Finding 26
 
 ### Phase 14: Paper Finalization + Presentation
 **Goal**: The paper and slides are submission-ready with IEEE-styled figures, corrected Sharpe numbers, all TODOs cleared, and explicit limitations documented
@@ -226,7 +227,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 10. 250-Bar Scaling Checkpoint | 1/1 | Complete    | 2026-04-22 | - |
 | 11. TFT Training | 2/2 | Complete    | 2026-04-22 | - |
 | 12. Feature Ablation | 2/2 | Complete    | 2026-04-23 | - |
-| 13. Ensemble Formalization | v1.1 | 0/0 | Not started | - |
+| 13. Ensemble Formalization | v1.1 | 0/3 | Not started | - |
 | 14. Paper Finalization + Presentation | v1.1 | 0/0 | Not started | - |
 
 ---
