@@ -194,12 +194,12 @@ Plans:
   2. Abstract is 250 words or fewer; headline Sharpe in abstract uses per-pair-corrected number (approximately 3.2), not per-trade (0.44); per-trade Sharpe appears only in footnote/Table 8 (guards P5)
   3. Survivorship-bias disclaimer appears in section 6.4 Limitations; scaling-curve cap annotation appears on Figure 2 caption (guards P7); AI-assistant disclosure in Acknowledgments
   4. Final PDF reviewed cover-to-cover with all TODOs/placeholders cleared, code README updated with exact reproduction commands for every paper table, and 4-minute lightning-talk slides completed
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 14-01: TBD
-- [ ] 14-02: TBD
-- [ ] 14-03: TBD
+- [ ] 14-01-PLAN.md -- Wave 0 ieee_style helper + regenerate 11 IEEE figures + abstract/Sharpe headline scrub (POL-01,02,03,04,07)
+- [ ] 14-02-PLAN.md -- Table 6/7 renumbering, cross-ref fixes, §6.4 limitations expansion, references alphabetize, check_paper.sh validator (POL-05,06,08,09,10)
+- [ ] 14-03-PLAN.md -- README with reproduction table, Marp slides.md + slides.pdf, human cover-to-cover review checkpoint (POL-11,12)
 
 ## Progress
 
