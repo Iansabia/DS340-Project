@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: in-progress
-stopped_at: Completed 12-01-PLAN.md (LOGO feature ablation) — all tasks done
-last_updated: "2026-04-22T23:55:49Z"
-last_activity: 2026-04-22 -- Phase 12 plan 01 executed
+stopped_at: Completed 12-02-PLAN.md (§5.10 Feature Ablation + Finding 25) — all tasks done
+last_updated: "2026-04-23T00:08:00Z"
+last_activity: 2026-04-23 -- Phase 12 plan 02 executed
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 8
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 85
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 ## Current Position
 
-Phase: 12 of 14 (Feature Ablation) — IN PROGRESS
-Plan: 1 of 2 complete (Plan 01 done; Plan 02 next)
-Status: Phase 12 Plan 01 fully complete; Plan 02 (§5.10 paper integration) next
-Last activity: 2026-04-22 -- Phase 12 plan 01 executed
+Phase: 12 of 14 (Feature Ablation) — COMPLETE
+Plan: 2 of 2 complete (both plans done)
+Status: Phase 12 fully complete; Phase 13 (PPO/RL evaluation) is next
+Last activity: 2026-04-23 -- Phase 12 plan 02 executed
 
-Progress: [████████░░] 80%
+Progress: [████████░░] 85%
 
 ## Performance Metrics
 
@@ -81,6 +81,8 @@ Recent decisions affecting current work:
 - [Phase 12-01-feature-ablation]: All 51-feature groups classified as droppable on ablation_holdout (1,021 rows) — CIs all straddle zero, |delta| < $10; insufficient statistical power at this holdout size
 - [Phase 12-01-feature-ablation]: Ablation holdout P&L (+$56.54 LR, +$54.00 XGB) differs from full train-test headline (+$232) due to smaller evaluation window (1,021 vs 6,800 rows)
 - [Phase 12-01-feature-ablation]: final_test (test.parquet, 1,673 rows) untouched — frozen for one-shot evaluation in §5.10 paper section
+- [Phase 12-02-feature-ablation-paper]: §5.10 written with honest power-limitation framing — N=1,021 ablation holdout insufficient to detect effects < $10; all 51 features retained per pre-registered protocol
+- [Phase 12-02-feature-ablation-paper]: Finding 25 documents pre-registered null result; ablation should be re-run at 250+ bars/pair for tighter inference (§7 item 8 added)
 
 ### Pending Todos
 
@@ -94,7 +96,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-22T23:55:49Z
-Stopped at: Completed 12-01-PLAN.md (LOGO feature ablation) — all tasks done
+Last session: 2026-04-23T00:08:00Z
+Stopped at: Completed 12-02-PLAN.md (§5.10 Feature Ablation + Finding 25)
 Resume file: None
-Next action: Phase 12 Plan 02 (§5.10 paper integration)
+Next action: Phase 13 (PPO / RL evaluation)

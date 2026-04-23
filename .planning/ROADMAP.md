@@ -91,7 +91,7 @@
 - [x] **Phase 9: Live vs Backtest Reconciliation** - Trade-level comparison of live paper-trading P&L against backtest predictions (completed 2026-04-21)
 - [x] **Phase 10: 250-Bar Scaling Checkpoint** - Third scale point in Table 5, test ranking invariance across 5x data growth (completed 2026-04-22)
 - [x] **Phase 11: TFT Training** - Temporal Fusion Transformer on 6,802 rows with pre-specified small-data hyperparameters (completed 2026-04-22)
-- [ ] **Phase 12: Feature Ablation** - LOGO over 5 feature groups on LR + XGBoost with pre-registered protocol
+- [x] **Phase 12: Feature Ablation** - LOGO over 5 feature groups on LR + XGBoost with pre-registered protocol (completed 2026-04-23)
 - [ ] **Phase 13: Ensemble Formalization** - Evidence-based production ensemble with concordance filter audit
 - [ ] **Phase 14: Paper Finalization + Presentation** - IEEE-styled figures, trimmed abstract, final PDF, lightning talk slides
 
@@ -225,7 +225,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 9. Live vs Backtest Reconciliation | 2/2 | Complete   | 2026-04-21 | - |
 | 10. 250-Bar Scaling Checkpoint | 1/1 | Complete    | 2026-04-22 | - |
 | 11. TFT Training | 2/2 | Complete    | 2026-04-22 | - |
-| 12. Feature Ablation | 1/2 | In Progress|  | - |
+| 12. Feature Ablation | 2/2 | Complete   | 2026-04-23 | - |
 | 13. Ensemble Formalization | v1.1 | 0/0 | Not started | - |
 | 14. Paper Finalization + Presentation | v1.1 | 0/0 | Not started | - |
 

@@ -200,7 +200,7 @@ Fast and independent; parallelizes with Phase 11.
 - [x] **ABLA-05**: Ablation table reports ALL runs, not only favorable ones.
 - [x] **ABLA-06**: Two-model comparison (LR vs XGBoost) separately -- feature importance differs by model family.
 - [x] **ABLA-07**: New `experiments/run_feature_ablation.py` (~200 LOC). Filters `X[subset]` at experiment boundary; never modifies `BasePredictor.fit()` signature.
-- [ ] **ABLA-08**: Paper section 5.X "Feature Ablation" added with table and parsimony discussion.
+- [x] **ABLA-08**: Paper section 5.X "Feature Ablation" added with table and parsimony discussion.
 
 ### Phase 13 -- Ensemble Formalization
 
@@ -284,7 +284,7 @@ Terminal phase; consumes results from all prior phases.
 | ABLA-05 | Phase 12 | Complete |
 | ABLA-06 | Phase 12 | Complete |
 | ABLA-07 | Phase 12 | Complete |
-| ABLA-08 | Phase 12 | Pending |
+| ABLA-08 | Phase 12 | Complete |
 | ENSM-01 | Phase 13 | Pending |
 | ENSM-02 | Phase 13 | Pending |
 | ENSM-03 | Phase 13 | Pending |
