@@ -231,6 +231,16 @@ Terminal phase; consumes results from all prior phases.
 - [x] **POL-11**: Code README updated with exact reproduction commands for every paper table.
 - [x] **POL-12**: 4-minute lightning-talk slides covering Team / Problem / Methods / Challenge / Results / Conclusions. Delivered before Apr 28.
 
+### Phase 15 -- Live Commodity-Matching Engineering Fixes
+
+Post-submission engineering fixes to close Paper §6.4 item 9 (live commodity-matching pipeline incomplete). Not part of v1.1 paper evaluation; enables live validation of the backtest oil edge (Finding 6) for future work.
+
+- [ ] **COM-01**: Diagnose why daily WTI / crude / diesel / heating-oil / gasoline Kalshi series are not reaching `data/live/active_matches.json` despite being visible on the Kalshi consumer app. Produce a written root-cause explanation (rate limiting, filter logic, series enumeration, Polymarket-side absence, etc.) committed to `.planning/phases/15-*/15-RESEARCH.md` or inline in a plan summary.
+- [ ] **COM-02**: Quality-filter rule 10 (category-consistency) hardened to reject numerically-coincident cross-asset strikes. Regression test under `tests/matching/` verifies `KXWTIMAX-26DEC31-T130` ↔ Bitcoin-$130K Polymarket pair is rejected on asset-class mismatch; test fails on pre-fix code, passes on post-fix code.
+- [ ] **COM-03**: After patching discovery and rule 10, `data/live/active_matches.json` contains ≥ 20 active non-evicted commodity pairs drawn from daily or weekly series (not only year-end `KXWTIMAX` binary-strike contracts).
+- [ ] **COM-04**: Post-fix 24-hour SCC validation window produces ≥ 10 closed commodity positions in `data/live/position_history.jsonl`. `data/live/pair_mapping.json` contains at least one non-`KXWTIMAX` commodity pair.
+- [ ] **COM-05**: `STATE.md` and `ROADMAP.md` include a short diagnostic note explaining the discovery/filter bug and its fix for future maintenance recognition. Phase marked complete only after the 24-hour validation window passes.
+
 ### v1.1 Non-Goals (Explicit Out of Scope)
 
 | Item | Reason |
@@ -304,11 +314,20 @@ Terminal phase; consumes results from all prior phases.
 | POL-10 | Phase 14 | Complete |
 | POL-11 | Phase 14 | Complete |
 | POL-12 | Phase 14 | Complete |
+| COM-01 | Phase 15 | Pending |
+| COM-02 | Phase 15 | Pending |
+| COM-03 | Phase 15 | Pending |
+| COM-04 | Phase 15 | Pending |
+| COM-05 | Phase 15 | Pending |
 
 **Coverage (v1.1):**
 - Requirements: 55 total (5 + 10 + 5 + 8 + 8 + 7 + 12)
 - Mapped to phases: 55
 - Unmapped: 0
+
+**Post-v1.1 Engineering (Phase 15):**
+- Requirements: 5 (COM-01 through COM-05)
+- Mapped to Phase 15 live-commodity-matching fixes
 
 ---
 *v1.1 requirements defined: 2026-04-17*

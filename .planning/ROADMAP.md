@@ -230,6 +230,22 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 13. Ensemble Formalization | 3/3 | Complete    | 2026-04-23 | - |
 | 14. Paper Finalization + Presentation | 3/3 | Complete    | 2026-04-23 | - |
 
+### Phase 15: Live Commodity-Matching Engineering Fixes
+
+**Goal**: The live trading pipeline discovers and trades daily WTI, crude, diesel, heating-oil, and gasoline markets; the quality filter's rule 10 (category-consistency) rejects numerically-coincident cross-asset strikes such as `KXWTIMAX-$130` ↔ `Bitcoin-$130K`; and integration verification confirms daily commodity markets actually enter the live trading cycle. Addresses the engineering limitation documented in Paper §6.4 item 9.
+**Depends on**: Phase 14 (paper submitted, §6.4 item 9 is the source-of-truth problem statement)
+**Requirements**: COM-01, COM-02, COM-03, COM-04, COM-05
+**Success Criteria** (what must be TRUE):
+  1. After a fresh discovery cycle, `data/live/active_matches.json` contains ≥ 20 active non-evicted commodity pairs drawn from daily/weekly WTI, crude, diesel, heating-oil, or gasoline series — not only year-end `KXWTIMAX` binary-strike contracts.
+  2. Quality-filter rule 10 (category-consistency) regression test: the specific `KXWTIMAX-26DEC31-T130` vs Bitcoin-$130K Polymarket market pair is rejected on asset-class mismatch, with a unit test under `tests/matching/` that would have failed before the fix.
+  3. Post-fix SCC cycle runs for at least one 24-hour validation window and produces ≥ 10 closed commodity positions in `data/live/position_history.jsonl`.
+  4. `data/live/pair_mapping.json` contains at least one non-`KXWTIMAX` commodity pair after the post-fix discovery run.
+  5. `STATE.md` and `ROADMAP.md` reflect the post-fix live-system state and include a short diagnostic note explaining what the discovery/filter bug was and how it was fixed — so future maintenance can recognize the failure mode fast.
+**Plans**: TBD
+
+Plans:
+- [ ] TBD (run `/gsd:plan-phase 15` to break down)
+
 ---
 *Roadmap created: 2026-04-01*
 *v1.0 shipped: 2026-04-08*
