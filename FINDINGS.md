@@ -77,6 +77,8 @@ Oil alone has +142.7% per-trade edge over the pooled model. Sports and politics 
 
 **Implication:** The alpha is in the asset class, not the model. A simple model on oil beats a complex model on a mixed universe.
 
+**Live validation (Phase 15, 2026-04-24).** After the post-submission Phase 15 discovery fix (commits `38d7970` + `d217ff1`), a 12-hour SCC validation window (`2026-04-24T01:28Z` through `2026-04-24T13:00Z`) closed **1,224 non-`KXWTIMAX` commodity positions** across daily/weekly WTI, Brent, and retail-gasoline series (KXWTI=409, KXBRENTW=486, KXWTIW=213 dominate). Aggregate P&L: **+\$1.96**, win rate **36.0%** (441 / 1,224), ≈ \$0.0016 per trade. This is **dramatically lower than the backtest edge above** (76.5% WR, +\$0.41/trade, +142.7%) — and that gap is expected, not contradictory: the backtest measured the *near-expiry convergence subset* of Kalshi oil contracts (KXWTI-26APR08-T107.99-style, hours from settlement), whereas the live cohort spans *full contract lifecycles* including early-window positions where WTI futures prices have not yet pinned the strike. Claiming a robust live oil edge requires a longer window on the same code path (see §7 Future Work).
+
 ---
 
 ## Finding 7: Quality Filter Flips Models from Losing to Profitable (April 11, 2026)
