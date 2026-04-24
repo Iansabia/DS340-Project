@@ -20,6 +20,29 @@ MAX_RESOLUTION_GAP_DAYS = 30
 # Minimum confidence score to keep
 MIN_CONFIDENCE = 0.6
 
+# --- Rule 10 (asset-class consistency) token vocabularies ---
+# Used to reject numerically-coincident cross-asset strikes such as
+# KXWTIMAX-26DEC31-T130 ("WTI $130") vs a Bitcoin-$130K Polymarket
+# market that share the numeric "130" but resolve on unrelated assets.
+COMMODITY_ASSET_TOKENS: tuple[str, ...] = (
+    "WTI", "CRUDE", "OIL", "DIESEL", "GAS", "GASOLINE",
+    "HEATINGOIL", "HEATING OIL", "BRENT",
+)
+CRYPTO_ASSET_TOKENS: tuple[str, ...] = (
+    "BITCOIN", "BTC", "ETHEREUM", "ETH", "DOGECOIN", "DOGE",
+    "SOLANA", "SOL", "CARDANO", "ADA", "XRP", "LITECOIN", "LTC",
+)
+# Kalshi ticker prefixes that pre-identify asset class when title is ambiguous
+KALSHI_COMMODITY_PREFIXES: tuple[str, ...] = (
+    "KXWTI", "KXWTID", "KXWTIW", "KXWTIMAX",
+    "KXAAAGASD", "KXAAAGASW", "KXAAAGASM",
+    "KXBRENTMON", "KXDIESEL", "KXHEATINGOIL", "KXCRUDE", "KXGASOLINE",
+)
+KALSHI_CRYPTO_PREFIXES: tuple[str, ...] = (
+    "KXBTC", "KXETH", "KXBITCOIN", "KXETHEREUM",
+    "KXDOGE", "KXSOL", "KXADA", "KXXRP", "KXLTC",
+)
+
 
 def parse_date(date_str: str) -> datetime | None:
     """Parse ISO date string to datetime, handling various formats."""
@@ -372,6 +395,37 @@ def _has_any(text: str, needles: tuple[str, ...]) -> bool:
     return any(n in t for n in needles)
 
 
+def _detect_asset_class(ticker_u: str, title: str) -> str | None:
+    """Return 'commodity', 'crypto', or None if asset class can't be
+    confidently inferred from ticker prefix OR title tokens.
+
+    Ticker prefix wins over title tokens when both produce a signal,
+    because Kalshi tickers are authoritative and titles can contain
+    stray numeric strings. Only returns 'commodity' or 'crypto' when
+    the evidence is UNAMBIGUOUS — if both commodity AND crypto tokens
+    appear in the title we return None (let other rules decide).
+    """
+    # Priority 1: Kalshi ticker prefix (most reliable). Longest-match-
+    # wins is enforced implicitly by the prefix lists — a ticker like
+    # KXWTIMAX hits both KXWTI and KXWTIMAX, but both map to commodity.
+    for p in KALSHI_COMMODITY_PREFIXES:
+        if ticker_u.startswith(p):
+            return "commodity"
+    for p in KALSHI_CRYPTO_PREFIXES:
+        if ticker_u.startswith(p):
+            return "crypto"
+    # Priority 2: title token check. Uppercase the title for case-
+    # insensitive match against our ALL-CAPS token tuples.
+    title_u = title.upper()
+    has_commodity = any(t in title_u for t in COMMODITY_ASSET_TOKENS)
+    has_crypto = any(t in title_u for t in CRYPTO_ASSET_TOKENS)
+    if has_commodity and not has_crypto:
+        return "commodity"
+    if has_crypto and not has_commodity:
+        return "crypto"
+    return None
+
+
 def filter_active_match(match: dict) -> tuple[bool, str | None]:
     """Validate a single entry from active_matches.json.
 
@@ -529,6 +583,19 @@ def filter_active_match(match: dict) -> tuple[bool, str | None]:
     if k_year_title is not None and p_year_title is not None:
         if abs(k_year_title - p_year_title) >= 2:
             return False, f"year_mismatch ({k_year_title} vs {p_year_title})"
+
+    # --- Rule 10: asset-class consistency (cross-asset numeric coincidence) ---
+    # Rejects matches where one side is unambiguously a commodity contract
+    # and the other is unambiguously a crypto contract (or vice versa).
+    # Canonical bug: KXWTIMAX-26DEC31-T130 ("WTI $130") matched to Bitcoin-
+    # $130K because both sides share the numeric "130". Semantic similarity
+    # 0.707 was above the floor, but the contracts resolve on unrelated
+    # assets. Only fires when BOTH sides produce a confident asset-class
+    # signal — ambiguous cases pass through untouched.
+    k_class = _detect_asset_class(ticker_u, k_title)
+    p_class = _detect_asset_class("", p_title)  # Polymarket has no Kalshi-style ticker prefix
+    if k_class is not None and p_class is not None and k_class != p_class:
+        return False, f"asset_class_mismatch (kalshi={k_class}, poly={p_class})"
 
     return True, None
 
