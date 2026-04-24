@@ -229,6 +229,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 12. Feature Ablation | 2/2 | Complete    | 2026-04-23 | - |
 | 13. Ensemble Formalization | 3/3 | Complete    | 2026-04-23 | - |
 | 14. Paper Finalization + Presentation | 3/3 | Complete    | 2026-04-23 | - |
+| 15. Live Commodity-Matching Engineering Fixes | 1/3 | In Progress | -          | - |
 
 ### Phase 15: Live Commodity-Matching Engineering Fixes
 
@@ -241,10 +242,12 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
   3. Post-fix SCC cycle runs for at least one 24-hour validation window and produces ≥ 10 closed commodity positions in `data/live/position_history.jsonl`.
   4. `data/live/pair_mapping.json` contains at least one non-`KXWTIMAX` commodity pair after the post-fix discovery run.
   5. `STATE.md` and `ROADMAP.md` reflect the post-fix live-system state and include a short diagnostic note explaining what the discovery/filter bug was and how it was fixed — so future maintenance can recognize the failure mode fast.
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] TBD (run `/gsd:plan-phase 15` to break down)
+- [ ] 15-01-PLAN.md -- Diagnose discovery gap + write 15-01-DIAGNOSTIC.md (COM-01)
+- [x] 15-02-PLAN.md -- TDD Rule 10 asset-class regression test + fix (COM-02) -- 2026-04-23, commits 6297ac8 (RED) + 071b7db (GREEN)
+- [ ] 15-03-PLAN.md -- Apply discovery fix + 24h SCC validation + STATE/ROADMAP note (COM-03, COM-04, COM-05)
 
 ---
 *Roadmap created: 2026-04-01*

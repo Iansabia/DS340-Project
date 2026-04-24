@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: completed
-stopped_at: Completed 14-03-PLAN.md — Phase 14 complete, v1.1 milestone 100%, repository submission-ready (paper + README + slides)
-last_updated: "2026-04-23T23:53:18.558Z"
-last_activity: 2026-04-23 -- Phase 14 plan 03 executed (README.md reproduction table, slides.md + slides.pdf, §5.12/§5.13 writeups, Appendix B placeholder repair, abstract oil qualifier, §6.4 item 9, 56-file AI attribution)
+status: in-progress
+stopped_at: Completed 15-02-PLAN.md — Rule 10 asset-class mismatch regression test + fix landed (RED 6297ac8, GREEN 071b7db); COM-02 closed
+last_updated: "2026-04-24T00:15:00.000Z"
+last_activity: 2026-04-23 -- Phase 15 plan 02 executed (Rule 10 asset-class regression test + fix in src/matching/quality_filter.py)
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 7
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
+  total_plans: 18
+  completed_plans: 16
+  percent: 89
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** v1.1 -- Extended Evidence & Submission (Phase 14 paper finalization in progress)
+**Current focus:** Phase 15 -- Live commodity-matching engineering fixes (post-submission maintenance; COM-02 now closed)
 
 ## Current Position
 
-Phase: 14 of 14 (Paper Finalization + Presentation) — COMPLETE
-Plan: 3 of 3 complete (IEEE figures + abstract scrub done; paper integrity pass done; README + slides + final polish done)
-Status: Phase 14 COMPLETE; v1.1 milestone COMPLETE. Repository submission-ready — README reproduction table committed, slides.md/slides.pdf rendered for 4-minute lightning talk, §5.12/§5.13 writeups added, Appendix B placeholders repaired, abstract oil claim narrowed, §6.4 item 9 documents commodity-matching limitation, 56 src/*.py files carry AI-attribution headers (POL-09 substantive).
-Last activity: 2026-04-23 -- Phase 14 plan 03 executed (README.md reproduction table, slides.md + slides.pdf, §5.12/§5.13 writeups, Appendix B placeholder repair, abstract oil qualifier, §6.4 item 9, 56-file AI attribution)
+Phase: 15 of 15 (Live Commodity-Matching Engineering Fixes) — IN PROGRESS
+Plan: 2 of 3 complete (15-01 diagnostic pending; 15-02 Rule 10 asset-class regression test + fix landed; 15-03 discovery fix + 24h validation pending)
+Status: Rule 10 asset-class mismatch rule live in src/matching/quality_filter.py. The canonical KXWTIMAX-26DEC31-T130 vs Bitcoin-\$130K false match is now regression-covered via 4 tests in tests/matching/test_rule_10_asset_class.py. COM-02 closed.
+Last activity: 2026-04-23 -- Phase 15 plan 02 executed (RED 6297ac8 + GREEN 071b7db, separate atomic TDD commits)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [██████████] 100%
 | Phase 14-paper-finalization-presentation P01 | 20min | 3 tasks | 17 files |
 | Phase 14-paper-finalization-presentation P02 | 5min | 3 tasks | 2 files |
 | Phase 14-paper-finalization-presentation P03 | 90min | 3 tasks | 60 files |
+| Phase 15-live-commodity-matching-engineering-fixes P02 | 12min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,10 @@ Recent decisions affecting current work:
 - [Phase 14-03-readme-slides]: Two Rule 1/2 fix cycles at human-verify checkpoint — added §5.12 (lookback) and §5.13 (threshold) body writeups to close orphan-table references; repaired Appendix B Fig 10/Fig 11 placeholders missed in 14-02 renumber
 - [Phase 14-03-readme-slides]: Abstract oil claim narrowed to "where the matched cohort is representable" — honest scope given ~30% cross-platform matching rate; §6.4 item 9 documents commodity-matching cohort as generalization limit
 - [Phase 14-03-readme-slides]: POL-09 upgraded from Acknowledgments-only disclosure to per-file AI-attribution headers on 56 src/**/*.py modules — survivorship-proof evidence of AI involvement
+- [Phase 15-02-rule10-asset-class]: Rule 10 uses asymmetric-confidence semantics — rejection requires BOTH sides to produce confident signals; ambiguous evidence (neither side has an asset-class token) falls through to existing rules so non-financial markets aren't disturbed
+- [Phase 15-02-rule10-asset-class]: Kalshi ticker prefix wins over title tokens in _detect_asset_class because tickers are authoritative and titles can contain stray numeric strings
+- [Phase 15-02-rule10-asset-class]: Canonical hex poly_id 0x885a6abefad122348b4fbd503473d7fd1f9035d0438cf988a7591620f316a859 pinned verbatim in test file for grep-based audit of the specific bug
+- [Phase 15-02-rule10-asset-class]: Pre-existing sentence_transformers import error in test_pipeline/test_scorer/test_semantic_matcher is out-of-scope per scope-boundary rule — confirmed not caused by Rule 10 changes; the 104 other matching tests all pass
 
 ### Pending Todos
 
@@ -133,7 +138,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T21:52:35.466Z
-Stopped at: Completed 14-03-PLAN.md — Phase 14 complete, v1.1 milestone 100%, repository submission-ready (paper + README + slides)
+Last session: 2026-04-24T00:15:00.000Z
+Stopped at: Completed 15-02-PLAN.md — Rule 10 asset-class mismatch regression test + fix landed (RED 6297ac8, GREEN 071b7db); COM-02 closed
 Resume file: None
-Next action: Run `/gsd:verify-work` on Phase 14; Alvin readability pass on §1 + §8; render final PDF via pandoc for April 27 submission
+Next action: Execute Plan 15-01 (diagnostic COM-01) and Plan 15-03 (discovery fix + 24h SCC validation, COM-03/04/05); then final PDF render for April 27 submission
