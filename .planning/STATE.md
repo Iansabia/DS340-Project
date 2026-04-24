@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: Phase 15 complete — live commodity-matching engineering fixes landed (COM-01 through COM-05). 24h SCC validation window closed 1,224 non-KXWTIMAX commodity positions (122x COM-04 target); daily KXWTI + weekly KXBRENTW are the two highest-volume series. Paper §6.4 item-9 cohort gap now empirically addressed.
-stopped_at: Completed 15-03-PLAN.md — Phase 15 closed; all v1.1 + post-submission engineering requirements satisfied
-last_updated: "2026-04-24T13:22:19Z"
-last_activity: 2026-04-24 -- Phase 15 plan 03 executed (fix 38d7970 + data regen d217ff1, 24h SCC window closed 1,224 non-KXWTIMAX commodity positions)
+status: completed
+stopped_at: Completed 15-03-PLAN.md — Phase 15 closed; all v1.1 + post-submission engineering requirements satisfied (36 v1 + 55 v1.1 + 5 COM = 96/96 complete)
+last_updated: "2026-04-24T13:30:29.845Z"
+last_activity: 2026-04-24 -- Phase 15 plan 03 executed (fix 38d7970 + data regen d217ff1, 24h SCC window validation passed)
 progress:
   total_phases: 8
   completed_phases: 8
