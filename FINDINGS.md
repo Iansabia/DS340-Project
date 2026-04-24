@@ -568,6 +568,20 @@ This is the P4 concordance-filter denominator trap: the filter improves per-trad
 
 ---
 
+## Finding 27: Silent Category Starvation in Live Systems (Phase 15, April 24, 2026)
+
+**Phase:** Post-Submission Engineering
+
+**What happened.** For months, `KALSHI_DISCOVERY_CATEGORIES` in `src/live/market_discovery.py` listed `("Economics", "Crypto", "Financials", "Politics", "Climate")` but omitted `"Commodities"`. Kalshi had quietly migrated daily WTI / Brent / grain / metal series into a dedicated Commodities category after an internal taxonomy change, so those series never reached discovery. The pipeline kept running, kept producing bars, kept training — and kept silently dropping the entire oil/commodity asset class. Paper §6.4 item 9 documented the visible symptom (zero live oil trades) but not the root cause.
+
+**Parallel to Finding 8 (April 11 discovery gap).** This is the *second* silent-starvation bug in the same discovery pipeline: Finding 8 documented Kalshi 429 rate-limiting plus Polymarket shallow pagination truncating the commodity candidate pool. Both bugs share a structural pattern — the system had no way to detect that a known category or series had *dropped out* of the discovered pool. Two independent instances in the same subsystem suggest this is a design weakness, not an accident.
+
+**Methodology lesson.** External-API discovery pipelines need **active "known-unknown" monitoring** — not only "what IS in my data" dashboards, but also "what's NOT in my data that was here yesterday." Concrete recommendation: a daily category-enumeration job that diffs discovered-series counts by category (commodities, crypto, inflation, etc.) against the prior day's counts and alerts on drops ≥ 50%. A 0-to-47 commodities count overnight should have paged us the day Kalshi migrated the taxonomy; instead, we noticed because the paper's §6.4 limitation stared back at us in a review pass.
+
+**Implication.** The cost of silent starvation is model-sized: an entire asset class invisible for months, a backtest edge unvalidated by live data, and a paper limitation that shouldn't have needed to exist. Applies generally to any pipeline that enumerates over external category taxonomies that can be mutated server-side without notice.
+
+---
+
 ## Open Questions for Paper
 
 1. **Does GRU overtake XGBoost at 100+ bars/pair?** — Answer expected within 24-48h from auto-retrain.
