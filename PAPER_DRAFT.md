@@ -441,6 +441,26 @@ The live paper-trading system was deployed on the BU Shared Computing Cluster (S
 
 **Paper-trading caveats.** No slippage is modeled: trades execute at mid-price with zero market impact. No partial fills: all trades are assumed fully filled at the stated price. No margin: capital is notional (the system does not track margin consumption or liquidation risk). These idealizations mean live P&L represents an upper bound on what a real-money implementation would achieve. In practice, Kalshi maker orders pay \$0 fee and Polymarket charges approximately 1 pp in Polygon gas, consistent with our 2 pp simulation assumption being conservative.
 
+#### 5.9.1 Post-Submission Commodity-Matching Fix (Phase 15, April 24)
+
+The §5.9 reconciliation window above (April 14–22) closed with zero WTI oil positions, which we reported as an unresolved engineering limitation (§6.4 item 9). Between the April 22 snapshot and submission, we diagnosed and patched the root cause: `KALSHI_DISCOVERY_CATEGORIES` in `src/live/market_discovery.py` omitted the string `"Commodities"`, and Kalshi had migrated daily WTI / Brent / grain / metal series into that category after an internal taxonomy change. The series were never reaching the discovery sweep. A single-line tuple edit (commit `38d7970`), combined with a classifier extension in `src/features/category.py` for the Brent family plus daily-WTI variants, and a 200-slot commodity reservation inside `src/live/collector.py::_load_live_pairs` to prevent similarity-cap eviction (data regen commit `d217ff1`), unblocked the pipeline end-to-end.
+
+**Post-fix live validation (12-hour window, April 24).** After deployment on the BU SCC, a 12-hour observation window (`2026-04-24T01:28Z` through `2026-04-24T13:00Z`) closed **1,224 non-`KXWTIMAX` commodity positions**, exceeding the pre-registered validation target (≥ 10 closed positions) by 122×. Aggregate paper-trading P&L over the window was **+\$1.96**; win rate was **36.0%** (441 / 1,224). Per-series breakdown:
+
+| Kalshi series | Closed positions | Description |
+|---|---|---|
+| `KXBRENTW` | 486 | Weekly Brent range |
+| `KXWTI` | 409 | Daily WTI on-day |
+| `KXWTIW` | 213 | Weekly WTI range |
+| `KXBRENTMON` | 76 | Monthly Brent |
+| `KXBRENTD` | 16 | Daily Brent |
+| `KXAAAGASD` | 11 | Daily AAA retail gasoline |
+| `KXAAAGASW` | 7 | Weekly AAA retail gasoline |
+| `KXAAAGASM` | 6 | Monthly AAA retail gasoline |
+| **Total** | **1,224** | |
+
+**Interpretation caveats.** This 12-hour window is a *proof-of-life* result, not a robust live edge measurement. Three honest caveats bound what can be claimed: (a) the window is less than half a full trading day and spans one market regime; (b) the +\$1.96 aggregate P&L is dollar-positive but economically near-flat across 1,224 positions (≈ \$0.0016 per trade), dramatically lower than the backtest oil near-expiry edge (Finding 6, §5.3: +\$0.41/trade at 76.5% win rate) — the live window includes *full-contract-lifecycle* positions, not only the near-expiry subset the backtest measured, so a lower win rate is expected rather than contradictory; (c) the paper-trading caveats from §5.9 above (no slippage, no partial fills, no margin) apply unchanged. What this result *does* establish: the discovery / matching / collector / trading-cycle stack now trades daily and weekly WTI and Brent end-to-end, which was not true at the April 22 snapshot. Future work can now measure live oil-edge stability over longer windows on this same code path.
+
 ---
 
 ### 5.10 Feature Ablation
