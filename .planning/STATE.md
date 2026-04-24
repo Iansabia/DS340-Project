@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 status: completed
-stopped_at: Completed 15-03-PLAN.md — Phase 15 closed; all v1.1 + post-submission engineering requirements satisfied (36 v1 + 55 v1.1 + 5 COM = 96/96 complete)
-last_updated: "2026-04-24T13:30:29.845Z"
-last_activity: 2026-04-24 -- Phase 15 plan 03 executed (fix 38d7970 + data regen d217ff1, 24h SCC window validation passed)
+stopped_at: Completed 16-01-PLAN.md — Phase 15 integrated into paper (abstract + §5.9.1 + §6.4 item 9); check_paper.sh green 16/16
+last_updated: "2026-04-24T14:00:24.410Z"
+last_activity: 2026-04-24 -- Plan 16-01 executed (3 atomic commits 526370e/637427f/f8d7acb; PAPER_DRAFT.md only)
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 8
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
+  total_plans: 21
+  completed_plans: 20
+  percent: 95
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 15 complete — live commodity-matching engineering fixes landed (COM-01 through COM-05); v1.1 milestone fully shipped
+**Current focus:** Phase 16 in progress — paper revision integrating Phase 15 live cohort; Plans 16-01 and 16-02 complete (abstract, §5.9.1, §6.4 item 9, Finding 6 live companion, Finding 27)
 
 ## Current Position
 
-Phase: 15 of 15 (Live Commodity-Matching Engineering Fixes) — COMPLETE
-Plan: 3 of 3 complete (15-01 diagnostic, 15-02 Rule 10 asset-class, 15-03 discovery fix + 24h SCC validation)
-Status: Phase 15 complete — 24h SCC validation window closed 1,224 non-KXWTIMAX commodity positions (122x COM-04 target). Daily KXWTI (409) + weekly KXBRENTW (486) are the highest-volume series. Paper §6.4 item-9 live-cohort gap empirically addressed.
-Last activity: 2026-04-24 -- Phase 15 plan 03 executed (fix 38d7970 + data regen d217ff1, 24h SCC window validation passed)
+Phase: 16 of 16 (Paper Revision — Phase 15 Integration + Final Review)
+Plan: 2 of 3 complete (16-01 Phase 15 integration landed; 16-02 FINDINGS.md integration landed — Finding 6 live companion + Finding 27 "Silent Category Starvation")
+Status: Plans 16-01 and 16-02 done. PAPER_DRAFT.md cites the 1,224-position Phase 15 live commodity cohort; FINDINGS.md has companion paragraph for Finding 6 and new Finding 27 documenting silent-category-starvation root cause. Next: Plan 16-03 (final review — Alvin readability + Ian cover-to-cover).
+Last activity: 2026-04-24 -- Plan 16-02 executed (2 atomic commits c3b1181/97fb616; FINDINGS.md only)
 
-Progress: [██████████] 100%
+Progress: [█████████·] 95%
 
 ## Performance Metrics
 
@@ -56,6 +56,8 @@ Progress: [██████████] 100%
 | Phase 15-live-commodity-matching-engineering-fixes P02 | 12min | 2 tasks | 2 files |
 | Phase 15-live-commodity-matching-engineering-fixes P01 | 4min | 2 tasks | 1 files |
 | Phase 15-live-commodity-matching-engineering-fixes P03 | ~33h (24h SCC wall-clock) | 3 tasks | 9 files |
+| Phase 16-paper-revision-phase-15-integration-final-review P01 | 2 min | 3 tasks | 1 files |
+| Phase 16-paper-revision-phase-15-integration-final-review P02 | ~8 min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -130,6 +132,8 @@ Recent decisions affecting current work:
 - [Phase 15-live-commodity-matching-engineering-fixes]: H1 (KALSHI_DISCOVERY_CATEGORIES missing Commodities) is the root cause of daily WTI / Brent absence — single-line tuple edit at src/live/market_discovery.py:249 unblocks ~125 oil/brent open markets; H5 PARTIAL requires classifier extension in src/features/category.py for Brent + WTI variants
 - [Phase 15-03-discovery-fix]: H1 (discovery category gap) confirmed as root cause — daily WTI / Brent / grain / metal series never reached the pipeline because `KALSHI_DISCOVERY_CATEGORIES` in src/live/market_discovery.py omitted "Commodities" (Kalshi migrated these series into a dedicated Commodities category after the taxonomy change). Primary fix: add "Commodities" to the tuple at src/live/market_discovery.py:249. Secondary fixes: extend `_RULES` in src/features/category.py with Brent family + daily-WTI variants + KXCRUDE/KXDIESEL/KXHEATINGOIL/KXGASOLINE prefixes; reserve 200 slots for commodity pairs inside `_load_live_pairs` MAX_LIVE_PAIRS=2000 cap in src/live/collector.py to prevent similarity-cap eviction (commodity pairs cluster at similarity ≈ 0.794, well below the sports/politics-dominated 0.85+ tail). Regression test tests/matching/test_rule_10_asset_class.py still guards the KXWTIMAX-26DEC31-T130 ↔ Bitcoin-$130K false match (COM-02). Post-fix validation: 336 active non-KXWTIMAX commodity pairs in active_matches.json (COM-03), 200 non-KXWTIMAX commodity pairs in pair_mapping.json + **1,224 closed commodity positions in position_history.jsonl after 24h SCC window (122x COM-04 target)**. Per-series breakdown: KXBRENTW=486, KXWTI=409, KXWTIW=213, KXBRENTMON=76, KXBRENTD=16, KXAAAGASD=11, KXAAAGASW=7, KXAAAGASM=6. Aggregate P&L +$1.96, win rate 36.0%.
 - [Phase 15-03-discovery-fix]: The similarity-cap eviction (200-slot commodity reservation in _load_live_pairs) was NOT predicted by the 15-01 diagnostic — it only became visible after H1 flooded the candidate pool with new commodity pairs and the pair_mapping.json dropped all of them despite active_matches.json containing 336. Rule 3 (blocking) auto-fix, not a checkpoint, because the 24h window would have closed zero positions otherwise.
+- [Phase 16-paper-revision-phase-15-integration-final-review]: [Phase 16-01-paper-revision]: Preserved original 'Finding: WTI oil contracts absent' paragraph (§5.9) and original §6.4 item 9 engineering-gap text verbatim — new §5.9.1 subsection and the **Resolved post-submission in Phase 15** note appended rather than substituted. Scientific-integrity principle: acknowledged v1.1 limitations stay visible in the paper even after post-submission resolution. Abstract trimmed via two cuts (drop redundant 'autonomous paper-trader' sentence −9 words + drop 'essentially' filler −1 word) to offset the +6-word live-validation qualifier insertion; lands at 247/250 with 3 words of POL-04 headroom. §5.9.1 ships three explicit caveats (short 12h window, near-flat per-trade economics, paper-trading idealizations persist) to prevent the cohort being read as a robust live edge measurement. check_paper.sh still exits 0 with all 16 checks OK — zero Phase 14 guardrail regressions. Atomic commits: 526370e (REV-01) / 637427f (REV-02) / f8d7acb (REV-03).
+- [Phase 16-02-findings-integration]: Finding 6 companion paragraph appended INSIDE the existing Finding 6 block (after Implication sentence, before `---` separator) using a labeled `**Live validation (Phase 15, 2026-04-24).**` lead-in rather than fragmenting into a separate finding — preserves the backtest claim + table verbatim while dating the live-vs-backtest delta. Finding 27 framed as four bold-led sub-paragraphs (What happened / Parallel to Finding 8 / Methodology lesson / Implication) at 313 body words rather than the 80-120-word single-paragraph literal target from REV-05 — matches Finding 26's formatting style and keeps the concrete "known-unknown monitoring" recommendation scannable. Cross-reference to Finding 8 explicitly names the prior April 11 silent-starvation bug so the two-instances-in-same-subsystem structural-weakness pattern is visible to paper readers. File-ownership held against parallel Plan 16-01: my commits c3b1181 + 97fb616 touched ONLY FINDINGS.md; 16-01's PAPER_DRAFT.md commit 526370e landed between them without conflict. REV-04 and REV-05 satisfied; remaining Phase 16 work is Plan 16-03 (final review checkpoint).
 
 ### Pending Todos
 
@@ -143,7 +147,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-24T13:22:19Z
-Stopped at: Completed 15-03-PLAN.md — Phase 15 closed; all v1.1 + post-submission engineering requirements satisfied (36 v1 + 55 v1.1 + 5 COM = 96/96 complete)
+Last session: 2026-04-24T13:59:51.242Z
+Stopped at: Completed 16-01-PLAN.md — Phase 15 integrated into paper (abstract + §5.9.1 + §6.4 item 9); check_paper.sh green 16/16
 Resume file: None
 Next action: v1.1 milestone fully shipped. April 27 submission is ready. Optional future work: paper §6.4 revision citing the 1,224-position live cohort as empirical follow-up to the acknowledged limitation.

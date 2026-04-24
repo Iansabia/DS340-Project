@@ -245,9 +245,9 @@ Post-submission engineering fixes to close Paper §6.4 item 9 (live commodity-ma
 
 Integrates Phase 15 live-oil results into the paper, documents the silent-category-starvation methodology finding, and closes the deferred Phase 14 human-only review items (co-author readability + cover-to-cover final read) before April 27 submission.
 
-- [ ] **REV-01**: Abstract oil qualifier softened. Current text "(backtest evidence; live oil-trading remains unobserved in our deployment window, see §5.9)" replaced with honest acknowledgment that live oil-trading IS now observed post-fix (1,224 closed commodity positions), without overclaiming a robust live edge (the window is only 12 hours).
-- [ ] **REV-02**: §5.9 Live vs Backtest Reconciliation adds a post-fix oil subsection with verbatim Phase 15 numbers: 1,224 closed non-KXWTIMAX commodity positions, per-series breakdown, aggregate P&L +$1.96, win rate 36.0%, window timestamps.
-- [ ] **REV-03**: §6.4 Limitations item 9 augmented with one-line "Resolved post-submission in Phase 15" note. Original text preserved for honest historical record.
+- [x] **REV-01**: Abstract oil qualifier softened. Current text "(backtest evidence; live oil-trading remains unobserved in our deployment window, see §5.9)" replaced with honest acknowledgment that live oil-trading IS now observed post-fix (1,224 closed commodity positions), without overclaiming a robust live edge (the window is only 12 hours).
+- [x] **REV-02**: §5.9 Live vs Backtest Reconciliation adds a post-fix oil subsection with verbatim Phase 15 numbers: 1,224 closed non-KXWTIMAX commodity positions, per-series breakdown, aggregate P&L +$1.96, win rate 36.0%, window timestamps.
+- [x] **REV-03**: §6.4 Limitations item 9 augmented with one-line "Resolved post-submission in Phase 15" note. Original text preserved for honest historical record.
 - [ ] **REV-04**: Finding 6 (§5.3 oil near-expiry edge, FINDINGS.md) gets a live-validation companion paragraph comparing backtest 76.5% WR to live 36.0% WR with honest nuance about near-expiry vs. full-window subsetting.
 - [ ] **REV-05**: New Finding 27 "Silent Category Starvation in Live Systems" added to FINDINGS.md (~80-120 words). Documents root cause, parallel to April 11 discovery gap, and concrete monitoring recommendation for external-API discovery pipelines.
 - [ ] **REV-06**: Co-author (Alvin) readability review on §1 Introduction and §8 Conclusions. Captured via commit containing either edits applied or STATE.md note "Alvin reviewed YYYY-MM-DD: no changes requested."
@@ -331,9 +331,9 @@ Integrates Phase 15 live-oil results into the paper, documents the silent-catego
 | COM-03 | Phase 15 | Complete |
 | COM-04 | Phase 15 | Complete |
 | COM-05 | Phase 15 | Complete |
-| REV-01 | Phase 16 | Pending |
-| REV-02 | Phase 16 | Pending |
-| REV-03 | Phase 16 | Pending |
+| REV-01 | Phase 16 | Complete |
+| REV-02 | Phase 16 | Complete |
+| REV-03 | Phase 16 | Complete |
 | REV-04 | Phase 16 | Pending |
 | REV-05 | Phase 16 | Pending |
 | REV-06 | Phase 16 | Pending |
