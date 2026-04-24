@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: in-progress
-stopped_at: Completed 15-02-PLAN.md — Rule 10 asset-class mismatch regression test + fix landed (RED 6297ac8, GREEN 071b7db); COM-02 closed
-last_updated: "2026-04-24T00:15:00.000Z"
-last_activity: 2026-04-23 -- Phase 15 plan 02 executed (Rule 10 asset-class regression test + fix in src/matching/quality_filter.py)
+status: Rule 10 asset-class mismatch rule live in src/matching/quality_filter.py. The canonical KXWTIMAX-26DEC31-T130 vs Bitcoin-\$130K false match is now regression-covered via 4 tests in tests/matching/test_rule_10_asset_class.py. COM-02 closed.
+stopped_at: Completed 15-01-PLAN.md — COM-01 closed, diagnostic committed with 5 hypotheses ranked and Fix 1/2/3 handed to Plan 15-03
+last_updated: "2026-04-24T00:14:17.397Z"
+last_activity: 2026-04-23 -- Phase 15 plan 02 executed (RED 6297ac8 + GREEN 071b7db, separate atomic TDD commits)
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
   percent: 89
 ---
 
@@ -54,6 +54,7 @@ Progress: [█████████░] 89%
 | Phase 14-paper-finalization-presentation P02 | 5min | 3 tasks | 2 files |
 | Phase 14-paper-finalization-presentation P03 | 90min | 3 tasks | 60 files |
 | Phase 15-live-commodity-matching-engineering-fixes P02 | 12min | 2 tasks | 2 files |
+| Phase 15-live-commodity-matching-engineering-fixes P01 | 4min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,7 @@ Recent decisions affecting current work:
 - [Phase 15-02-rule10-asset-class]: Kalshi ticker prefix wins over title tokens in _detect_asset_class because tickers are authoritative and titles can contain stray numeric strings
 - [Phase 15-02-rule10-asset-class]: Canonical hex poly_id 0x885a6abefad122348b4fbd503473d7fd1f9035d0438cf988a7591620f316a859 pinned verbatim in test file for grep-based audit of the specific bug
 - [Phase 15-02-rule10-asset-class]: Pre-existing sentence_transformers import error in test_pipeline/test_scorer/test_semantic_matcher is out-of-scope per scope-boundary rule — confirmed not caused by Rule 10 changes; the 104 other matching tests all pass
+- [Phase 15-live-commodity-matching-engineering-fixes]: H1 (KALSHI_DISCOVERY_CATEGORIES missing Commodities) is the root cause of daily WTI / Brent absence — single-line tuple edit at src/live/market_discovery.py:249 unblocks ~125 oil/brent open markets; H5 PARTIAL requires classifier extension in src/features/category.py for Brent + WTI variants
 
 ### Pending Todos
 
@@ -138,7 +140,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-24T00:15:00.000Z
-Stopped at: Completed 15-02-PLAN.md — Rule 10 asset-class mismatch regression test + fix landed (RED 6297ac8, GREEN 071b7db); COM-02 closed
+Last session: 2026-04-24T00:14:17.393Z
+Stopped at: Completed 15-01-PLAN.md — COM-01 closed, diagnostic committed with 5 hypotheses ranked and Fix 1/2/3 handed to Plan 15-03
 Resume file: None
 Next action: Execute Plan 15-01 (diagnostic COM-01) and Plan 15-03 (discovery fix + 24h SCC validation, COM-03/04/05); then final PDF render for April 27 submission

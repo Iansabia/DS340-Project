@@ -235,7 +235,7 @@ Terminal phase; consumes results from all prior phases.
 
 Post-submission engineering fixes to close Paper §6.4 item 9 (live commodity-matching pipeline incomplete). Not part of v1.1 paper evaluation; enables live validation of the backtest oil edge (Finding 6) for future work.
 
-- [ ] **COM-01**: Diagnose why daily WTI / crude / diesel / heating-oil / gasoline Kalshi series are not reaching `data/live/active_matches.json` despite being visible on the Kalshi consumer app. Produce a written root-cause explanation (rate limiting, filter logic, series enumeration, Polymarket-side absence, etc.) committed to `.planning/phases/15-*/15-RESEARCH.md` or inline in a plan summary.
+- [x] **COM-01**: Diagnose why daily WTI / crude / diesel / heating-oil / gasoline Kalshi series are not reaching `data/live/active_matches.json` despite being visible on the Kalshi consumer app. Produce a written root-cause explanation (rate limiting, filter logic, series enumeration, Polymarket-side absence, etc.) committed to `.planning/phases/15-*/15-RESEARCH.md` or inline in a plan summary.
 - [x] **COM-02**: Quality-filter rule 10 (category-consistency) hardened to reject numerically-coincident cross-asset strikes. Regression test under `tests/matching/` verifies `KXWTIMAX-26DEC31-T130` ↔ Bitcoin-$130K Polymarket pair is rejected on asset-class mismatch; test fails on pre-fix code, passes on post-fix code.
 - [ ] **COM-03**: After patching discovery and rule 10, `data/live/active_matches.json` contains ≥ 20 active non-evicted commodity pairs drawn from daily or weekly series (not only year-end `KXWTIMAX` binary-strike contracts).
 - [ ] **COM-04**: Post-fix 24-hour SCC validation window produces ≥ 10 closed commodity positions in `data/live/position_history.jsonl`. `data/live/pair_mapping.json` contains at least one non-`KXWTIMAX` commodity pair.
@@ -314,7 +314,7 @@ Post-submission engineering fixes to close Paper §6.4 item 9 (live commodity-ma
 | POL-10 | Phase 14 | Complete |
 | POL-11 | Phase 14 | Complete |
 | POL-12 | Phase 14 | Complete |
-| COM-01 | Phase 15 | Pending |
+| COM-01 | Phase 15 | Complete |
 | COM-02 | Phase 15 | Complete |
 | COM-03 | Phase 15 | Pending |
 | COM-04 | Phase 15 | Pending |

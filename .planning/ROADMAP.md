@@ -229,7 +229,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 12. Feature Ablation | 2/2 | Complete    | 2026-04-23 | - |
 | 13. Ensemble Formalization | 3/3 | Complete    | 2026-04-23 | - |
 | 14. Paper Finalization + Presentation | 3/3 | Complete    | 2026-04-23 | - |
-| 15. Live Commodity-Matching Engineering Fixes | 1/3 | In Progress | -          | - |
+| 15. Live Commodity-Matching Engineering Fixes | 2/3 | In Progress|  | - |
 
 ### Phase 15: Live Commodity-Matching Engineering Fixes
 
