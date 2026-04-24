@@ -251,6 +251,24 @@ Plans:
 
 **Fix summary (for future maintenance recognition):** `KALSHI_DISCOVERY_CATEGORIES` in `src/live/market_discovery.py:249` omitted `"Commodities"` after Kalshi migrated oil/brent/grain/metal series into a dedicated Commodities category. Primary fix: add `"Commodities"` to the tuple. Secondary fixes: extend `_RULES` in `src/features/category.py` with Brent family + daily-WTI variants; reserve 200 slots for commodity pairs in `src/live/collector.py::_load_live_pairs` to prevent similarity-cap eviction (commodity pairs cluster at similarity ≈ 0.794, below the sports/politics-dominated 0.85+ tail). Rule 10 (asset-class mismatch) regression test at `tests/matching/test_rule_10_asset_class.py` guards against the canonical KXWTIMAX-26DEC31-T130 ↔ Bitcoin-$130K false match.
 
+### Phase 16: Paper Revision — Phase 15 Integration + Final Review
+
+**Goal**: Integrate Phase 15 live-commodity engineering results into the paper, add Finding 27 documenting the silent-category-starvation root cause as a methodology lesson, complete the deferred cover-to-cover read and co-author readability pass, and produce a final submission-ready draft for April 27.
+**Depends on**: Phase 15 (live commodity-matching fixes); closes remaining Phase 14 human-only checklist items (co-author review, cover-to-cover read).
+**Requirements**: REV-01, REV-02, REV-03, REV-04, REV-05, REV-06, REV-07
+**Success Criteria** (what must be TRUE):
+  1. Abstract (PAPER_DRAFT.md line ~12) oil qualifier softened to reflect that live oil-trading IS now observed post-fix: replace "(backtest evidence; live oil-trading remains unobserved in our deployment window, see §5.9)" with honest language acknowledging the post-submission fix observation (1,224 closed commodity positions in 24h) without overclaiming.
+  2. §5.9 Live vs Backtest Reconciliation adds a post-fix oil subsection with verbatim numbers from Phase 15 validation: 1,224 closed non-KXWTIMAX commodity positions, per-series breakdown (KXBRENTW=486, KXWTI=409, KXWTIW=213, KXBRENTMON=76, KXBRENTD=16, KXAAAGASD=11, KXAAAGASW=7, KXAAAGASM=6), aggregate P&L +$1.96, win rate 36.0%, window 2026-04-24T01:28Z through 2026-04-24T13:00Z (~12 hours, not full 24).
+  3. §6.4 Limitations item 9 updated: original engineering-gap text remains (honest historical record), but augmented with a one-line "Resolved post-submission in Phase 15 (commit dee9205-lineage); see §5.9 for live validation." Item is NOT removed — preserves the honest trajectory.
+  4. Finding 6 (§5.3 oil near-expiry edge) gets a live-validation companion paragraph comparing the backtest 76.5% WR / +$0.41 per-trade edge to the post-fix 36.0% win rate. Honest framing: live win rate is lower because post-fix window includes non-near-expiry WTI contracts, not just the near-expiry subset the backtest measured. This is important nuance, not a contradiction.
+  5. New Finding 27 "Silent Category Starvation in Live Systems" added to FINDINGS.md (~80-120 words). Documents: (a) `KALSHI_DISCOVERY_CATEGORIES` missing "Commodities" dropped entire WTI/Brent/gas families silently for months; (b) similar to the April 11 discovery gap (Kalshi 429 + Polymarket shallow pagination); (c) methodology lesson: category enumeration in external-API discovery pipelines needs a "what's NOT in my data" monitoring check, not just "what IS in my data"; (d) concrete recommendation: daily diff of discovered-series vs known-live-series counts by category, alert on drops.
+  6. Co-author (Alvin) readability review completed on §1 Introduction and §8 Conclusions. Captured via a single commit containing either (a) Alvin's edits applied, or (b) a one-line "Alvin reviewed 2026-04-XX: no changes requested" note in STATE.md if he approves as-is.
+  7. Cover-to-cover final read by Ian completed: render paper to PDF, read front-to-back with submission eyes, fix any residual TODO / stale-number / broken-reference findings in a final polish commit.
+**Plans**: TBD
+
+Plans:
+- [ ] TBD (run `/gsd:plan-phase 16` to break down)
+
 ---
 *Roadmap created: 2026-04-01*
 *v1.0 shipped: 2026-04-08*

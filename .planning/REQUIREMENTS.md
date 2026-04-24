@@ -241,6 +241,18 @@ Post-submission engineering fixes to close Paper §6.4 item 9 (live commodity-ma
 - [x] **COM-04**: Post-fix 24-hour SCC validation window produces ≥ 10 closed commodity positions in `data/live/position_history.jsonl`. `data/live/pair_mapping.json` contains at least one non-`KXWTIMAX` commodity pair.
 - [x] **COM-05**: `STATE.md` and `ROADMAP.md` include a short diagnostic note explaining the discovery/filter bug and its fix for future maintenance recognition. Phase marked complete only after the 24-hour validation window passes.
 
+### Phase 16 -- Paper Revision: Phase 15 Integration + Final Review
+
+Integrates Phase 15 live-oil results into the paper, documents the silent-category-starvation methodology finding, and closes the deferred Phase 14 human-only review items (co-author readability + cover-to-cover final read) before April 27 submission.
+
+- [ ] **REV-01**: Abstract oil qualifier softened. Current text "(backtest evidence; live oil-trading remains unobserved in our deployment window, see §5.9)" replaced with honest acknowledgment that live oil-trading IS now observed post-fix (1,224 closed commodity positions), without overclaiming a robust live edge (the window is only 12 hours).
+- [ ] **REV-02**: §5.9 Live vs Backtest Reconciliation adds a post-fix oil subsection with verbatim Phase 15 numbers: 1,224 closed non-KXWTIMAX commodity positions, per-series breakdown, aggregate P&L +$1.96, win rate 36.0%, window timestamps.
+- [ ] **REV-03**: §6.4 Limitations item 9 augmented with one-line "Resolved post-submission in Phase 15" note. Original text preserved for honest historical record.
+- [ ] **REV-04**: Finding 6 (§5.3 oil near-expiry edge, FINDINGS.md) gets a live-validation companion paragraph comparing backtest 76.5% WR to live 36.0% WR with honest nuance about near-expiry vs. full-window subsetting.
+- [ ] **REV-05**: New Finding 27 "Silent Category Starvation in Live Systems" added to FINDINGS.md (~80-120 words). Documents root cause, parallel to April 11 discovery gap, and concrete monitoring recommendation for external-API discovery pipelines.
+- [ ] **REV-06**: Co-author (Alvin) readability review on §1 Introduction and §8 Conclusions. Captured via commit containing either edits applied or STATE.md note "Alvin reviewed YYYY-MM-DD: no changes requested."
+- [ ] **REV-07**: Cover-to-cover final read by Ian. Render paper to PDF, read front-to-back with submission eyes. Any residual TODO / stale number / broken cross-reference fixed in a final polish commit.
+
 ### v1.1 Non-Goals (Explicit Out of Scope)
 
 | Item | Reason |
@@ -319,6 +331,13 @@ Post-submission engineering fixes to close Paper §6.4 item 9 (live commodity-ma
 | COM-03 | Phase 15 | Complete |
 | COM-04 | Phase 15 | Complete |
 | COM-05 | Phase 15 | Complete |
+| REV-01 | Phase 16 | Pending |
+| REV-02 | Phase 16 | Pending |
+| REV-03 | Phase 16 | Pending |
+| REV-04 | Phase 16 | Pending |
+| REV-05 | Phase 16 | Pending |
+| REV-06 | Phase 16 | Pending |
+| REV-07 | Phase 16 | Pending |
 
 **Coverage (v1.1):**
 - Requirements: 55 total (5 + 10 + 5 + 8 + 8 + 7 + 12)
