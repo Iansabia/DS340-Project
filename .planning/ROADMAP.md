@@ -264,13 +264,15 @@ Plans:
   5. New Finding 27 "Silent Category Starvation in Live Systems" added to FINDINGS.md (~80-120 words). Documents: (a) `KALSHI_DISCOVERY_CATEGORIES` missing "Commodities" dropped entire WTI/Brent/gas families silently for months; (b) similar to the April 11 discovery gap (Kalshi 429 + Polymarket shallow pagination); (c) methodology lesson: category enumeration in external-API discovery pipelines needs a "what's NOT in my data" monitoring check, not just "what IS in my data"; (d) concrete recommendation: daily diff of discovered-series vs known-live-series counts by category, alert on drops.
   6. Co-author (Alvin) readability review completed on §1 Introduction and §8 Conclusions. Captured via a single commit containing either (a) Alvin's edits applied, or (b) a one-line "Alvin reviewed 2026-04-XX: no changes requested" note in STATE.md if he approves as-is.
   7. Cover-to-cover final read by Ian completed: render paper to PDF, read front-to-back with submission eyes, fix any residual TODO / stale-number / broken-reference findings in a final polish commit.
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] TBD (run `/gsd:plan-phase 16` to break down)
+- [ ] 16-01-PLAN.md — Integration commits: Phase 15 numbers into paper (REV-01 abstract swap + REV-02 §5.9.1 subsection + REV-03 §6.4 item 9 resolution note)
+- [ ] 16-02-PLAN.md — Findings update (REV-04 Finding 6 live companion + REV-05 new Finding 27 "Silent Category Starvation")
+- [ ] 16-03-PLAN.md — Final review: checklist artifact + human-verify checkpoint (REV-06 Alvin readability + REV-07 Ian cover-to-cover)
 
 ---
 *Roadmap created: 2026-04-01*
 *v1.0 shipped: 2026-04-08*
 *v1.1 roadmap created: 2026-04-17*
-*Last updated: 2026-04-24*
+*Last updated: 2026-04-24 (Phase 16 plans created)*
