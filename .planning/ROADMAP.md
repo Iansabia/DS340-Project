@@ -267,8 +267,8 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 16-01-PLAN.md — Integration commits: Phase 15 numbers into paper (REV-01 abstract swap + REV-02 §5.9.1 subsection + REV-03 §6.4 item 9 resolution note)
-- [ ] 16-02-PLAN.md — Findings update (REV-04 Finding 6 live companion + REV-05 new Finding 27 "Silent Category Starvation")
+- [x] 16-01-PLAN.md — Integration commits: Phase 15 numbers into paper (REV-01 abstract swap + REV-02 §5.9.1 subsection + REV-03 §6.4 item 9 resolution note) -- 2026-04-24, atomic commits 526370e (REV-01) / 637427f (REV-02) / f8d7acb (REV-03); check_paper.sh 16/16 OK
+- [x] 16-02-PLAN.md — Findings update (REV-04 Finding 6 live companion + REV-05 new Finding 27 "Silent Category Starvation") -- 2026-04-24, commits c3b1181 (Finding 6 companion, REV-04) + 97fb616 (Finding 27, REV-05); FINDINGS.md only, file-ownership held against parallel 16-01
 - [ ] 16-03-PLAN.md — Final review: checklist artifact + human-verify checkpoint (REV-06 Alvin readability + REV-07 Ian cover-to-cover)
 
 ---

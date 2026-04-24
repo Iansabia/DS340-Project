@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: completed
-stopped_at: Completed 16-01-PLAN.md — Phase 15 integrated into paper (abstract + §5.9.1 + §6.4 item 9); check_paper.sh green 16/16
-last_updated: "2026-04-24T14:00:24.410Z"
-last_activity: 2026-04-24 -- Plan 16-01 executed (3 atomic commits 526370e/637427f/f8d7acb; PAPER_DRAFT.md only)
+status: in-progress
+stopped_at: Completed 16-02-PLAN.md — FINDINGS.md Phase 15 integration (REV-04 Finding 6 live companion + REV-05 new Finding 27 silent-category-starvation)
+last_updated: "2026-04-24T14:05:00.000Z"
+last_activity: 2026-04-24 -- Plan 16-02 executed (Finding 6 companion c3b1181 + Finding 27 97fb616; FINDINGS.md only)
 progress:
   total_phases: 9
   completed_phases: 8
