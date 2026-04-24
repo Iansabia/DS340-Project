@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: Rule 10 asset-class mismatch rule live in src/matching/quality_filter.py. The canonical KXWTIMAX-26DEC31-T130 vs Bitcoin-\$130K false match is now regression-covered via 4 tests in tests/matching/test_rule_10_asset_class.py. COM-02 closed.
-stopped_at: Completed 15-01-PLAN.md — COM-01 closed, diagnostic committed with 5 hypotheses ranked and Fix 1/2/3 handed to Plan 15-03
-last_updated: "2026-04-24T00:14:17.397Z"
-last_activity: 2026-04-23 -- Phase 15 plan 02 executed (RED 6297ac8 + GREEN 071b7db, separate atomic TDD commits)
+status: Phase 15 complete — live commodity-matching engineering fixes landed (COM-01 through COM-05). 24h SCC validation window closed 1,224 non-KXWTIMAX commodity positions (122x COM-04 target); daily KXWTI + weekly KXBRENTW are the two highest-volume series. Paper §6.4 item-9 cohort gap now empirically addressed.
+stopped_at: Completed 15-03-PLAN.md — Phase 15 closed; all v1.1 + post-submission engineering requirements satisfied
+last_updated: "2026-04-24T13:22:19Z"
+last_activity: 2026-04-24 -- Phase 15 plan 03 executed (fix 38d7970 + data regen d217ff1, 24h SCC window closed 1,224 non-KXWTIMAX commodity positions)
 progress:
   total_phases: 8
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 18
-  completed_plans: 17
-  percent: 89
+  completed_plans: 18
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 15 -- Live commodity-matching engineering fixes (post-submission maintenance; COM-02 now closed)
+**Current focus:** Phase 15 complete — live commodity-matching engineering fixes landed (COM-01 through COM-05); v1.1 milestone fully shipped
 
 ## Current Position
 
-Phase: 15 of 15 (Live Commodity-Matching Engineering Fixes) — IN PROGRESS
-Plan: 2 of 3 complete (15-01 diagnostic pending; 15-02 Rule 10 asset-class regression test + fix landed; 15-03 discovery fix + 24h validation pending)
-Status: Rule 10 asset-class mismatch rule live in src/matching/quality_filter.py. The canonical KXWTIMAX-26DEC31-T130 vs Bitcoin-\$130K false match is now regression-covered via 4 tests in tests/matching/test_rule_10_asset_class.py. COM-02 closed.
-Last activity: 2026-04-23 -- Phase 15 plan 02 executed (RED 6297ac8 + GREEN 071b7db, separate atomic TDD commits)
+Phase: 15 of 15 (Live Commodity-Matching Engineering Fixes) — COMPLETE
+Plan: 3 of 3 complete (15-01 diagnostic, 15-02 Rule 10 asset-class, 15-03 discovery fix + 24h SCC validation)
+Status: Phase 15 complete — 24h SCC validation window closed 1,224 non-KXWTIMAX commodity positions (122x COM-04 target). Daily KXWTI (409) + weekly KXBRENTW (486) are the highest-volume series. Paper §6.4 item-9 live-cohort gap empirically addressed.
+Last activity: 2026-04-24 -- Phase 15 plan 03 executed (fix 38d7970 + data regen d217ff1, 24h SCC window validation passed)
 
-Progress: [█████████░] 89%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [█████████░] 89%
 | Phase 14-paper-finalization-presentation P03 | 90min | 3 tasks | 60 files |
 | Phase 15-live-commodity-matching-engineering-fixes P02 | 12min | 2 tasks | 2 files |
 | Phase 15-live-commodity-matching-engineering-fixes P01 | 4min | 2 tasks | 1 files |
+| Phase 15-live-commodity-matching-engineering-fixes P03 | ~33h (24h SCC wall-clock) | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -127,6 +128,8 @@ Recent decisions affecting current work:
 - [Phase 15-02-rule10-asset-class]: Canonical hex poly_id 0x885a6abefad122348b4fbd503473d7fd1f9035d0438cf988a7591620f316a859 pinned verbatim in test file for grep-based audit of the specific bug
 - [Phase 15-02-rule10-asset-class]: Pre-existing sentence_transformers import error in test_pipeline/test_scorer/test_semantic_matcher is out-of-scope per scope-boundary rule — confirmed not caused by Rule 10 changes; the 104 other matching tests all pass
 - [Phase 15-live-commodity-matching-engineering-fixes]: H1 (KALSHI_DISCOVERY_CATEGORIES missing Commodities) is the root cause of daily WTI / Brent absence — single-line tuple edit at src/live/market_discovery.py:249 unblocks ~125 oil/brent open markets; H5 PARTIAL requires classifier extension in src/features/category.py for Brent + WTI variants
+- [Phase 15-03-discovery-fix]: H1 (discovery category gap) confirmed as root cause — daily WTI / Brent / grain / metal series never reached the pipeline because `KALSHI_DISCOVERY_CATEGORIES` in src/live/market_discovery.py omitted "Commodities" (Kalshi migrated these series into a dedicated Commodities category after the taxonomy change). Primary fix: add "Commodities" to the tuple at src/live/market_discovery.py:249. Secondary fixes: extend `_RULES` in src/features/category.py with Brent family + daily-WTI variants + KXCRUDE/KXDIESEL/KXHEATINGOIL/KXGASOLINE prefixes; reserve 200 slots for commodity pairs inside `_load_live_pairs` MAX_LIVE_PAIRS=2000 cap in src/live/collector.py to prevent similarity-cap eviction (commodity pairs cluster at similarity ≈ 0.794, well below the sports/politics-dominated 0.85+ tail). Regression test tests/matching/test_rule_10_asset_class.py still guards the KXWTIMAX-26DEC31-T130 ↔ Bitcoin-$130K false match (COM-02). Post-fix validation: 336 active non-KXWTIMAX commodity pairs in active_matches.json (COM-03), 200 non-KXWTIMAX commodity pairs in pair_mapping.json + **1,224 closed commodity positions in position_history.jsonl after 24h SCC window (122x COM-04 target)**. Per-series breakdown: KXBRENTW=486, KXWTI=409, KXWTIW=213, KXBRENTMON=76, KXBRENTD=16, KXAAAGASD=11, KXAAAGASW=7, KXAAAGASM=6. Aggregate P&L +$1.96, win rate 36.0%.
+- [Phase 15-03-discovery-fix]: The similarity-cap eviction (200-slot commodity reservation in _load_live_pairs) was NOT predicted by the 15-01 diagnostic — it only became visible after H1 flooded the candidate pool with new commodity pairs and the pair_mapping.json dropped all of them despite active_matches.json containing 336. Rule 3 (blocking) auto-fix, not a checkpoint, because the 24h window would have closed zero positions otherwise.
 
 ### Pending Todos
 
@@ -140,7 +143,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-24T00:14:17.393Z
-Stopped at: Completed 15-01-PLAN.md — COM-01 closed, diagnostic committed with 5 hypotheses ranked and Fix 1/2/3 handed to Plan 15-03
+Last session: 2026-04-24T13:22:19Z
+Stopped at: Completed 15-03-PLAN.md — Phase 15 closed; all v1.1 + post-submission engineering requirements satisfied (36 v1 + 55 v1.1 + 5 COM = 96/96 complete)
 Resume file: None
-Next action: Execute Plan 15-01 (diagnostic COM-01) and Plan 15-03 (discovery fix + 24h SCC validation, COM-03/04/05); then final PDF render for April 27 submission
+Next action: v1.1 milestone fully shipped. April 27 submission is ready. Optional future work: paper §6.4 revision citing the 1,224-position live cohort as empirical follow-up to the acknowledged limitation.

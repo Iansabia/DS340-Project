@@ -229,7 +229,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 12. Feature Ablation | 2/2 | Complete    | 2026-04-23 | - |
 | 13. Ensemble Formalization | 3/3 | Complete    | 2026-04-23 | - |
 | 14. Paper Finalization + Presentation | 3/3 | Complete    | 2026-04-23 | - |
-| 15. Live Commodity-Matching Engineering Fixes | 2/3 | In Progress|  | - |
+| 15. Live Commodity-Matching Engineering Fixes | 3/3 | Complete    | 2026-04-24 | - |
 
 ### Phase 15: Live Commodity-Matching Engineering Fixes
 
@@ -245,12 +245,14 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 **Plans**: 3 plans
 
 Plans:
-- [ ] 15-01-PLAN.md -- Diagnose discovery gap + write 15-01-DIAGNOSTIC.md (COM-01)
+- [x] 15-01-PLAN.md -- Diagnose discovery gap + write 15-01-DIAGNOSTIC.md (COM-01) -- 2026-04-23, commits fc2fcbd + e01cea4
 - [x] 15-02-PLAN.md -- TDD Rule 10 asset-class regression test + fix (COM-02) -- 2026-04-23, commits 6297ac8 (RED) + 071b7db (GREEN)
-- [ ] 15-03-PLAN.md -- Apply discovery fix + 24h SCC validation + STATE/ROADMAP note (COM-03, COM-04, COM-05)
+- [x] 15-03-PLAN.md -- Apply discovery fix + 24h SCC validation + STATE/ROADMAP note (COM-03, COM-04, COM-05) -- 2026-04-24, commits 38d7970 (fix) + d217ff1 (data regen); 24h SCC window closed 1,224 non-KXWTIMAX commodity positions (122x target)
+
+**Fix summary (for future maintenance recognition):** `KALSHI_DISCOVERY_CATEGORIES` in `src/live/market_discovery.py:249` omitted `"Commodities"` after Kalshi migrated oil/brent/grain/metal series into a dedicated Commodities category. Primary fix: add `"Commodities"` to the tuple. Secondary fixes: extend `_RULES` in `src/features/category.py` with Brent family + daily-WTI variants; reserve 200 slots for commodity pairs in `src/live/collector.py::_load_live_pairs` to prevent similarity-cap eviction (commodity pairs cluster at similarity ≈ 0.794, below the sports/politics-dominated 0.85+ tail). Rule 10 (asset-class mismatch) regression test at `tests/matching/test_rule_10_asset_class.py` guards against the canonical KXWTIMAX-26DEC31-T130 ↔ Bitcoin-$130K false match.
 
 ---
 *Roadmap created: 2026-04-01*
 *v1.0 shipped: 2026-04-08*
 *v1.1 roadmap created: 2026-04-17*
-*Last updated: 2026-04-22*
+*Last updated: 2026-04-24*
