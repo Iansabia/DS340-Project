@@ -20,6 +20,10 @@ data/processed/
 data/live/bars.parquet
 data/live/paper_trades*.jsonl
 data/live/retrain_log.json
+# Phase 15 backup snapshots (pre-fix state; archived locally but
+# not tracked — too large and the pre-fix state is already pinned
+# in 15-01-DIAGNOSTIC.md probe evidence).
+data/live/*.pre-phase15.json
 data/pmxt/
 
 # Generated / runtime output (TFT training artifacts, session scratch)

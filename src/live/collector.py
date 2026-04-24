@@ -185,18 +185,48 @@ class LiveCollector:
         # With 13k+ pairs, pricing all of them takes ~13 min and triggers
         # 429s. Top 2000 by similarity covers the best trading candidates
         # and fits in ~2 min of API calls.
+        #
+        # Phase 15 (2026-04-23): Reserve a commodity quota in the cap.
+        # Post-Phase-15 discovery, commodity pairs (KXWTI, KXBRENT*,
+        # KXAAAGAS*) have maximum similarity ~0.79 while the 2000th-best
+        # pair has similarity ~0.83 — so without reservation, ALL
+        # commodity pairs would be evicted by the similarity sort, and
+        # COM-04 (≥ 1 non-KXWTIMAX commodity pair in pair_mapping.json)
+        # would fail. Reserve up to COMMODITY_RESERVATION slots for the
+        # top-similarity non-KXWTIMAX commodity pairs so Phase 15's
+        # discovery fix actually reaches the live trading pipeline.
+        COMMODITY_RESERVATION = 200  # ~ 6% of total slots
+        COMMODITY_PREFIXES = (
+            "KXWTI", "KXBRENT", "KXAAAGAS",
+            "KXDIESEL", "KXHEATINGOIL", "KXCRUDE", "KXGASOLINE",
+        )
+
+        def _is_reserved_commodity(pair_info: dict) -> bool:
+            """Non-KXWTIMAX commodity tickers earn a reserved slot."""
+            t = pair_info.get("kalshi_market_id", "")
+            return t.startswith(COMMODITY_PREFIXES) and not t.startswith("KXWTIMAX")
+
         if len(active) > self._max_live_pairs:
             sorted_pairs = sorted(
                 active.items(),
                 key=lambda kv: kv[1].get("similarity", 0),
                 reverse=True,
             )
-            capped = dict(sorted_pairs[: self._max_live_pairs])
+            # Partition: top-similarity commodity pairs get reserved;
+            # everything else fills the remaining slots by similarity.
+            commodity_sorted = [kv for kv in sorted_pairs if _is_reserved_commodity(kv[1])]
+            non_commodity_sorted = [kv for kv in sorted_pairs if not _is_reserved_commodity(kv[1])]
+            reserved = commodity_sorted[:COMMODITY_RESERVATION]
+            remaining_slots = self._max_live_pairs - len(reserved)
+            non_reserved = non_commodity_sorted[:remaining_slots]
+            capped = dict(reserved + non_reserved)
             logger.info(
                 "Live pairs loaded: %d (quality-filter rejected %d, "
-                "skipped %d empty, capped from %d to %d by similarity)",
+                "skipped %d empty, capped from %d to %d by similarity; "
+                "commodity-reserved=%d of %d commodity candidates)",
                 len(capped), rejected, skipped_empty,
                 len(active), self._max_live_pairs,
+                len(reserved), len(commodity_sorted),
             )
             return capped
 
