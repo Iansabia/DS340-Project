@@ -43,10 +43,30 @@ _RULES: tuple[tuple[str, str], ...] = (
     ("KXXRP", "crypto"),
     ("KXHYPE", "crypto"),
 
-    # --- Oil (WTI-family + bilateral oil) ---
+    # --- Oil (WTI-family + Brent + bilateral oil) ---
+    # Phase 15 (2026-04-23): Extended with Brent family + remaining WTI
+    # variants per 15-01-DIAGNOSTIC.md H5 PARTIAL. Without these entries,
+    # newly-discovered Brent/WTI variants (once Commodities category is
+    # scanned) would be classified as "other" and get the 3x threshold
+    # penalty in src/live/strategy.py line 437.
+    # Order matters: more-specific prefixes come before less-specific.
+    ("KXBRENTMON", "oil"),
+    ("KXBRENTW", "oil"),
+    ("KXBRENTD", "oil"),
+    ("KXBRENT", "oil"),
     ("KXWTIMAX", "oil"),
+    ("KXWTIMINM", "oil"),
+    ("KXWTIMIN", "oil"),
     ("KXWTIW", "oil"),
+    ("KXWTIH", "oil"),
+    ("KXWTIEU", "oil"),
+    ("KXWTIE", "oil"),
+    ("KXWTID", "oil"),
     ("KXWTI", "oil"),
+    ("KXCRUDE", "oil"),
+    ("KXDIESEL", "oil"),
+    ("KXHEATINGOIL", "oil"),
+    ("KXGASOLINE", "oil"),
     ("KXMEXCUBOIL", "oil"),
 
     # --- Non-oil commodities ---

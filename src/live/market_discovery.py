@@ -246,7 +246,16 @@ POLY_GAMMA_MARKETS_URL = "https://gamma-api.polymarket.com/markets"
 
 # Kalshi categories to scan. Matches src/data/kalshi.py defaults plus
 # Politics (for nomination / election markets) and Climate.
-KALSHI_DISCOVERY_CATEGORIES = ("Economics", "Crypto", "Financials", "Politics", "Climate")
+#
+# Phase 15 (2026-04-23): Added "Commodities" per 15-01-DIAGNOSTIC.md H1
+# CONFIRMED. Kalshi migrated daily WTI / Brent / grain / metal series
+# into a dedicated Commodities category (47 series live; 125+ open oil
+# markets). Prior to this fix, /series?category=Financials returned 0
+# commodity-prefixed series, so KXWTI / KXWTIW / KXBRENTMON / KXBRENTW
+# / KXWTIMINM / KXWTIMIN never entered the discovery candidate pool —
+# leaving KXWTIMAX-26DEC31-T130 to incorrectly match against Bitcoin-$130K
+# (poly_id=0x885a6abe...a859, similarity=0.707). See Plan 15-03.
+KALSHI_DISCOVERY_CATEGORIES = ("Economics", "Crypto", "Financials", "Politics", "Climate", "Commodities")
 
 # Rate-limit handling for Kalshi /events.
 # Kalshi throttles aggressively when we hit /events ~200 times in a row
