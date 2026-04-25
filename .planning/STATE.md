@@ -67,6 +67,10 @@ Progress: [██████████] 100%
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 18 added: System Audit — Adversarial Verification
+
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.

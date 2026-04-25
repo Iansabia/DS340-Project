@@ -299,6 +299,21 @@ Plans:
 
 **Resolution summary:** PPO 600× magnitude divergence root-caused to a units mismatch between two valid simulators (`profit_sim` returns raw probability-point spread P&L; `WalkForwardBacktester` returns dollar P&L for $100-notional fixed-size strategy with `num_contracts ≈ 200` per trade and 5pp round-trip fees), compounded by mid_price-driven contract-count inflation on low-priced commodity contracts. Canonical results JSON convention established at `experiments/results/canonical/headline.json` (single source of truth, 9 models under documented protocol — seed=42, position=$100, threshold=0.02, train=6802/test=1673). Pitch-standard format (per-trade Sharpe + alpha in bps) adopted as house style for all future result presentations. Paper, slide, and validator (`scripts/check_paper.sh` 19/19 OK) all reconcile to `canonical/headline.json`. v1.1 milestone fully shipped 100%.
 
+### Phase 18: System Audit — Adversarial Verification
+
+**Goal:** Every quantitative claim in PAPER_DRAFT.md, the canonical results JSON, and the slide deck either survives an adversarial audit (kill-or-confirm posture) or is corrected before April 27 submission, with the headline per-pair Sharpe ≈ 3.2 number specifically defended via raw recomputation, bootstrap 95% CI, cross-sectional correlation correction, and an explicit assumption stack
+**Depends on:** Phase 17
+**Success Criteria** (what must be TRUE):
+  1. `AUDIT_REPORT.md` exists at project root with one row per audit dimension (Tiers 1–6 from CONTEXT.md), each marked PASS / CORRECTED / FAILED with linked evidence (script path, output JSON, recomputed value)
+  2. `experiments/audit/audit_sharpe.py` reproduces the headline per-trade Sharpe (≈ 0.04) and per-pair Sharpe (≈ 3.2) from the raw test-set trade ledger; reports a bootstrap 95% CI and a cross-sectional-correlation-corrected Sharpe; the corrected number's lower CI bound is reported in PAPER_DRAFT.md (abstract + §5 + Table 8 footnote)
+  3. Every numeric claim in PAPER_DRAFT.md traces to a row in `experiments/results/audit/paper_numbers.csv` (claim_text, paper_section, source_file, source_command); `scripts/check_paper.sh` is extended with at least 5 new regression checks that recompute paper numbers from canonical files
+  4. If any audit row is CORRECTED, PAPER_DRAFT.md and slides_deck.html are updated in the same wave that produces the correction; if every row is PASS, the audit report itself is referenced from §6.4 Limitations as supplementary evidence of methodological care
+**Requirements**: AUDIT-01, AUDIT-02, AUDIT-03, AUDIT-04, AUDIT-05, AUDIT-06
+**Plans:** TBD (run /gsd:plan-phase 18 to break down)
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 18 to break down)
+
 ---
 *Roadmap created: 2026-04-01*
 *v1.0 shipped: 2026-04-08*
