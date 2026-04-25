@@ -74,6 +74,35 @@ check "todo_placeholder_count" 0 "$TODO"
 DEAD=$(grep -cE "§4\.6|Figure 2b|Fig\. 2b" "$PAPER")
 check "dead_crossrefs" 0 "$DEAD"
 
+echo "== REPL-06: Pitch-standard headlines (Phase 17) =="
+# REPL-06a: Abstract must mention Sharpe (the new pitch-standard headline metric).
+ABS_SHARPE=$(awk '/^## Abstract/{f=1;next} /^---$/{if(f)exit} f' "$PAPER" | grep -cE "[Ss]harpe")
+check_ge "abstract_mentions_sharpe" 1 "$ABS_SHARPE"
+
+# REPL-06b: Abstract must cite a specific Sharpe value (decimal between 0.0 and 9.9), not a hand-wavy mention.
+ABS_SHARPE_VAL=$(awk '/^## Abstract/{f=1;next} /^---$/{if(f)exit} f' "$PAPER" | grep -cE "[Ss]harpe[^0-9]{1,30}[0-9]\.[0-9]+|[0-9]\.[0-9]+[^0-9]{1,30}[Ss]harpe")
+check_ge "abstract_cites_sharpe_value" 1 "$ABS_SHARPE_VAL"
+
+# REPL-06c: In headline sections (Abstract / §5.1 / §5.8 / §6.3 / §8 Conclusions), every signed P&L
+# claim of $50+ (i.e., +$XXX.XX or −$XXX.XX) must have a Sharpe or bps companion in the same paragraph.
+# Two-pass implementation: extract headline-section text, then check paragraphs.
+ORPHAN_DOLLARS=$(awk '
+  BEGIN { in_h = 0 }
+  /^## Abstract/ { in_h = 1; next }
+  /^### 5\.1 / { in_h = 1; next }
+  /^### 5\.8 / { in_h = 1; next }
+  /^### 6\.3 / { in_h = 1; next }
+  /^## 8\. / { in_h = 1; next }
+  /^## [A-Z0-9]/ { in_h = 0 }
+  /^### [0-9]/ { in_h = 0 }
+  in_h { print }
+' "$PAPER" | awk '
+  BEGIN { RS=""; FS="\n"; n = 0 }
+  /[+−-]\\?\$([5-9][0-9]|[1-9][0-9]{2,})(\.[0-9]+)?/ && !/[Ss]harpe/ && !/bps/ { n++ }
+  END { print n }
+')
+check "orphan_dollar_paragraphs_in_headline_sections" 0 "$ORPHAN_DOLLARS"
+
 echo
 if (( FAIL == 0 )); then
   echo "ALL CHECKS PASSED"
