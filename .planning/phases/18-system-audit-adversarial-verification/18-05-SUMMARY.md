@@ -109,7 +109,7 @@ Each task was committed atomically:
 1. **Task 1: Implement audit_survivorship.py** — `efd6807` (feat)
 2. **Task 2: Fixture tests for classify_drop_reason** — `33f7b7b` (test)
 
-**Plan metadata commit:** `<set-after-final-commit>` (docs: complete plan)
+**Plan metadata commit:** `52d942d` (docs: complete plan)
 
 ## Files Created/Modified
 
