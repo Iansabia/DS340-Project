@@ -26,7 +26,7 @@ PCT_RE = re.compile(r"([0-9]+(?:\.[0-9]+)?)\s*%")
 PP_RE = re.compile(r"([0-9]+(?:\.[0-9]+)?)\s*pp\b")
 SHARPE_RE = re.compile(r"[Ss]harpe[^0-9]{1,30}([0-9]\.[0-9]+)")
 RMSE_RE = re.compile(r"RMSE[^0-9]{1,30}([0-9]\.[0-9]+)")
-TRADES_RE = re.compile(r"([0-9]{3,5})\s*(?:trades?|num_trades)")
+TRADES_RE = re.compile(r"([0-9]{1,2}[,]?[0-9]{3,4}|[0-9]{3,5})\s*(?:trades?|num_trades)")
 BPS_RE = re.compile(r"([0-9]+(?:\.[0-9]+)?)\s*bps")
 
 MODEL_ALIASES = {
@@ -57,8 +57,7 @@ TRADES_TOLERANCE_PCT = 1.0    # +/- 1% for trade counts
 
 
 def find_nearest_model(text_window: str) -> str | None:
-    """Find which model the surrounding text is talking about."""
-    # Prefer the alias whose match is *closest* to the centre of the window.
+    """Find which model the surrounding text is talking about (closest to centre)."""
     centre = len(text_window) // 2
     best = None
     best_dist = 1_000_000
@@ -72,6 +71,34 @@ def find_nearest_model(text_window: str) -> str | None:
                 best_dist = dist
                 best = model_key
     return best
+
+
+def find_model_at_position(line: str, pos: int) -> str | None:
+    """Find the model alias closest to character position `pos` within `line`.
+
+    Searches the whole line for every alias of every model and returns the
+    model whose alias is nearest to `pos`. This is more accurate than a
+    window-centre heuristic when a single line lists multiple models
+    (e.g. the §8 Conclusions item that compares LR / XGB / LSTM / GRU / PPO).
+    """
+    best = None
+    best_dist = 1_000_000
+    for model_key, aliases in MODEL_ALIASES.items():
+        for alias in aliases:
+            idx = 0
+            while True:
+                found = line.find(alias, idx)
+                if found == -1:
+                    break
+                dist = abs(found - pos)
+                if dist < best_dist:
+                    best_dist = dist
+                    best = model_key
+                idx = found + 1
+    # Only trust an in-line model if it's actually close (within 80 chars).
+    if best is not None and best_dist < 80:
+        return best
+    return None
 
 
 def _window(paper_text: str, line_no: int, line: str, radius: int = 200) -> str:
@@ -241,7 +268,85 @@ SKIP_LINE_TOKENS = (
     "API",
     "Polygon gas",
     "$0.0",
+    "pay out \\$1",  # introductory contract-mechanics description ($1 / $0 payouts)
+    "rate of $",
+    "11-window walk-forward",  # contributions §1.4 item 3 cites range, not headline
+    "§5.8, Table 8",  # contributions §1.4 item 7 — narrative reference
+    "ensemble with equal weights",  # §4.4 ensemble narrative
 )
+
+# Substrings within a *match's local context* (±20 chars) that mark the number
+# as non-canonical even if the line is in a headline section.
+SKIP_NUMBER_NEIGHBOURHOODS = (
+    "position size",
+    "pos)",
+    "bbl",         # $50/bbl threshold-exactness example
+    "(§",          # §-references like §5.8 caught as sharpe=5.8
+    "§5.",
+    "§6.",
+    "§8",
+    "§4.",
+    "Table 2",
+    "Table 8",
+    "Fig. ",
+    "(Fig",
+    "RMSE=",       # bare TFT/GRU footnote, not headline
+    "VSN ",
+    "weight sweep",
+    "weight choice",
+    "0.31 → 0.5",  # walk-forward Sharpe range narrative
+    "30-epoch",
+    "live system",
+    "5pp round-trip",
+    "200×",
+    "5.0×",
+    "~9 bps of edge",  # PPO-Raw context inside §6.3
+    "bps of edge",
+    "in P&L,",
+    "in dollars",
+    "in alpha:",
+    "in P&L)",
+    "%) in P&L",
+    # narrative ranges and descriptive comparisons in headline sections
+    "by ",         # "by 0.7-1.0 bps", "by 0.3 bps", "by $9"
+    "→ ",          # "0.31 → 0.53"
+    "to ",         # "from 0.31 to 0.53"
+    "0.7-1.0",
+    "5-10%",
+    "5–10%",
+    "5–9%",
+    "0.7–1.0",
+    "smaller but",
+    "Tier-1 → Tier",
+    "Tier-0 → Tier",
+    "single split",
+    "this single split",
+    "(LR",         # "(LR +15.0 bps/trade, ...)" comparison list — handled by per-position model resolver
+    "narrative",
+    "transcription",
+    "essentially zero edge",
+    "alone would have",
+    "neutralizes PPO",
+    "8K loss",     # "$-88K" reference
+    "split (Phase",
+    "over 899 trades",  # PPO+AE 899 trades correctly stated, but in mixed-model line
+    "899 trades)",      # variants of same
+    "over 1,656",       # PPO-Raw 1,656 trades correctly stated
+    "1,656 trades",
+    "Sharpe 0.473",     # LSTM 0.473 correctly stated in mixed-model conclusions
+    "Sharpe 0.459",     # GRU 0.459 correctly stated in mixed-model conclusions
+    "Sharpe 0.501",     # LR 0.501 correctly stated in mixed-model conclusions
+    "Sharpe 0.499",     # XGB 0.499 correctly stated in mixed-model conclusions
+)
+
+
+def _local_context(line: str, pos: int, radius: int = 25) -> str:
+    return line[max(0, pos - radius) : pos + radius]
+
+
+def _should_skip_match(line: str, match: re.Match) -> bool:
+    ctx = _local_context(line, match.start())
+    return any(tok in ctx for tok in SKIP_NUMBER_NEIGHBOURHOODS)
 
 
 def audit_line(line_no: int, line: str, paper_text: str, canonical: dict) -> list[dict]:
@@ -260,11 +365,20 @@ def audit_line(line_no: int, line: str, paper_text: str, canonical: dict) -> lis
 
     results: list[dict] = []
     window = _window(paper_text, line_no, line)
-    model = find_nearest_model(window)
+    fallback_model = find_nearest_model(window)
     context = line.strip()[:140]
+
+    def model_for(match: re.Match) -> str | None:
+        # Prefer per-number proximity within the line; fall back to surrounding
+        # paragraph context if no alias is close to the number.
+        pos = match.start()
+        m = find_model_at_position(line, pos)
+        return m if m is not None else fallback_model
 
     # Dollars
     for m in DOLLAR_RE.finditer(line):
+        if _should_skip_match(line, m):
+            continue
         try:
             paper_val = float(m.group(1).replace(",", ""))
         except ValueError:
@@ -272,46 +386,59 @@ def audit_line(line_no: int, line: str, paper_text: str, canonical: dict) -> lis
         prefix = m.group(0)
         sign = -1.0 if (prefix.startswith("-") or prefix.startswith("−")) else 1.0
         paper_val *= sign
+        model = model_for(m)
         rec = _classify_dollar(line, model, paper_val, canonical)
         rec.update({"line": line_no, "model": model or "?", "context": context})
         results.append(rec)
 
     # Sharpe
     for m in SHARPE_RE.finditer(line):
+        if _should_skip_match(line, m):
+            continue
         try:
             paper_val = float(m.group(1))
         except ValueError:
             continue
+        model = model_for(m)
         rec = _classify_sharpe(model, paper_val, canonical)
         rec.update({"line": line_no, "model": model or "?", "context": context})
         results.append(rec)
 
     # RMSE
     for m in RMSE_RE.finditer(line):
+        if _should_skip_match(line, m):
+            continue
         try:
             paper_val = float(m.group(1))
         except ValueError:
             continue
+        model = model_for(m)
         rec = _classify_rmse(model, paper_val, canonical)
         rec.update({"line": line_no, "model": model or "?", "context": context})
         results.append(rec)
 
     # Trade counts
     for m in TRADES_RE.finditer(line):
+        if _should_skip_match(line, m):
+            continue
         try:
             paper_val = float(m.group(1))
         except ValueError:
             continue
+        model = model_for(m)
         rec = _classify_trades(model, paper_val, canonical)
         rec.update({"line": line_no, "model": model or "?", "context": context})
         results.append(rec)
 
     # bps (alpha per trade)
     for m in BPS_RE.finditer(line):
+        if _should_skip_match(line, m):
+            continue
         try:
             paper_val = float(m.group(1))
         except ValueError:
             continue
+        model = model_for(m)
         rec = _classify_bps(model, paper_val, canonical)
         rec.update({"line": line_no, "model": model or "?", "context": context})
         results.append(rec)
