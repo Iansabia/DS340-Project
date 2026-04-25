@@ -309,7 +309,7 @@ Plans:
   3. Every numeric claim in PAPER_DRAFT.md traces to a row in `experiments/results/audit/paper_numbers.csv` (claim_text, paper_section, source_file, source_command); `scripts/check_paper.sh` is extended with at least 5 new regression checks that recompute paper numbers from canonical files
   4. If any audit row is CORRECTED, PAPER_DRAFT.md and slides_deck.html are updated in the same wave that produces the correction; if every row is PASS, the audit report itself is referenced from §6.4 Limitations as supplementary evidence of methodological care
 **Requirements**: AUDIT-01, AUDIT-02, AUDIT-03, AUDIT-04, AUDIT-05, AUDIT-06
-**Plans:** 7 plans across 4 waves (Wave 0 → Wave 1 → Wave 2 → Wave 3)
+**Plans:** 3/7 plans executed
 
 Plans:
 - [x] 18-01-PLAN.md — Wave 0: scaffolding (experiments/audit/, tests/audit/conftest.py with 4 fixtures, test_fixtures.py) (completed 2026-04-25; 4/4 fixture sanity tests pass; 0 deps added)

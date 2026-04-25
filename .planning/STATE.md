@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-current_plan: 2
-status: Phase 18 Plan 01 (Wave 0 scaffolding) complete — experiments/audit/, experiments/results/audit/, tests/audit/conftest.py with 4 audit-target fixtures, and tests/audit/test_fixtures.py (4 passed in 0.02s). Zero new dependencies. Wave 1 (Plans 18-02, 18-03) ready to start.
-stopped_at: Phase 18 Plan 01 (Wave 0 scaffolding) complete — Wave 1 (Tier 1 Sharpe + Tier 2 leakage) ready to start
-last_updated: "2026-04-25T19:43:41.973Z"
+current_plan: 4
+status: completed
+stopped_at: Completed 18-03-PLAN.md (Wave 1 Tier 2 leakage audit) — verdict=FAILED, embargo violations 142/144 documented; Plan 18-02 (Tier 1 Sharpe) still pending in Wave 1; Wave 2 (Plans 18-04/05/06) and Wave 3 (Plan 18-07) ready
+last_updated: "2026-04-25T19:52:10.184Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 32
-  completed_plans: 26
+  completed_plans: 28
   percent: 81
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 18 of 18 (System Audit — Adversarial Verification — IN PROGRESS)
-Current Plan: 2 (Wave 1 — Tier 1 Sharpe audit)
+Current Plan: 4
 Total Plans in Phase: 7
 Plan: 1 of 7 complete (18-01 Wave 0 scaffolding: experiments/audit/ + tests/audit/conftest.py + test_fixtures.py 4/4 passing)
 Status: Phase 18 Plan 01 (Wave 0 scaffolding) complete — experiments/audit/, experiments/results/audit/, tests/audit/conftest.py with 4 audit-target fixtures, and tests/audit/test_fixtures.py (4 passed in 0.02s). Zero new dependencies. Wave 1 (Plans 18-02, 18-03) ready to start.
@@ -65,6 +65,8 @@ Progress: [████████░░] 81%
 | Phase 17-model-rerun-paper-number-audit-pitch-standard-conversion P02 | 18min | 2 tasks | 3 files |
 | Phase 17-model-rerun-paper-number-audit-pitch-standard-conversion P03 | 10 min | 2 tasks | 2 files |
 | Phase 18-system-audit-adversarial-verification P01 | 2 min | 3 tasks | 5 files |
+| Phase 18-system-audit-adversarial-verification P03 | 3min | 2 tasks | 3 files |
+| Phase 18-system-audit-adversarial-verification P02 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -163,6 +165,9 @@ Recent decisions affecting current work:
 - [Phase 18-01-wave-0-scaffolding]: Audit fixtures live in tests/audit/conftest.py with one fixture per audit-target failure mode (Tier 1 perfectly_correlated_pair_returns, Tier 2 synthetic_lookahead_feature_src, Tier 3 zero_fee_simulator_kwargs, Tier 4 retroactive_drop_pair_history). Wave 1+2 audit scripts in Plans 18-02..18-05 will import these via pytest auto-discovery — no fixture duplication, no per-script test infrastructure setup. Fixture bodies copied VERBATIM from 18-RESEARCH.md (the research doc is the contract). Zero new dependencies — pytest 7.x already pinned; arch (StationaryBootstrap) deferred to Wave 1 only if AR(1) > 0.1 in pnl_pp.
 - [Phase 18-01-wave-0-scaffolding]: Tier 2 leakage fixture is a Python source CODE STRING (synthetic_lookahead_feature_src returns text containing 'shift(-1)'), not a callable — lets the Tier 2 classifier validate via static-text regex without exec()-ing untrusted code at test time.
 - [Phase 18-01-wave-0-scaffolding]: experiments/results/audit/.gitkeep contains a single comment line ('# Phase 18 audit JSON outputs land here.') so the empty results dir is git-tracked while remaining functionally empty for the audit JSONs.
+- [Phase 18-system-audit-adversarial-verification]: Plan 18-03 Tier 2 leakage audit: verdict=FAILED — empirically confirmed canonical 80/20 row-index split bridges all 144 pairs (n_bridging=144, n_embargo_violations=142 with 4h gap << 86400s). The high-yield finding RESEARCH.md predicted is now locked in experiments/results/audit/leakage_audit.json. n_leaking=0 (no feature-level leaks), 7 Suspicious entries (trailing rolling, manual sign-off OK), Rule stale_ticker flagged retroactive=True (benign for 2026 audit-time). Plan 18-07 must either recompute headline numbers under leakage-free split or document the limitation in PAPER_DRAFT.md §6.4.
+- [Phase 18-system-audit-adversarial-verification]: Audit-script JSON output schema standardized: {audit, tier, verdict, ran_at, ...findings, assumptions[]} with verdict ∈ {PASS, CORRECTED, FAILED} where FAILED triggers if any single check fails. Suspicious findings do NOT trigger FAILED — only Leaking, embargo violations, and retroactive QF rules do. This is the Pattern 2 contract every Tier 2-7 audit script will follow so Plan 18-07 can mechanically aggregate them.
+- [Phase 18-system-audit-adversarial-verification]: Plan 18-02 Tier 1 Sharpe audit verdict=PASS: per_trade_drift=0.00016 (canonical 0.5009, recomputed 0.5007); per_pair_naive=0.781, corr_corrected=0.296 (-62% under avg_pair_corr=0.042 BLdP correction); bootstrap CI [0.685, 0.904]; annualization factor 23.8 from test_span_days=92.67 — does NOT match paper's implicit ≈3.2 factor (Plan 18-06 follow-up to reconcile)
 
 ### Pending Todos
 
@@ -178,7 +183,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-25T19:42:24Z
-Stopped at: Completed 18-01-PLAN.md (Wave 0 scaffolding) — experiments/audit/, experiments/results/audit/, tests/audit/conftest.py with 4 audit-target fixtures, tests/audit/test_fixtures.py 4/4 passing
+Last session: 2026-04-25T19:51:43.797Z
+Stopped at: Completed 18-03-PLAN.md (Wave 1 Tier 2 leakage audit) — verdict=FAILED, embargo violations 142/144 documented; Plan 18-02 (Tier 1 Sharpe) still pending in Wave 1; Wave 2 (Plans 18-04/05/06) and Wave 3 (Plan 18-07) ready
 Resume file: None
 Next action: Begin Phase 18 Wave 1 — Plans 18-02 (Tier 1 Sharpe audit) and 18-03 (Tier 2 leakage audit) can run in parallel. Both have their fixtures pre-loaded in tests/audit/conftest.py.
