@@ -4,8 +4,8 @@ milestone: v1.1
 milestone_name: Extended Evidence & Submission
 current_plan: 4
 status: completed
-stopped_at: Completed 18-03-PLAN.md (Wave 1 Tier 2 leakage audit) — verdict=FAILED, embargo violations 142/144 documented; Plan 18-02 (Tier 1 Sharpe) still pending in Wave 1; Wave 2 (Plans 18-04/05/06) and Wave 3 (Plan 18-07) ready
-last_updated: "2026-04-25T19:52:10.184Z"
+stopped_at: Completed 18-02-PLAN.md (Wave 1 Tier 1 Sharpe audit) — verdict=PASS, per_trade_drift=0.00016, BLdP corrected per_pair_sharpe=0.296 (-62% from naive 0.781); both Wave 1 plans (18-02 + 18-03) now complete; Wave 2 (Plans 18-04/05/06) ready
+last_updated: "2026-04-25T19:52:16.864Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 11
@@ -168,6 +168,7 @@ Recent decisions affecting current work:
 - [Phase 18-system-audit-adversarial-verification]: Plan 18-03 Tier 2 leakage audit: verdict=FAILED — empirically confirmed canonical 80/20 row-index split bridges all 144 pairs (n_bridging=144, n_embargo_violations=142 with 4h gap << 86400s). The high-yield finding RESEARCH.md predicted is now locked in experiments/results/audit/leakage_audit.json. n_leaking=0 (no feature-level leaks), 7 Suspicious entries (trailing rolling, manual sign-off OK), Rule stale_ticker flagged retroactive=True (benign for 2026 audit-time). Plan 18-07 must either recompute headline numbers under leakage-free split or document the limitation in PAPER_DRAFT.md §6.4.
 - [Phase 18-system-audit-adversarial-verification]: Audit-script JSON output schema standardized: {audit, tier, verdict, ran_at, ...findings, assumptions[]} with verdict ∈ {PASS, CORRECTED, FAILED} where FAILED triggers if any single check fails. Suspicious findings do NOT trigger FAILED — only Leaking, embargo violations, and retroactive QF rules do. This is the Pattern 2 contract every Tier 2-7 audit script will follow so Plan 18-07 can mechanically aggregate them.
 - [Phase 18-system-audit-adversarial-verification]: Plan 18-02 Tier 1 Sharpe audit verdict=PASS: per_trade_drift=0.00016 (canonical 0.5009, recomputed 0.5007); per_pair_naive=0.781, corr_corrected=0.296 (-62% under avg_pair_corr=0.042 BLdP correction); bootstrap CI [0.685, 0.904]; annualization factor 23.8 from test_span_days=92.67 — does NOT match paper's implicit ≈3.2 factor (Plan 18-06 follow-up to reconcile)
+- [Phase 18-system-audit-adversarial-verification]: Plan 18-02 Rule 1 auto-fix: RESEARCH.md skeleton assumed timestamp was datetime64[ns]; canonical processed parquet stores it as int64 epoch seconds — added dtype-aware normalization with heuristic (>10**12 -> nanoseconds) to recover real entry_day axis (was collapsing to test_span_days=0)
 
 ### Pending Todos
 
@@ -183,7 +184,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-25T19:51:43.797Z
-Stopped at: Completed 18-03-PLAN.md (Wave 1 Tier 2 leakage audit) — verdict=FAILED, embargo violations 142/144 documented; Plan 18-02 (Tier 1 Sharpe) still pending in Wave 1; Wave 2 (Plans 18-04/05/06) and Wave 3 (Plan 18-07) ready
+Last session: 2026-04-25T19:52:16.861Z
+Stopped at: Completed 18-02-PLAN.md (Wave 1 Tier 1 Sharpe audit) — verdict=PASS, per_trade_drift=0.00016, BLdP corrected per_pair_sharpe=0.296 (-62% from naive 0.781); both Wave 1 plans (18-02 + 18-03) now complete; Wave 2 (Plans 18-04/05/06) ready
 Resume file: None
 Next action: Begin Phase 18 Wave 1 — Plans 18-02 (Tier 1 Sharpe audit) and 18-03 (Tier 2 leakage audit) can run in parallel. Both have their fixtures pre-loaded in tests/audit/conftest.py.
