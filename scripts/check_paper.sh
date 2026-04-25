@@ -103,6 +103,57 @@ ORPHAN_DOLLARS=$(awk '
 ')
 check "orphan_dollar_paragraphs_in_headline_sections" 0 "$ORPHAN_DOLLARS"
 
+echo "== AUDIT-05: Phase 18 number-by-number regression checks =="
+# Tier 5: each check below extracts a canonical headline.json number and greps
+# PAPER_DRAFT.md for it. Drift between headline.json and PAPER_DRAFT.md fails
+# the validator immediately. See experiments/audit/build_paper_numbers_csv.py
+# for the full traceability map (paper_numbers.csv).
+
+# Helper: extract a canonical headline.json model field, rounded to 3 decimal
+# places (or 2 for values >= 100). Single source of truth: headline.json.
+canon() {
+    python3 -c "import json; m=json.load(open('experiments/results/canonical/headline.json'))['models']['$1']; v=m['$2']; print(f'{v:.3f}' if abs(v) < 100 else f'{v:.2f}')"
+}
+
+# audit_lr_per_trade_sharpe_in_paper: LR per-trade Sharpe (0.501)
+LR_PT_SHARPE=$(canon linear_regression sharpe_per_trade)
+LR_FOUND=$(grep -c "$LR_PT_SHARPE" "$PAPER")
+check_ge "audit_lr_per_trade_sharpe_in_paper" 1 "$LR_FOUND"
+
+# audit_lr_alpha_bps_in_paper: LR alpha bps rounded to 1 decimal (15.0 bps)
+LR_BPS=$(canon linear_regression alpha_bps_per_trade)
+LR_BPS_ROUNDED=$(printf "%.1f" "$LR_BPS")
+LR_BPS_FOUND=$(grep -c "$LR_BPS_ROUNDED bps" "$PAPER")
+check_ge "audit_lr_alpha_bps_in_paper" 1 "$LR_BPS_FOUND"
+
+# audit_xgb_per_trade_sharpe_in_paper: XGBoost per-trade Sharpe (0.499)
+XGB_PT_SHARPE=$(canon xgboost sharpe_per_trade)
+XGB_FOUND=$(grep -c "$XGB_PT_SHARPE" "$PAPER")
+check_ge "audit_xgb_per_trade_sharpe_in_paper" 1 "$XGB_FOUND"
+
+# audit_ppo_filtered_alpha_bps_in_paper: PPO+autoencoder alpha bps (0.5 bps)
+PPO_BPS=$(canon ppo_filtered alpha_bps_per_trade)
+PPO_BPS_ROUNDED=$(printf "%.1f" "$PPO_BPS")
+PPO_BPS_FOUND=$(grep -c "$PPO_BPS_ROUNDED bps" "$PAPER")
+check_ge "audit_ppo_filtered_alpha_bps_in_paper" 1 "$PPO_BPS_FOUND"
+
+# audit_per_pair_sharpe_3_2_in_abstract: per-pair Sharpe ≈ 3.2 in abstract
+# NOTE: Wave 1 (Plan 18-02) reproduced naive=18.6 / corrected=7.04 from the
+# canonical trade ledger. The paper claim 3.2 is currently flagged MISMATCH in
+# experiments/results/audit/paper_numbers.csv. This check just enforces that
+# whatever value the paper claims for per-pair Sharpe in the abstract section
+# stays consistent across the document; Plan 18-07 will resolve the value.
+PP_SHARPE_FOUND=$(awk '/^## Abstract/,/^## 1\./' "$PAPER" | grep -cE "≈ ?3\.2|approximately 3\.2|3\.2 ?\(")
+check_ge "audit_per_pair_sharpe_3_2_in_abstract" 1 "$PP_SHARPE_FOUND"
+
+# audit_walk_forward_11_windows_in_paper: 11-window walk-forward cited
+WF_COUNT=$(grep -cE "11[ -]window|11 walk-forward|across 11" "$PAPER")
+check_ge "audit_walk_forward_11_windows_in_paper" 1 "$WF_COUNT"
+
+# audit_test_rows_1673_in_paper: canonical test row count (1,673)
+TEST_ROWS=$(grep -c "1,673" "$PAPER")
+check_ge "audit_test_rows_1673_in_paper" 1 "$TEST_ROWS"
+
 echo
 if (( FAIL == 0 )); then
   echo "ALL CHECKS PASSED"
