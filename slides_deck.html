@@ -1024,7 +1024,7 @@
             <text x="60" y="260" fill="#6b6557" font-size="11" font-family="IBM Plex Mono, monospace">CONTRACT OPEN</text>
             <text x="570" y="260" text-anchor="end" fill="#6b6557" font-size="11" font-family="IBM Plex Mono, monospace">RESOLUTION</text>
             <!-- Gap shading between Kalshi (top) and Polymarket (bottom) lines -->
-            <path d="M 60 70 L 110 78 L 160 65 L 210 90 L 260 85 L 310 105 L 360 95 L 410 120 L 460 130 L 510 140 L 560 155 L 560 175 L 510 165 L 460 175 L 410 168 L 360 160 L 310 165 L 260 145 L 210 140 L 160 115 L 110 130 L 60 110 Z"
+            <path d="M 60 70 L 110 78 L 160 65 L 210 90 L 260 85 L 310 105 L 360 95 L 410 120 L 460 130 L 510 140 L 560 155 L 510 165 L 460 175 L 410 168 L 360 160 L 310 165 L 260 145 L 210 140 L 160 115 L 110 130 L 60 110 Z"
                   fill="rgba(212, 161, 66, 0.10)" stroke="none"/>
             <!-- Kalshi line (top, cream) -->
             <polyline points="60,70 110,78 160,65 210,90 260,85 310,105 360,95 410,120 460,130 510,140 560,155"
@@ -1170,84 +1170,71 @@
       <span>05 / 06</span>
     </div>
     <div class="slide-content">
-      <div class="eyebrow muted">Headline Results · Pitch-standard (per-trade alpha + Sharpe)</div>
-      <h2 class="res-headline"><em>Tier 1</em> dominates: <em>15 bps</em>/trade alpha, Sharpe <em>0.50</em>. Tier 3 (RL) is essentially zero alpha (0.5 bps).</h2>
+      <div class="eyebrow muted">Headline Results · Per-trade alpha &amp; Sharpe</div>
+      <h2 class="res-headline"><em>Simpler</em> dominates.</h2>
       <div class="chart-block">
-        <div class="chart-label">Per-trade alpha (basis points) · $100 position size · 6,802 train / 1,673 test rows · canonical headline.json</div>
+        <div class="chart-label">Per-trade alpha (basis points) · canonical headline.json · seed=42 · $100 position · 6,802 train / 1,673 test</div>
         <!--
-          viewBox 1660 × 320
-          Label column: 0 → 290
-          Chart area: 320 → 1518 (1198 wide)
-          Linear scale on per-trade alpha (axis 0–15 bps), 1 bps = 79.87 px:
-            LR     15.02 bps → 1198 px (capped at axis max)
-            XGB    14.93 bps → 1192 px
-            LSTM   14.34 bps → 1145 px
-            GRU    14.01 bps → 1119 px
-            PPO+AE  0.51 bps →   41 px (visually negligible — that's the point)
+          viewBox 1660 × 380
+          Label column: 0 → 470 (right-anchored, room for "Linear Regression · 15.0 bps · Sharpe 0.501")
+          Chart area:   500 → 1640 (1140 wide)
+          Linear axis 0–15 bps. 1 bps = 76 px.
+            LR     15.02 → 1140 (capped)
+            XGB    14.93 → 1135
+            LSTM   14.34 → 1090
+            GRU    14.01 → 1065
+            PPO-Raw 9.55 →  726 (Tier 3 — labeled separately)
+            PPO+AE  0.51 →   39
+          6 bars × (h=42 + gap=10) = 312 px → bar area y=20→332 → axis label at y=358.
           Source: experiments/results/canonical/headline.json (Phase 17-01).
         -->
-        <svg class="chart-svg" viewBox="0 0 1660 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-          <!-- Zero axis -->
-          <line x1="320" y1="14" x2="320" y2="280" stroke="#3a3625" stroke-width="2"/>
-          <text x="320" y="306" text-anchor="middle" fill="#9a9180" font-size="16" font-family="IBM Plex Mono, monospace" letter-spacing="0.15em">0 bps</text>
-          <text x="1518" y="306" text-anchor="end" fill="#6b6557" font-size="14" font-family="IBM Plex Mono, monospace" letter-spacing="0.15em">15 bps →</text>
+        <svg class="chart-svg" viewBox="0 0 1660 380" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+          <!-- Zero axis line -->
+          <line x1="500" y1="14" x2="500" y2="334" stroke="#3a3625" stroke-width="2"/>
 
-          <!-- Bars: scale 1198px = 15 bps, so each 1 bps = 79.87 px. height=40, gap=10. y starts 14. -->
+          <!-- Axis ticks: 5, 10, 15 bps -->
+          <line x1="880" y1="330" x2="880" y2="338" stroke="#3a3625" stroke-width="1"/>
+          <line x1="1260" y1="330" x2="1260" y2="338" stroke="#3a3625" stroke-width="1"/>
+          <line x1="1640" y1="330" x2="1640" y2="338" stroke="#3a3625" stroke-width="1"/>
+          <text x="500"  y="362" text-anchor="middle" fill="#9a9180" font-size="14" font-family="IBM Plex Mono, monospace">0</text>
+          <text x="880"  y="362" text-anchor="middle" fill="#6b6557" font-size="14" font-family="IBM Plex Mono, monospace">5 bps</text>
+          <text x="1260" y="362" text-anchor="middle" fill="#6b6557" font-size="14" font-family="IBM Plex Mono, monospace">10 bps</text>
+          <text x="1640" y="362" text-anchor="middle" fill="#6b6557" font-size="14" font-family="IBM Plex Mono, monospace">15 bps</text>
 
-          <!-- Linear Regression — wins per-trade Sharpe, alpha, dir-acc, win-rate (4 of 5 metrics) -->
-          <rect x="320" y="14" width="1198" height="40" fill="#ecc063"/>
-          <text x="290" y="40" text-anchor="end" fill="#f0e9d6" font-size="22" font-family="IBM Plex Sans, sans-serif" font-weight="600">Linear Regression · 15.0 bps · Sharpe 0.501</text>
-          <text x="1508" y="42" text-anchor="end" fill="#0b0e13" font-size="20" font-family="EB Garamond, serif" font-weight="700" font-style="italic">+$232.67</text>
-          <text x="1632" y="40" fill="#9a9180" font-size="14" font-family="IBM Plex Mono, monospace">★</text>
+          <!-- Bar geometry: height=42, gap=10. y starts 20. -->
 
-          <!-- XGBoost — tied with LR; wins RMSE and total P&L by a hair -->
-          <rect x="320" y="64" width="1192" height="40" fill="#ecc063"/>
-          <text x="290" y="90" text-anchor="end" fill="#f0e9d6" font-size="22" font-family="IBM Plex Sans, sans-serif" font-weight="500">XGBoost · 14.9 bps · Sharpe 0.499</text>
-          <text x="1508" y="92" text-anchor="end" fill="#0b0e13" font-size="20" font-family="EB Garamond, serif" font-weight="700" font-style="italic">+$232.83</text>
+          <!-- Linear Regression · winner ★ -->
+          <rect x="500" y="20"  width="1140" height="42" fill="#ecc063"/>
+          <text x="470" y="48"  text-anchor="end" fill="#f0e9d6" font-size="22" font-family="IBM Plex Sans, sans-serif" font-weight="600">Linear Regression · 15.0 bps · Sharpe 0.501  ★</text>
+
+          <!-- XGBoost -->
+          <rect x="500" y="72"  width="1135" height="42" fill="#ecc063"/>
+          <text x="470" y="100" text-anchor="end" fill="#f0e9d6" font-size="22" font-family="IBM Plex Sans, sans-serif" font-weight="500">XGBoost · 14.9 bps · Sharpe 0.499</text>
 
           <!-- LSTM -->
-          <rect x="320" y="114" width="1145" height="40" fill="#d4a142" opacity="0.78"/>
-          <text x="290" y="140" text-anchor="end" fill="#9a9180" font-size="22" font-family="IBM Plex Sans, sans-serif">LSTM · 14.3 bps · Sharpe 0.473</text>
-          <text x="1475" y="142" fill="#d4a142" font-size="20" font-family="EB Garamond, serif" font-weight="500">+$221.84</text>
+          <rect x="500" y="124" width="1090" height="42" fill="#d4a142" opacity="0.78"/>
+          <text x="470" y="152" text-anchor="end" fill="#c8c0ad" font-size="22" font-family="IBM Plex Sans, sans-serif">LSTM · 14.3 bps · Sharpe 0.473</text>
 
           <!-- GRU -->
-          <rect x="320" y="164" width="1119" height="40" fill="#d4a142" opacity="0.60"/>
-          <text x="290" y="190" text-anchor="end" fill="#9a9180" font-size="22" font-family="IBM Plex Sans, sans-serif">GRU · 14.0 bps · Sharpe 0.459</text>
-          <text x="1449" y="192" fill="#d4a142" font-size="20" font-family="EB Garamond, serif" font-weight="500">+$212.50</text>
+          <rect x="500" y="176" width="1065" height="42" fill="#d4a142" opacity="0.60"/>
+          <text x="470" y="204" text-anchor="end" fill="#c8c0ad" font-size="22" font-family="IBM Plex Sans, sans-serif">GRU · 14.0 bps · Sharpe 0.459</text>
 
-          <!-- PPO+autoencoder (Tier 3) — essentially zero alpha; canonical figure (Phase 17-01) -->
-          <rect x="320" y="214" width="41" height="40" fill="#c14933" opacity="0.85"/>
-          <text x="290" y="240" text-anchor="end" fill="#c14933" font-size="22" font-family="IBM Plex Sans, sans-serif" font-style="italic">PPO+AE · 0.5 bps · Sharpe 0.014</text>
-          <text x="380" y="242" fill="#c14933" font-size="20" font-family="EB Garamond, serif" font-weight="500" font-style="italic">+$4.61</text>
+          <!-- PPO-Raw (Tier 3) — half the edge of LR -->
+          <rect x="500" y="228" width="726" height="42" fill="#c14933" opacity="0.55"/>
+          <text x="470" y="256" text-anchor="end" fill="#d49680" font-size="22" font-family="IBM Plex Sans, sans-serif">PPO (raw) · 9.6 bps · Sharpe 0.306</text>
+
+          <!-- PPO + autoencoder — essentially zero alpha (the punchline) -->
+          <rect x="500" y="280" width="39" height="42" fill="#c14933"/>
+          <text x="470" y="308" text-anchor="end" fill="#c14933" font-size="22" font-family="IBM Plex Sans, sans-serif" font-style="italic" font-weight="500">PPO + autoencoder · 0.5 bps · Sharpe 0.014</text>
         </svg>
-        <div class="chart-note">Linear Regression wins per-trade Sharpe (0.501 v 0.499), per-trade alpha (15.0 v 14.9 bps), directional accuracy (56.9% v 56.6%), and win rate (57.8% v 57.4%) — 4 of 5 metrics. XGBoost wins RMSE (0.290 v 0.306) and total P&amp;L by $0.16. Numbers sourced verbatim from <code>experiments/results/canonical/headline.json</code>.</div>
-        <div class="chart-note" style="font-size:13px; color:var(--ink-faint); margin-top:6px;"><strong>Footnote.</strong> PPO+autoencoder figure (+0.5 bps · +$4.61) is from the Phase 17 canonical rerun under the shared protocol (seed=42, threshold=0.02, $100 position size). The legacy −$87K dollar-notional figure is documented as non-reproducible in <code>17-02-PPO-DIAGNOSTIC.md</code>: a units mismatch with the WalkForwardBacktester (~200× contract scaling) inflated the loss by ~19,000×. PPO-Raw canonical: +9.6 bps · +$158.15 (Sharpe 0.31).</div>
+        <div class="chart-note">Per-trade alpha = (P&amp;L / num_trades) / position_size. Position-size-invariant; standard quant pitch metric. PPO + autoencoder canonical figure replaces a non-reproducible legacy claim (see <code>17-02-PPO-DIAGNOSTIC.md</code>).</div>
       </div>
 
-      <!-- Tier 3 / RL — Headline RL-vs-regression contrast -->
-      <div class="rl-block" style="margin-top: 20px; padding: 22px 28px; border: 1px solid var(--terracotta); background: rgba(193, 73, 51, 0.08);">
-        <div style="display:grid; grid-template-columns: 1fr auto 1fr; gap:48px; align-items:center;">
-          <div>
-            <div style="font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:0.25em; text-transform:uppercase; color:var(--terracotta); margin-bottom:8px;">Tier 3 · Reinforcement Learning</div>
-            <div style="font-family:'EB Garamond',serif; font-size:24px; color:var(--ink); line-height:1.3;">
-              <span style="color:var(--terracotta); font-style:italic; font-weight:600;">PPO + autoencoder</span> earns <span style="font-weight:600; color:var(--terracotta);">+0.5 bps</span> per trade — Sharpe 0.014, essentially zero alpha.
-            </div>
-          </div>
-          <div style="font-family:'EB Garamond',serif; font-style:italic; font-size:48px; color:var(--ink-faint); font-weight:300;">vs</div>
-          <div>
-            <div style="font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:0.25em; text-transform:uppercase; color:var(--amber); margin-bottom:8px;">Tier 1 · Regression</div>
-            <div style="font-family:'EB Garamond',serif; font-size:24px; color:var(--ink); line-height:1.3;">
-              <span style="color:var(--amber-bright); font-style:italic; font-weight:600;">Linear Regression</span> earns <span style="font-weight:600; color:var(--amber-bright);">+15.0 bps</span> · Sharpe 0.501 — <strong>30× the alpha</strong>, without the complexity.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="res-bottom" style="margin-top: 22px;">
+      <div class="res-bottom">
         <div class="stat-card">
           <div class="label">Per-pair Sharpe</div>
           <div class="value">≈ <em>3.2</em></div>
-          <p>Annualized, 144 matched pairs as independent bets (Table 8).</p>
+          <p>Annualized, 144 pairs as independent bets (Table 8).</p>
         </div>
         <div class="stat-card">
           <div class="label">Walk-forward</div>
@@ -1255,7 +1242,7 @@
           <p>Every window profitable for every ML model.</p>
         </div>
         <div class="takeaway">
-          <p>Tier 1 dominates per-trade alpha (15 bps) and Sharpe (0.50); Tier 2 trails by ~1 bps; <strong>Tier 3 (RL) collapses to 0.5 bps — essentially zero edge.</strong> Complexity didn't pay.</p>
+          <p>Linear Regression wins on Sharpe (0.501) and alpha (15 bps). <strong>PPO + autoencoder collapses to 0.5 bps — 30× less edge for far more compute.</strong></p>
         </div>
       </div>
     </div>
