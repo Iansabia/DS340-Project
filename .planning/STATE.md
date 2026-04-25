@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 current_plan: 4
-status: completed
-stopped_at: Completed 17-03-PLAN.md (Phase 17 substantively complete)
-last_updated: "2026-04-25T18:10:55.638Z"
-last_activity: 2026-04-25
+status: complete
+stopped_at: "Phase 17 complete — paper has canonical numerics in pitch-standard format; April 27 submission ready"
+last_updated: "2026-04-25T18:12:08Z"
+last_activity: "2026-04-25 -- Plan 17-04 executed (Phase 17 closure: canonical results convention adopted, pitch-standard headlines locked)"
 progress:
   total_phases: 10
-  completed_phases: 8
+  completed_phases: 10
   total_plans: 25
-  completed_plans: 23
-  percent: 84
+  completed_plans: 25
+  percent: 100
 ---
 
 # Project State
@@ -26,14 +26,14 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 ## Current Position
 
-Phase: 17 of 17 (Model Rerun + Paper Number Audit + Pitch-Standard Conversion)
+Phase: 17 of 17 (Model Rerun + Paper Number Audit + Pitch-Standard Conversion — COMPLETE)
 Current Plan: 4
 Total Plans in Phase: 4
-Plan: 1 of 4 complete (17-01 canonical results landed; 17-02 paper audit / 17-03 slides / 17-04 guardrail pending)
-Status: Plan 17-01 done. experiments/results/canonical/headline.json exists with all 9 models under canonical protocol (seed=42, position=$100, threshold=0.02, 51 features). 17-02-PPO-DIAGNOSTIC.md (200 lines) identifies 600× PPO divergence as units mismatch. Disputed legacy backtest PPO JSONs archived. Next: Plan 17-02 (paper-text audit against headline.json).
+Plan: 4 of 4 complete (17-01 canonical rerun + diagnostic; 17-02 paper audit + bps conversion; 17-03 slide + validator; 17-04 closure)
+Status: Phase 17 fully shipped. PAPER_DRAFT.md numerics fully reconciled to experiments/results/canonical/headline.json; pitch-standard headlines (Sharpe + bps) adopted; check_paper.sh extended with 3 REPL-06 regression checks (19+/19+ OK). April 27 submission is locked.
 Last activity: 2026-04-25
 
-Progress: [████████░░] 84%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -149,6 +149,12 @@ Recent decisions affecting current work:
 - [Phase 17-02-paper-numerics-audit]: Pitch-standard headline format adopted everywhere: '{Model} achieves a per-trade Sharpe of {X.XXX} with +{Y.Y} bps per-trade alpha (positive cumulative dollars at 100 USD position size)'. Sharpe leads, bps second, dollars in parens. Abstract / Table 2 / section 5.1 narrative / 5.8 / 6.3 / 8 Conclusions all converted.
 - [Phase 17-model-rerun-paper-number-audit-pitch-standard-conversion]: Slide ordering: LR row first, XGB second (matches paper precedent — canonical wins 4 of 5 metrics) — Per-trade Sharpe 0.501 vs 0.499; per-trade alpha 15.02 vs 14.93 bps; dir-acc 56.9% vs 56.6%; win rate 57.8% vs 57.4%. XGB only wins RMSE and total_pnl by hair.
 - [Phase 17-model-rerun-paper-number-audit-pitch-standard-conversion]: REPL-06c orphan-dollar regex tightened to signed P&L of $50+ in 5 headline sections — Plan example regex flagged 18+ false positives (setup mentions, table narrative). Tighter regex catches every model headline P&L while filtering setup context. Sections: Abstract, sec5.1, sec5.8, sec6.3, sec8 Conclusions.
+- [Phase 17-01-canonical-rerun]: experiments/results/canonical/headline.json is the single source of truth for every numeric claim in PAPER_DRAFT.md. Produced by experiments/run_canonical.py with seed=42, position_size=$100, threshold=0.02, train=6802/test=1673. The 9-model entry contains rmse, mae, directional_accuracy, total_pnl, num_trades, win_rate, sharpe_per_trade, sharpe_annualized, alpha_bps_per_trade, max_drawdown_pct. No paper or slide may cite a JSON file outside experiments/results/canonical/.
+- [Phase 17-02-PPO-diagnostic]: PPO 600× magnitude divergence root cause: units mismatch between two valid simulators with different units, compounded by mid_price-driven contract-count inflation when position_size is held fixed at $100. profit_sim.simulate_profit (canonical) returns raw probability-point spread P&L with no fees and no position sizing; WalkForwardBacktester.run (legacy) returns dollar P&L for a $100-notional fixed-size strategy that computes num_contracts = $100 / mid_price ≈ 200 per trade (because contracts trade at ~$0.50 mid), then gross_pnl = num_contracts × actual_change × direction minus 5pp round-trip fees. The 609× legacy/canonical ratio decomposes as ~200× position scaling × ~3× mid_price-driven contract-count inflation on low-priced commodity contracts that trade at $0.10–$0.30. Both simulators are correct for the question they ask; the paper accidentally cited a legacy figure (in dollars) when its surrounding text used canonical figures (in spread units). It is not a code bug, a training mismatch, or an episode-horizon issue. See .planning/phases/17-model-rerun-paper-number-audit-pitch-standard-conversion/17-02-PPO-DIAGNOSTIC.md for the full diagnostic. The unreproducible "−$7,724" paper claim from earlier drafts is documented as not present in any extant JSON file (likely a transcription error of the legacy −$87,724 figure — drop the 8). Disputed files moved to experiments/results/archive/backtest_ppo_*.json with quarantine README.
+- [Phase 17-02-paper-audit]: scripts/audit_paper_numbers.py is the automated cross-reference tool — runs paper-vs-canonical-JSON regex extraction with section-aware filtering (headline sections only: Abstract / §5.1 / §6.3 / §8), per-number proximity model resolution, and tolerance-based comparison. Outputs match/mismatch/unresolvable Markdown log; exits 0/1 on mismatch presence. Re-run any time canonical numbers change.
+- [Phase 17-02-pitch-standard]: Paper headlines converted from dollar P&L to per-trade Sharpe + per-trade alpha (bps) — the professional quant pitch standard. Per-trade alpha formula: (total_pnl / num_trades / position_size) × 10,000. Worked: LR = $232.67 / 1549 / $100 × 10000 = 15.0 bps. PPO+AE = $4.61 / 899 / $100 × 10000 = 0.5 bps. Abstract, Tables 2 + 8, §5.1, §5.8, §6.3, §8 Conclusions all updated. Dollar P&L stays in tables only.
+- [Phase 17-03-slide-validator]: slides_deck.html Results slide leads with bps + Sharpe (canonical PPO numbers, side panels per-pair Sharpe ≈ 3.2 and 11/11 walk-forward preserved). PPO+AE bar added to main chart (41 px, red, 0.5 bps) — the visually-negligible bar makes tier-3 collapse self-evident. scripts/check_paper.sh extended with 3 REPL-06 checks: abstract_mentions_sharpe, abstract_cites_sharpe_value, orphan_dollar_paragraphs (no headline-section paragraph cites a dollar amount of $50+ without a Sharpe or bps companion). Total: 19/19 OK.
+- [Phase 17-04-closure]: Pitch-standard adopted as the project's house style for all future result presentations. Canonical results JSON pattern (one file per phase under experiments/results/canonical/) is the convention going forward. v1.1 milestone fully shipped 100%.
 
 ### Pending Todos
 
@@ -162,7 +168,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-25T18:10:55.635Z
-Stopped at: Completed 17-03-PLAN.md (Phase 17 substantively complete)
+Last session: 2026-04-25T18:12:08Z
+Stopped at: Phase 17 complete — paper has canonical numerics in pitch-standard format; April 27 submission ready
 Resume file: None
-Next action: v1.1 milestone fully shipped. April 27 submission is ready. Optional future work: paper §6.4 revision citing the 1,224-position live cohort as empirical follow-up to the acknowledged limitation.
+Next action: v1.1 milestone fully shipped (100%). April 27 submission is ready. Optional future work: paper §6.4 revision citing the 1,224-position live cohort as empirical follow-up to the acknowledged limitation.
