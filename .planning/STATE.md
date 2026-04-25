@@ -4,8 +4,8 @@ milestone: v1.1
 milestone_name: Extended Evidence & Submission
 current_plan: 7
 status: completed
-stopped_at: Completed 18-06-PLAN.md (Wave 2 Tier 5 paper-number trace) — 86 claims in paper_numbers.csv, 7 new audit_ checks in check_paper.sh, MISMATCH flagged for per-pair Sharpe ≈ 3.2 (paper) vs 18.60/7.04 (Plan 18-02 reproduction) for Plan 18-07 to resolve
-last_updated: "2026-04-25T19:59:18.769Z"
+stopped_at: Completed 18-05-PLAN.md (Wave 2 Tier 4 survivorship audit) — verdict=PASS, drop_rate=0.999 (148094/148238), 10-pair random sample marked pending_human_review for Plan 18-07 Wave 3 checkpoint; Wave 2 fully complete (18-04+05+06); Wave 3 (Plan 18-07) ready
+last_updated: "2026-04-25T19:59:36.870Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 11
@@ -176,6 +176,7 @@ Recent decisions affecting current work:
 - [Phase 18-06]: MISMATCH-as-finding pattern: Plan 18-06 traces numbers and pre-flags discrepancies in paper_numbers.csv; does NOT modify PAPER_DRAFT.md (that is Plan 18-07's role)
 - [Phase 18-06]: SHARPE_LONG_RE addition (200-char window) needed to capture abstract's per-pair Sharpe ≈ 3.2 long-form claim that the verbatim RESEARCH.md SHARPE_RE 30-char window missed; deduplicated against SHARPE_RE via end-position keys
 - [Phase 18-06]: Two MISMATCH rows pre-flagged for Plan 18-07: per-pair annualized Sharpe ≈ 3.2 (Abstract line 12 + §8 Conclusions line 710) traces to sharpe_audit.json which reproduced 18.60 naive / 7.04 BLdP-corrected — 3.2 does NOT appear in any audit JSON; likely outdated copy from prior backtest
+- [Phase 18-system-audit-adversarial-verification]: [Phase 18-05-survivorship-audit]: Tier 4 verdict=PASS — heuristic drop_rate=0.999 (n_dropped=148094/n_candidates=148238) with all 10 random-sample entries classified low_overlap_n_bars=0 (live-discovery candidates from late April 2026 that postdate the test.parquet 2026-04-09 snapshot, never entered offline pipeline). Final verdict pending Ian's manual review per Plan 18-07 checkpoint. RESEARCH.md skeleton extended with make_pair_id synthesis from active_matches.json (kalshi_ticker+poly_id) because schema lacks top-level pair_id key — without synthesis n_dropped would be 0 (vacuous audit).
 
 ### Pending Todos
 
@@ -191,7 +192,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-25T19:59:06.886Z
-Stopped at: Completed 18-06-PLAN.md (Wave 2 Tier 5 paper-number trace) — 86 claims in paper_numbers.csv, 7 new audit_ checks in check_paper.sh, MISMATCH flagged for per-pair Sharpe ≈ 3.2 (paper) vs 18.60/7.04 (Plan 18-02 reproduction) for Plan 18-07 to resolve
+Last session: 2026-04-25T19:59:30.572Z
+Stopped at: Completed 18-05-PLAN.md (Wave 2 Tier 4 survivorship audit) — verdict=PASS, drop_rate=0.999 (148094/148238), 10-pair random sample marked pending_human_review for Plan 18-07 Wave 3 checkpoint; Wave 2 fully complete (18-04+05+06); Wave 3 (Plan 18-07) ready
 Resume file: None
 Next action: Begin Phase 18 Wave 1 — Plans 18-02 (Tier 1 Sharpe audit) and 18-03 (Tier 2 leakage audit) can run in parallel. Both have their fixtures pre-loaded in tests/audit/conftest.py.

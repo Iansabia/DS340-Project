@@ -1,7 +1,7 @@
 {
   "audit": "survivorship",
   "tier": 4,
-  "ran_at": "2026-04-25T19:55:45.251281+00:00",
+  "ran_at": "2026-04-25T19:57:16.719816+00:00",
   "verdict": "PASS",
   "n_candidate_pairs": 148238,
   "n_realized_pairs": 144,
