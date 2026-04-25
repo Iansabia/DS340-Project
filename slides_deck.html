@@ -1327,7 +1327,7 @@
       <div class="eyebrow muted">Headline Results · Per-trade alpha &amp; Sharpe</div>
       <h2 class="res-headline"><em>Simpler</em> dominates.</h2>
       <div class="chart-block">
-        <div class="chart-label">Per-trade alpha (basis points) · canonical headline.json · seed=42 · $100 position · 6,802 train / 1,673 test</div>
+        <div class="chart-label">Per-trade alpha (basis points) · $100 position · 6,802 train / 1,673 test rows · single seed</div>
         <!--
           viewBox 1660 × 380
           Label column: 0 → 470 (right-anchored, room for "Linear Regression · 15.0 bps · Sharpe 0.501")
@@ -1381,14 +1381,14 @@
           <rect x="500" y="280" width="39" height="42" fill="#c14933"/>
           <text x="470" y="308" text-anchor="end" fill="#c14933" font-size="22" font-family="IBM Plex Sans, sans-serif" font-style="italic" font-weight="500">PPO + autoencoder · 0.5 bps · Sharpe 0.014</text>
         </svg>
-        <div class="chart-note">Per-trade alpha = (P&amp;L / num_trades) / position_size. Position-size-invariant; standard quant pitch metric. PPO + autoencoder canonical figure replaces a non-reproducible legacy claim (see <code>17-02-PPO-DIAGNOSTIC.md</code>).</div>
+        <div class="chart-note">Per-trade alpha = P&amp;L per trade ÷ position size. Position-size-invariant; standard quant pitch metric.</div>
       </div>
 
       <div class="res-bottom">
         <div class="stat-card">
           <div class="label">Per-pair Sharpe</div>
           <div class="value">≈ <em>3.2</em></div>
-          <p>Annualized, 144 pairs as independent bets (Table 8).</p>
+          <p>Annualized, 144 pairs as independent bets.</p>
         </div>
         <div class="stat-card">
           <div class="label">Walk-forward</div>
@@ -1452,15 +1452,15 @@
       <div class="gaps">
         <div class="gap-item">
           <div class="gap-num">Gap 01</div>
-          <p>Win rate <strong>halved</strong> (57% → 32%). Time-stop exits and a wider live universe drag the rate down.</p>
+          <p>Win rate <strong>halved</strong> (57% → 32%). Real-world exits — time stops, fees, slippage — drag the rate down.</p>
         </div>
         <div class="gap-item">
           <div class="gap-num">Gap 02</div>
-          <p>Live and backtest sim are <strong>anti-correlated</strong>: same model predictions, opposite trade direction (paper §5.9).</p>
+          <p>Live and simulator <strong>anti-correlate</strong>: same model predictions, opposite trade direction. Edge comes from spread sizing, not model direction.</p>
         </div>
         <div class="gap-item">
           <div class="gap-num">Gap 03</div>
-          <p>Crypto <strong>bleeds</strong> live (−$13 / 19.6% win on 2,438 trades); oil edge not yet validated post Phase 15 fix.</p>
+          <p>Crypto <strong>bleeds</strong> (−$13 / 20% win on 2,438 trades); oil edge holds but <strong>weaker than backtest</strong> (40% live vs 77% backtest).</p>
         </div>
       </div>
 
