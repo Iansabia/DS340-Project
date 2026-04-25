@@ -312,7 +312,7 @@ Plans:
 **Plans:** 7 plans across 4 waves (Wave 0 → Wave 1 → Wave 2 → Wave 3)
 
 Plans:
-- [ ] 18-01-PLAN.md — Wave 0: scaffolding (experiments/audit/, tests/audit/conftest.py with 4 fixtures, test_fixtures.py)
+- [x] 18-01-PLAN.md — Wave 0: scaffolding (experiments/audit/, tests/audit/conftest.py with 4 fixtures, test_fixtures.py) (completed 2026-04-25; 4/4 fixture sanity tests pass; 0 deps added)
 - [ ] 18-02-PLAN.md — Wave 1: Tier 1 Sharpe audit (recompute + bootstrap CI + correlation correction) [AUDIT-01]
 - [ ] 18-03-PLAN.md — Wave 1: Tier 2 leakage audit (feature classifier + walk-forward embargo + quality-filter rule audit) [AUDIT-02]
 - [ ] 18-04-PLAN.md — Wave 2: Tier 3 cost realism audit (fee handling + slippage sweep + Kalshi/Polymarket fee schedule) [AUDIT-03]
@@ -324,4 +324,4 @@ Plans:
 *Roadmap created: 2026-04-01*
 *v1.0 shipped: 2026-04-08*
 *v1.1 roadmap created: 2026-04-17*
-*Last updated: 2026-04-25 (Phase 18 planned — 7 plans across 4 waves; April 27 audit deadline)*
+*Last updated: 2026-04-25 (Phase 18 Plan 01 — Wave 0 scaffolding complete: experiments/audit/ + tests/audit/conftest.py with 4 audit-target fixtures + test_fixtures.py 4/4 passing; 0 deps added)*

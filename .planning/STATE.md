@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-current_plan: 4
-status: Phase 17 fully shipped. PAPER_DRAFT.md numerics fully reconciled to experiments/results/canonical/headline.json; pitch-standard headlines (Sharpe + bps) adopted; check_paper.sh extended with 3 REPL-06 regression checks (19+/19+ OK). April 27 submission is locked.
-stopped_at: Phase 17 complete — paper has canonical numerics in pitch-standard format; April 27 submission ready
-last_updated: "2026-04-25T18:22:50.357Z"
+current_plan: 2
+status: Phase 18 Plan 01 (Wave 0 scaffolding) complete — experiments/audit/, experiments/results/audit/, tests/audit/conftest.py with 4 audit-target fixtures, and tests/audit/test_fixtures.py (4 passed in 0.02s). Zero new dependencies. Wave 1 (Plans 18-02, 18-03) ready to start.
+stopped_at: Phase 18 Plan 01 (Wave 0 scaffolding) complete — Wave 1 (Tier 1 Sharpe + Tier 2 leakage) ready to start
+last_updated: "2026-04-25T19:43:41.973Z"
 last_activity: 2026-04-25
 progress:
-  total_phases: 10
+  total_phases: 11
   completed_phases: 9
-  total_plans: 25
-  completed_plans: 25
-  percent: 100
+  total_plans: 32
+  completed_plans: 26
+  percent: 81
 ---
 
 # Project State
@@ -22,18 +22,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 17 in progress — model rerun + paper number audit + pitch-standard conversion; Plan 17-01 complete (canonical headline.json + 600× PPO diagnostic + disputed files archived). Phase 16 complete in parallel.
+**Current focus:** Phase 18 in progress — adversarial audit of every quantitative claim in PAPER_DRAFT.md / canonical headline.json / slide deck. Plan 18-01 (Wave 0 scaffolding) complete — tests/audit/ infra ready for Wave 1.
 
 ## Current Position
 
-Phase: 17 of 17 (Model Rerun + Paper Number Audit + Pitch-Standard Conversion — COMPLETE)
-Current Plan: 4
-Total Plans in Phase: 4
-Plan: 4 of 4 complete (17-01 canonical rerun + diagnostic; 17-02 paper audit + bps conversion; 17-03 slide + validator; 17-04 closure)
-Status: Phase 17 fully shipped. PAPER_DRAFT.md numerics fully reconciled to experiments/results/canonical/headline.json; pitch-standard headlines (Sharpe + bps) adopted; check_paper.sh extended with 3 REPL-06 regression checks (19+/19+ OK). April 27 submission is locked.
+Phase: 18 of 18 (System Audit — Adversarial Verification — IN PROGRESS)
+Current Plan: 2 (Wave 1 — Tier 1 Sharpe audit)
+Total Plans in Phase: 7
+Plan: 1 of 7 complete (18-01 Wave 0 scaffolding: experiments/audit/ + tests/audit/conftest.py + test_fixtures.py 4/4 passing)
+Status: Phase 18 Plan 01 (Wave 0 scaffolding) complete — experiments/audit/, experiments/results/audit/, tests/audit/conftest.py with 4 audit-target fixtures, and tests/audit/test_fixtures.py (4 passed in 0.02s). Zero new dependencies. Wave 1 (Plans 18-02, 18-03) ready to start.
 Last activity: 2026-04-25
 
-Progress: [██████████] 100%
+Progress: [████████░░] 81%
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Progress: [██████████] 100%
 | Phase 17 P01 | 5min | 2 tasks | 9 files |
 | Phase 17-model-rerun-paper-number-audit-pitch-standard-conversion P02 | 18min | 2 tasks | 3 files |
 | Phase 17-model-rerun-paper-number-audit-pitch-standard-conversion P03 | 10 min | 2 tasks | 2 files |
+| Phase 18-system-audit-adversarial-verification P01 | 2 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -159,10 +160,15 @@ Recent decisions affecting current work:
 - [Phase 17-02-pitch-standard]: Paper headlines converted from dollar P&L to per-trade Sharpe + per-trade alpha (bps) — the professional quant pitch standard. Per-trade alpha formula: (total_pnl / num_trades / position_size) × 10,000. Worked: LR = $232.67 / 1549 / $100 × 10000 = 15.0 bps. PPO+AE = $4.61 / 899 / $100 × 10000 = 0.5 bps. Abstract, Tables 2 + 8, §5.1, §5.8, §6.3, §8 Conclusions all updated. Dollar P&L stays in tables only.
 - [Phase 17-03-slide-validator]: slides_deck.html Results slide leads with bps + Sharpe (canonical PPO numbers, side panels per-pair Sharpe ≈ 3.2 and 11/11 walk-forward preserved). PPO+AE bar added to main chart (41 px, red, 0.5 bps) — the visually-negligible bar makes tier-3 collapse self-evident. scripts/check_paper.sh extended with 3 REPL-06 checks: abstract_mentions_sharpe, abstract_cites_sharpe_value, orphan_dollar_paragraphs (no headline-section paragraph cites a dollar amount of $50+ without a Sharpe or bps companion). Total: 19/19 OK.
 - [Phase 17-04-closure]: Pitch-standard adopted as the project's house style for all future result presentations. Canonical results JSON pattern (one file per phase under experiments/results/canonical/) is the convention going forward. v1.1 milestone fully shipped 100%.
+- [Phase 18-01-wave-0-scaffolding]: Audit fixtures live in tests/audit/conftest.py with one fixture per audit-target failure mode (Tier 1 perfectly_correlated_pair_returns, Tier 2 synthetic_lookahead_feature_src, Tier 3 zero_fee_simulator_kwargs, Tier 4 retroactive_drop_pair_history). Wave 1+2 audit scripts in Plans 18-02..18-05 will import these via pytest auto-discovery — no fixture duplication, no per-script test infrastructure setup. Fixture bodies copied VERBATIM from 18-RESEARCH.md (the research doc is the contract). Zero new dependencies — pytest 7.x already pinned; arch (StationaryBootstrap) deferred to Wave 1 only if AR(1) > 0.1 in pnl_pp.
+- [Phase 18-01-wave-0-scaffolding]: Tier 2 leakage fixture is a Python source CODE STRING (synthetic_lookahead_feature_src returns text containing 'shift(-1)'), not a callable — lets the Tier 2 classifier validate via static-text regex without exec()-ing untrusted code at test time.
+- [Phase 18-01-wave-0-scaffolding]: experiments/results/audit/.gitkeep contains a single comment line ('# Phase 18 audit JSON outputs land here.') so the empty results dir is git-tracked while remaining functionally empty for the audit JSONs.
 
 ### Pending Todos
 
-None yet.
+- Phase 18 Wave 1: Plan 18-02 (Tier 1 Sharpe audit) and Plan 18-03 (Tier 2 leakage audit) — can run in parallel
+- Phase 18 Wave 2: Plans 18-04 (Tier 3 cost), 18-05 (Tier 4 survivorship), 18-06 (Tier 5 paper number trace)
+- Phase 18 Wave 3: Plan 18-07 (AUDIT_REPORT.md + conditional paper/slide updates)
 
 ### Blockers/Concerns
 
@@ -172,7 +178,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-25T18:12:08Z
-Stopped at: Phase 17 complete — paper has canonical numerics in pitch-standard format; April 27 submission ready
+Last session: 2026-04-25T19:42:24Z
+Stopped at: Completed 18-01-PLAN.md (Wave 0 scaffolding) — experiments/audit/, experiments/results/audit/, tests/audit/conftest.py with 4 audit-target fixtures, tests/audit/test_fixtures.py 4/4 passing
 Resume file: None
-Next action: v1.1 milestone fully shipped (100%). April 27 submission is ready. Optional future work: paper §6.4 revision citing the 1,224-position live cohort as empirical follow-up to the acknowledged limitation.
+Next action: Begin Phase 18 Wave 1 — Plans 18-02 (Tier 1 Sharpe audit) and 18-03 (Tier 2 leakage audit) can run in parallel. Both have their fixtures pre-loaded in tests/audit/conftest.py.
