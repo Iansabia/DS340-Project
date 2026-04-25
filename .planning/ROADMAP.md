@@ -284,13 +284,16 @@ Plans:
   5. `slides_deck.html` Results slide updated with canonical numbers AND adopts pitch-standard hierarchy: Sharpe is the headline number (≈ 3.2 per-pair), with dollar P&L as supplementary tooltip / footer. PPO row uses verified canonical figures.
   6. `bash scripts/check_paper.sh` extended with regression checks for the new pitch-standard numbers (e.g., per-trade Sharpe must be cited at least once; abstract must contain Sharpe). All checks pass after update.
   7. STATE.md and ROADMAP.md include a closing diagnostic note explaining the PPO discrepancy root cause and the new "canonical results JSON" pattern for future maintenance.
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] TBD (run `/gsd:plan-phase 17` to break down)
+- [ ] 17-01-PLAN.md — Canonical model rerun + PPO diagnostic (REPL-01, REPL-02)
+- [ ] 17-02-PLAN.md — Paper number audit + dollar-to-bps conversion (REPL-03, REPL-04)
+- [ ] 17-03-PLAN.md — Slide + validator update (REPL-05, REPL-06)
+- [ ] 17-04-PLAN.md — STATE/ROADMAP closure note (REPL-07)
 
 ---
 *Roadmap created: 2026-04-01*
 *v1.0 shipped: 2026-04-08*
 *v1.1 roadmap created: 2026-04-17*
-*Last updated: 2026-04-24 (Phase 16 plans created)*
+*Last updated: 2026-04-25 (Phase 17 plans created)*

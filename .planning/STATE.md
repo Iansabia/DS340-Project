@@ -2,16 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-status: in-progress
-stopped_at: Completed 16-02-PLAN.md — FINDINGS.md Phase 15 integration (REV-04 Finding 6 live companion + REV-05 new Finding 27 silent-category-starvation)
-last_updated: "2026-04-24T14:05:00.000Z"
-last_activity: 2026-04-24 -- Plan 16-02 executed (Finding 6 companion c3b1181 + Finding 27 97fb616; FINDINGS.md only)
+current_plan: 2
+status: completed
+stopped_at: Completed 17-01-PLAN.md - canonical headline.json (9 models) + 600x PPO diagnostic + disputed files archived
+last_updated: "2026-04-25T17:47:54.449Z"
+last_activity: 2026-04-25 -- Plan 17-01 executed (2 atomic commits db6fb4a/5212e14; canonical regenerator + headline.json + diagnostic + archive)
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 8
-  total_plans: 21
-  completed_plans: 20
-  percent: 95
+  total_plans: 25
+  completed_plans: 21
+  percent: 84
 ---
 
 # Project State
@@ -21,16 +22,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** Empirically answer whether model complexity improves cross-platform prediction market arbitrage detection
-**Current focus:** Phase 16 in progress — paper revision integrating Phase 15 live cohort; Plans 16-01 and 16-02 complete (abstract, §5.9.1, §6.4 item 9, Finding 6 live companion, Finding 27)
+**Current focus:** Phase 17 in progress — model rerun + paper number audit + pitch-standard conversion; Plan 17-01 complete (canonical headline.json + 600× PPO diagnostic + disputed files archived). Phase 16 complete in parallel.
 
 ## Current Position
 
-Phase: 16 of 16 (Paper Revision — Phase 15 Integration + Final Review)
-Plan: 2 of 3 complete (16-01 Phase 15 integration landed; 16-02 FINDINGS.md integration landed — Finding 6 live companion + Finding 27 "Silent Category Starvation")
-Status: Plans 16-01 and 16-02 done. PAPER_DRAFT.md cites the 1,224-position Phase 15 live commodity cohort; FINDINGS.md has companion paragraph for Finding 6 and new Finding 27 documenting silent-category-starvation root cause. Next: Plan 16-03 (final review — Alvin readability + Ian cover-to-cover).
-Last activity: 2026-04-24 -- Plan 16-02 executed (2 atomic commits c3b1181/97fb616; FINDINGS.md only)
+Phase: 17 of 17 (Model Rerun + Paper Number Audit + Pitch-Standard Conversion)
+Current Plan: 2
+Total Plans in Phase: 4
+Plan: 1 of 4 complete (17-01 canonical results landed; 17-02 paper audit / 17-03 slides / 17-04 guardrail pending)
+Status: Plan 17-01 done. experiments/results/canonical/headline.json exists with all 9 models under canonical protocol (seed=42, position=$100, threshold=0.02, 51 features). 17-02-PPO-DIAGNOSTIC.md (200 lines) identifies 600× PPO divergence as units mismatch. Disputed legacy backtest PPO JSONs archived. Next: Plan 17-02 (paper-text audit against headline.json).
+Last activity: 2026-04-25 -- Plan 17-01 executed (2 atomic commits db6fb4a/5212e14; canonical regenerator + headline.json + diagnostic + archive)
 
-Progress: [█████████·] 95%
+Progress: [████████░░] 84%
 
 ## Performance Metrics
 
@@ -58,6 +61,7 @@ Progress: [█████████·] 95%
 | Phase 15-live-commodity-matching-engineering-fixes P03 | ~33h (24h SCC wall-clock) | 3 tasks | 9 files |
 | Phase 16-paper-revision-phase-15-integration-final-review P01 | 2 min | 3 tasks | 1 files |
 | Phase 16-paper-revision-phase-15-integration-final-review P02 | ~8 min | 2 tasks | 1 files |
+| Phase 17 P01 | 5min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -134,6 +138,9 @@ Recent decisions affecting current work:
 - [Phase 15-03-discovery-fix]: The similarity-cap eviction (200-slot commodity reservation in _load_live_pairs) was NOT predicted by the 15-01 diagnostic — it only became visible after H1 flooded the candidate pool with new commodity pairs and the pair_mapping.json dropped all of them despite active_matches.json containing 336. Rule 3 (blocking) auto-fix, not a checkpoint, because the 24h window would have closed zero positions otherwise.
 - [Phase 16-paper-revision-phase-15-integration-final-review]: [Phase 16-01-paper-revision]: Preserved original 'Finding: WTI oil contracts absent' paragraph (§5.9) and original §6.4 item 9 engineering-gap text verbatim — new §5.9.1 subsection and the **Resolved post-submission in Phase 15** note appended rather than substituted. Scientific-integrity principle: acknowledged v1.1 limitations stay visible in the paper even after post-submission resolution. Abstract trimmed via two cuts (drop redundant 'autonomous paper-trader' sentence −9 words + drop 'essentially' filler −1 word) to offset the +6-word live-validation qualifier insertion; lands at 247/250 with 3 words of POL-04 headroom. §5.9.1 ships three explicit caveats (short 12h window, near-flat per-trade economics, paper-trading idealizations persist) to prevent the cohort being read as a robust live edge measurement. check_paper.sh still exits 0 with all 16 checks OK — zero Phase 14 guardrail regressions. Atomic commits: 526370e (REV-01) / 637427f (REV-02) / f8d7acb (REV-03).
 - [Phase 16-02-findings-integration]: Finding 6 companion paragraph appended INSIDE the existing Finding 6 block (after Implication sentence, before `---` separator) using a labeled `**Live validation (Phase 15, 2026-04-24).**` lead-in rather than fragmenting into a separate finding — preserves the backtest claim + table verbatim while dating the live-vs-backtest delta. Finding 27 framed as four bold-led sub-paragraphs (What happened / Parallel to Finding 8 / Methodology lesson / Implication) at 313 body words rather than the 80-120-word single-paragraph literal target from REV-05 — matches Finding 26's formatting style and keeps the concrete "known-unknown monitoring" recommendation scannable. Cross-reference to Finding 8 explicitly names the prior April 11 silent-starvation bug so the two-instances-in-same-subsystem structural-weakness pattern is visible to paper readers. File-ownership held against parallel Plan 16-01: my commits c3b1181 + 97fb616 touched ONLY FINDINGS.md; 16-01's PAPER_DRAFT.md commit 526370e landed between them without conflict. REV-04 and REV-05 satisfied; remaining Phase 16 work is Plan 16-03 (final review checkpoint).
+- [Phase 17-01-canonical-results]: Pragmatic Tier 2/3 ingest from existing per-tier JSONs (seed=42, threshold=0.02, 51 features) instead of retrain — avoids 4+hr PPO retrain when canonical-protocol metadata is already identical. Tier 1 retrained from scratch every invocation (<30s) so the script proves canonical protocol is end-to-end reproducible. alpha_bps_per_trade denominator is position_size ($100), not total notional, making units directly comparable to fixed-size momentum strategy per-trade edge.
+- [Phase 17-01-canonical-results]: 600× PPO discrepancy root cause: units mismatch between two valid simulators. profit_sim (canonical) returns raw probability-point spread P&L; WalkForwardBacktester (legacy) returns dollar P&L for $100-notional fixed-size strategy which sizes each trade as num_contracts = $100 / mid_price ≈ 200 contracts and applies 5pp round-trip fees. Decomposes as ~200× position scaling × ~3× mid_price-driven contract-count inflation on low-priced commodity contracts trading at $0.10–$0.30. Not a code bug — both simulators are correct for the question they ask; the paper accidentally cited a legacy figure (in dollars) when its surrounding text used canonical figures (in spread units).
+- [Phase 17-01-canonical-results]: Unreproducible "−$7,724" paper claim diagnosed as most likely transcription typo of "−$87,724" (drop the 8). Off-by-11.4× is too close to "missing a digit" for coincidence given no JSON file contains −$7,724. Disputed legacy backtest PPO JSONs (backtest/ppo_raw.json +$96,336.84 and backtest/ppo_filtered.json −$87,723.84) git-mv'd to experiments/results/archive/ with quarantine README. REPL-07 codifies going-forward convention: all paper numerics derive from experiments/results/canonical/headline.json only.
 
 ### Pending Todos
 
@@ -147,7 +154,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-24T13:59:51.242Z
-Stopped at: Completed 16-01-PLAN.md — Phase 15 integrated into paper (abstract + §5.9.1 + §6.4 item 9); check_paper.sh green 16/16
+Last session: 2026-04-25T17:47:04.370Z
+Stopped at: Completed 17-01-PLAN.md - canonical headline.json (9 models) + 600x PPO diagnostic + disputed files archived
 Resume file: None
 Next action: v1.1 milestone fully shipped. April 27 submission is ready. Optional future work: paper §6.4 revision citing the 1,224-position live cohort as empirical follow-up to the acknowledged limitation.

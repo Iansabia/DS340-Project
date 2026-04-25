@@ -257,8 +257,8 @@ Integrates Phase 15 live-oil results into the paper, documents the silent-catego
 
 Resolves data inconsistencies discovered during Phase 16 final review (PPO+autoencoder cited as −$7,724 in paper but `ppo_filtered.json` shows −$87,724 and `tier3/ppo_filtered.json` shows +$4.61). Produces one canonical results set; updates paper headline metrics from dollar P&L to professional pitch-standard format (per-trade Sharpe + alpha in pp).
 
-- [ ] **REPL-01**: New `experiments/run_canonical.py` script reruns all 8 models (Naive, Volume, LR, XGBoost, GRU, LSTM, TFT, PPO-Raw, PPO-Filtered) under one documented protocol — seed=42, position_size=$100, threshold=0.02, train=6,802 / test=1,673 — and writes a single `experiments/results/canonical/headline.json` containing every metric the paper cites. All other paper metrics derive from this file or are explicitly cross-referenced.
-- [ ] **REPL-02**: Written PPO root-cause diagnostic at `.planning/phases/17-*/17-02-PPO-DIAGNOSTIC.md` explaining why `backtest/ppo_*.json` (−$87K / +$96K) differs ~600× in magnitude from `tier3/ppo_*.json` (+$4.61 / +$158) at the same documented position size. Identifies whether it is protocol drift, position-size scaling bug, leverage in env, or stale code. Old non-canonical files moved to `experiments/results/archive/` so they cannot accidentally be cited again.
+- [x] **REPL-01**: New `experiments/run_canonical.py` script reruns all 8 models (Naive, Volume, LR, XGBoost, GRU, LSTM, TFT, PPO-Raw, PPO-Filtered) under one documented protocol — seed=42, position_size=$100, threshold=0.02, train=6,802 / test=1,673 — and writes a single `experiments/results/canonical/headline.json` containing every metric the paper cites. All other paper metrics derive from this file or are explicitly cross-referenced.
+- [x] **REPL-02**: Written PPO root-cause diagnostic at `.planning/phases/17-*/17-02-PPO-DIAGNOSTIC.md` explaining why `backtest/ppo_*.json` (−$87K / +$96K) differs ~600× in magnitude from `tier3/ppo_*.json` (+$4.61 / +$158) at the same documented position size. Identifies whether it is protocol drift, position-size scaling bug, leverage in env, or stale code. Old non-canonical files moved to `experiments/results/archive/` so they cannot accidentally be cited again.
 - [ ] **REPL-03**: PAPER_DRAFT.md numeric audit. Every dollar amount, percentage, Sharpe, RMSE, win rate, and trade count grep-extracted, cross-referenced against `canonical/headline.json`, and corrected if it does not match. Audit log committed at `.planning/phases/17-*/17-03-NUMBER-AUDIT.md` documenting every change.
 - [ ] **REPL-04**: Paper converted to pitch-standard headline format. Abstract, §5.1 Headline Comparison, §5.8 Honest Sharpe Accounting, and §8 Conclusions updated to lead with per-trade Sharpe and per-trade alpha (in pp), with dollar P&L moved to tables only. Tables 2 and 8 add Sharpe and pp columns. Headline number in abstract is per-pair annualized Sharpe (≈3.2), not dollar P&L.
 - [ ] **REPL-05**: `slides_deck.html` Results slide updated to canonical numbers AND adopts pitch-standard format: Sharpe as headline, alpha pp under model labels, dollar P&L as supplementary footer/tooltip only. PPO row uses verified canonical numbers.
@@ -350,8 +350,8 @@ Resolves data inconsistencies discovered during Phase 16 final review (PPO+autoe
 | REV-05 | Phase 16 | Complete |
 | REV-06 | Phase 16 | Pending |
 | REV-07 | Phase 16 | Pending |
-| REPL-01 | Phase 17 | Pending |
-| REPL-02 | Phase 17 | Pending |
+| REPL-01 | Phase 17 | Complete |
+| REPL-02 | Phase 17 | Complete |
 | REPL-03 | Phase 17 | Pending |
 | REPL-04 | Phase 17 | Pending |
 | REPL-05 | Phase 17 | Pending |
