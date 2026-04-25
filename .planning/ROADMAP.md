@@ -234,7 +234,7 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 14. Paper Finalization + Presentation | 3/3 | Complete    | 2026-04-23 | - |
 | 15. Live Commodity-Matching Engineering Fixes | 3/3 | Complete    | 2026-04-24 | - |
 | 16. Paper Revision — Phase 15 Integration + Final Review | 3/3 | Complete | 2026-04-24 | - |
-| 17. Model Rerun + Paper Number Audit + Pitch-Standard | 4/4 | Complete | 2026-04-25 | - |
+| 17. Model Rerun + Paper Number Audit + Pitch-Standard | 4/4 | Complete    | 2026-04-25 | - |
 
 ### Phase 15: Live Commodity-Matching Engineering Fixes
 

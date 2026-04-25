@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
 current_plan: 4
-status: complete
-stopped_at: "Phase 17 complete — paper has canonical numerics in pitch-standard format; April 27 submission ready"
-last_updated: "2026-04-25T18:12:08Z"
-last_activity: "2026-04-25 -- Plan 17-04 executed (Phase 17 closure: canonical results convention adopted, pitch-standard headlines locked)"
+status: Phase 17 fully shipped. PAPER_DRAFT.md numerics fully reconciled to experiments/results/canonical/headline.json; pitch-standard headlines (Sharpe + bps) adopted; check_paper.sh extended with 3 REPL-06 regression checks (19+/19+ OK). April 27 submission is locked.
+stopped_at: Phase 17 complete — paper has canonical numerics in pitch-standard format; April 27 submission ready
+last_updated: "2026-04-25T18:22:50.357Z"
+last_activity: 2026-04-25
 progress:
   total_phases: 10
-  completed_phases: 10
+  completed_phases: 9
   total_plans: 25
   completed_plans: 25
   percent: 100
