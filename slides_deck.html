@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complexity Is Not an Edge — DS340 Spring 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0e13;
+      --bg-elevated: #131820;
+      --ink: #f0e9d6;
+      --ink-muted: #9a9180;
+      --ink-faint: #6b6557;
+      --rule: #2a2820;
+      --amber: #d4a142;
+      --amber-bright: #ecc063;
+      --terracotta: #c14933;
+      --sage: #8aa776;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 16px;
+      cursor: default;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Subtle film-grain overlay for editorial texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.91 0 0 0 0 0.84 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      mix-blend-mode: overlay;
+      opacity: 0.5;
+    }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 5vh 7vw;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 350ms ease-out;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ─── HEADER / FOOTER UTILITIES ─── */
+
+    .top-bar {
+      position: absolute;
+      top: 3.5vh;
+      left: 7vw;
+      right: 7vw;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+
+    .top-bar .left {
+      display: flex;
+      gap: 1.75rem;
+      align-items: baseline;
+    }
+
+    .speaker-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .speaker-tag::before {
+      content: '';
+      display: inline-block;
+      width: 0.45rem;
+      height: 0.45rem;
+      background: var(--ink);
+      border-radius: 50%;
+    }
+
+    .speaker-tag.alvin {
+      color: var(--amber);
+    }
+
+    .speaker-tag.alvin::before {
+      background: var(--amber);
+    }
+
+    .bottom-bar {
+      position: absolute;
+      bottom: 3.5vh;
+      left: 7vw;
+      right: 7vw;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+
+    .progress {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .progress .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--rule);
+      transition: background 300ms ease, transform 300ms ease;
+    }
+
+    .progress .dot.active {
+      background: var(--amber);
+      transform: scale(1.3);
+    }
+
+    .progress .dot.passed {
+      background: var(--ink-faint);
+    }
+
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5vh 0;
+    }
+
+    .eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 1.75rem;
+    }
+
+    .eyebrow.muted { color: var(--ink-faint); }
+
+    /* ═════════════ SLIDE 1: TITLE ═════════════ */
+
+    .slide-1 .title {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: clamp(4rem, 11.5vw, 11.5rem);
+      line-height: 0.92;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+      margin-bottom: 2rem;
+    }
+
+    .slide-1 .title em {
+      font-style: italic;
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .slide-1 .title-rule {
+      width: 5rem;
+      height: 2px;
+      background: var(--amber);
+      margin-bottom: 2rem;
+    }
+
+    .slide-1 .subtitle {
+      font-family: 'EB Garamond', serif;
+      font-weight: 400;
+      font-size: clamp(1.3rem, 2.1vw, 1.85rem);
+      color: var(--ink-muted);
+      max-width: 50ch;
+      line-height: 1.4;
+      margin-bottom: 5rem;
+    }
+
+    .slide-1 .byline {
+      display: flex;
+      gap: 4rem;
+      align-items: baseline;
+      border-top: 1px solid var(--rule);
+      padding-top: 1.5rem;
+      max-width: 80ch;
+    }
+
+    .slide-1 .byline .authors {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: var(--ink);
+      letter-spacing: 0.02em;
+    }
+
+    .slide-1 .byline .authors strong {
+      font-weight: 600;
+    }
+
+    .slide-1 .byline .affiliation {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--ink-faint);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-left: auto;
+    }
+
+    /* ═════════════ SLIDE 2: PROBLEM ═════════════ */
+
+    .slide-2 .problem-question {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: clamp(3.5rem, 7.2vw, 6.5rem);
+      line-height: 1;
+      color: var(--ink);
+      max-width: 14ch;
+      margin-bottom: 4.5rem;
+      letter-spacing: -0.015em;
+    }
+
+    .slide-2 .problem-question em {
+      font-style: italic;
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .slide-2 .problem-bullets {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4rem;
+      max-width: 1400px;
+    }
+
+    .slide-2 .bullet {
+      border-top: 2px solid var(--amber);
+      padding-top: 1.25rem;
+    }
+
+    .slide-2 .bullet .num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      color: var(--amber);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .slide-2 .bullet p {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.45rem;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+
+    /* ═════════════ SLIDE 3: METHODS ═════════════ */
+
+    .slide-3 .methods-header {
+      font-family: 'EB Garamond', serif;
+      font-weight: 500;
+      font-size: clamp(2.6rem, 5.2vw, 4.5rem);
+      line-height: 1.05;
+      color: var(--ink);
+      margin-bottom: 3rem;
+      max-width: 22ch;
+      letter-spacing: -0.02em;
+    }
+
+    .slide-3 .methods-header em {
+      font-style: italic;
+      color: var(--amber);
+    }
+
+    .slide-3 .ladder {
+      display: flex;
+      flex-direction: column;
+      max-width: 1200px;
+      margin-bottom: 3rem;
+    }
+
+    .slide-3 .tier {
+      display: grid;
+      grid-template-columns: 7rem 14rem 1fr;
+      gap: 2rem;
+      align-items: baseline;
+      padding: 1rem 0;
+      border-top: 1px solid var(--rule);
+      transition: border-color 300ms ease;
+    }
+
+    .slide-3 .tier:last-child {
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .slide-3 .tier:hover {
+      border-top-color: var(--amber);
+    }
+
+    .slide-3 .tier .tier-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.82rem;
+      letter-spacing: 0.22em;
+      color: var(--amber);
+      text-transform: uppercase;
+    }
+
+    .slide-3 .tier .tier-name {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--ink-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .slide-3 .tier .tier-models {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.55rem;
+      color: var(--ink);
+    }
+
+    .slide-3 .data-line {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.95rem;
+      color: var(--ink-muted);
+      letter-spacing: 0.04em;
+      margin-bottom: 0.75rem;
+    }
+
+    .slide-3 .data-line strong {
+      color: var(--amber-bright);
+      font-weight: 500;
+    }
+
+    .slide-3 .pipeline {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.05rem;
+      color: var(--ink-faint);
+      font-style: italic;
+      letter-spacing: 0.01em;
+    }
+
+    /* ═════════════ SLIDE 4: CHALLENGE ═════════════ */
+
+    .slide-4 .ch-title {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: clamp(3rem, 6.5vw, 6rem);
+      line-height: 1;
+      color: var(--ink);
+      margin-bottom: 3.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .slide-4 .ch-title em {
+      font-style: italic;
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .slide-4 .ch-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 2rem;
+      align-items: center;
+      margin-bottom: 3.5rem;
+      max-width: 1100px;
+    }
+
+    .slide-4 .ch-state {
+      text-align: center;
+    }
+
+    .slide-4 .ch-state .label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 1.5rem;
+    }
+
+    .slide-4 .ch-state .num {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: clamp(6rem, 14vw, 14rem);
+      line-height: 0.85;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+    }
+
+    .slide-4 .ch-state.before .num { color: var(--terracotta); }
+    .slide-4 .ch-state.after .num { color: var(--amber-bright); }
+
+    .slide-4 .ch-state .caption {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.95rem;
+      color: var(--ink-muted);
+      margin-top: 1rem;
+      letter-spacing: 0.05em;
+    }
+
+    .slide-4 .ch-arrow {
+      font-family: 'EB Garamond', serif;
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      color: var(--ink-faint);
+      font-weight: 300;
+    }
+
+    .slide-4 .ch-story {
+      max-width: 75ch;
+      font-family: 'EB Garamond', serif;
+      font-size: 1.4rem;
+      line-height: 1.5;
+      color: var(--ink-muted);
+      margin-bottom: 1.75rem;
+    }
+
+    .slide-4 .ch-story strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .slide-4 .ch-lesson {
+      border-left: 3px solid var(--amber);
+      padding-left: 1.5rem;
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 1.35rem;
+      color: var(--amber-bright);
+      max-width: 70ch;
+    }
+
+    /* ═════════════ SLIDE 5: RESULTS ═════════════ */
+
+    .slide-5 .res-headline {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: clamp(2.5rem, 5.5vw, 5rem);
+      line-height: 1.05;
+      color: var(--ink);
+      max-width: 22ch;
+      margin-bottom: 3rem;
+      letter-spacing: -0.02em;
+    }
+
+    .slide-5 .res-headline em {
+      font-style: italic;
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .slide-5 .res-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .slide-5 .res-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .slide-5 .res-table tr {
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .slide-5 .res-table tr.headline {
+      border-bottom: 2px solid var(--amber);
+    }
+
+    .slide-5 .res-table tr.warn {
+      border-top: 2px solid var(--terracotta);
+      border-bottom: none;
+    }
+
+    .slide-5 .res-table td {
+      padding: 0.95rem 0;
+      font-family: 'IBM Plex Sans', sans-serif;
+    }
+
+    .slide-5 .res-table .model {
+      font-size: 1.18rem;
+      color: var(--ink-muted);
+      letter-spacing: 0.01em;
+    }
+
+    .slide-5 .res-table tr.headline .model {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .slide-5 .res-table tr.warn .model {
+      color: var(--terracotta);
+      font-style: italic;
+    }
+
+    .slide-5 .res-table .pnl {
+      text-align: right;
+      font-family: 'EB Garamond', serif;
+      font-size: 1.85rem;
+      font-weight: 500;
+      color: var(--ink);
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.01em;
+    }
+
+    .slide-5 .res-table tr.headline .pnl {
+      color: var(--amber-bright);
+      font-size: 2.15rem;
+    }
+
+    .slide-5 .res-table tr.warn .pnl {
+      color: var(--terracotta);
+      font-style: italic;
+      font-size: 2.3rem;
+      font-weight: 600;
+    }
+
+    .slide-5 .res-supporting {
+      padding-top: 1rem;
+    }
+
+    .slide-5 .res-supporting .panel {
+      border-left: 2px solid var(--amber);
+      padding-left: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .slide-5 .res-supporting .panel:last-child {
+      margin-bottom: 0;
+    }
+
+    .slide-5 .res-supporting .panel .label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 0.6rem;
+    }
+
+    .slide-5 .res-supporting .panel .value {
+      font-family: 'EB Garamond', serif;
+      font-size: 2.8rem;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.01em;
+    }
+
+    .slide-5 .res-supporting .panel .value em {
+      font-style: italic;
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .slide-5 .res-supporting .panel p {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--ink-muted);
+      line-height: 1.5;
+    }
+
+    /* ═════════════ SLIDE 6: CONCLUSIONS ═════════════ */
+
+    .slide-6 .con-header {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: clamp(3rem, 6.5vw, 5.5rem);
+      line-height: 1;
+      color: var(--ink);
+      margin-bottom: 4rem;
+      letter-spacing: -0.02em;
+    }
+
+    .slide-6 .con-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3.5rem;
+      max-width: 1500px;
+    }
+
+    .slide-6 .con-item {
+      border-top: 1px solid var(--amber);
+      padding-top: 1.5rem;
+    }
+
+    .slide-6 .con-item .num {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 4.5rem;
+      line-height: 1;
+      color: var(--amber);
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+
+    .slide-6 .con-item p {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.5rem;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+
+    .slide-6 .con-item p strong {
+      color: var(--amber-bright);
+      font-weight: 500;
+      font-style: italic;
+    }
+
+    .slide-6 .con-footer {
+      margin-top: auto;
+      padding-top: 3rem;
+      border-top: 1px solid var(--rule);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+    }
+
+    .slide-6 .con-footer .thanks {
+      color: var(--amber);
+      font-weight: 500;
+    }
+
+    /* ═════════════ HELP OVERLAY ═════════════ */
+
+    .help-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 14, 19, 0.96);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .help-overlay.visible {
+      display: flex;
+    }
+
+    .help-card {
+      max-width: 480px;
+      padding: 3rem;
+      border: 1px solid var(--rule);
+    }
+
+    .help-card h3 {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 2.2rem;
+      color: var(--amber);
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+
+    .help-card dl {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.95rem 2.5rem;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.95rem;
+    }
+
+    .help-card dt {
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--amber);
+      font-size: 0.85rem;
+    }
+
+    .help-card dd {
+      color: var(--ink-muted);
+    }
+
+    .help-card .hint {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--rule);
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      color: var(--ink-faint);
+      font-size: 0.9rem;
+    }
+
+    /* ═════════════ PRINT ═════════════ */
+
+    @media print {
+      body::before { display: none; }
+      html, body { overflow: visible; height: auto; }
+      .deck { height: auto; }
+      .slide {
+        position: relative;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        page-break-after: always;
+        width: 100vw;
+        height: 100vh;
+        transition: none;
+      }
+      .slide:last-child { page-break-after: auto; }
+      .help-overlay { display: none !important; }
+    }
+
+    @page {
+      size: 1920px 1080px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ════════ SLIDE 1: TITLE ════════ -->
+  <section class="slide slide-1 active" data-speaker="ian" data-section="01">
+    <div class="top-bar">
+      <div class="left">
+        <span class="speaker-tag">Ian</span>
+        <span>Lightning Talk · 4:00</span>
+      </div>
+      <span>DS340 · Spring 2026</span>
+    </div>
+    <div class="slide-content">
+      <div class="eyebrow">Boston University · DS340 Final Project</div>
+      <h1 class="title">Complexity<br>Is Not<br><em>an Edge.</em></h1>
+      <div class="title-rule"></div>
+      <p class="subtitle">An empirical study of machine-learning arbitrage<br>between Kalshi and Polymarket.</p>
+      <div class="byline">
+        <div class="authors"><strong>Ian Sabia</strong> &nbsp;·&nbsp; <strong>Alvin Jang</strong></div>
+        <div class="affiliation">April 2026</div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <span>Press → to advance &nbsp;·&nbsp; ? for help</span>
+      <div class="progress" data-progress></div>
+    </div>
+  </section>
+
+  <!-- ════════ SLIDE 2: PROBLEM ════════ -->
+  <section class="slide slide-2" data-speaker="ian" data-section="02">
+    <div class="top-bar">
+      <div class="left">
+        <span class="speaker-tag">Ian</span>
+        <span>Problem · 0:45</span>
+      </div>
+      <span>02 / 06</span>
+    </div>
+    <div class="slide-content">
+      <div class="eyebrow muted">Problem Statement</div>
+      <h2 class="problem-question">Does <em>complexity</em><br>actually&nbsp;help?</h2>
+      <div class="problem-bullets">
+        <div class="bullet">
+          <div class="num">A · The setup</div>
+          <p>Kalshi (CFTC-regulated event contracts) and Polymarket (on-chain prediction market) often disagree on the same event.</p>
+        </div>
+        <div class="bullet">
+          <div class="num">B · The question</div>
+          <p>Do RNNs, RL, and autoencoders predict price convergence better than plain regression?</p>
+        </div>
+        <div class="bullet">
+          <div class="num">C · Why it matters</div>
+          <p>Polymarket processed over $1B in 2024 elections — a practical answer for a fast-growing ecosystem.</p>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <span>Ian presenting</span>
+      <div class="progress" data-progress></div>
+    </div>
+  </section>
+
+  <!-- ════════ SLIDE 3: METHODS ════════ -->
+  <section class="slide slide-3" data-speaker="ian" data-section="03">
+    <div class="top-bar">
+      <div class="left">
+        <span class="speaker-tag">Ian</span>
+        <span>Methods · 1:00</span>
+      </div>
+      <span>03 / 06</span>
+    </div>
+    <div class="slide-content">
+      <div class="eyebrow muted">Methodology</div>
+      <h2 class="methods-header">Four model tiers,<br><em>identical</em> evaluation.</h2>
+      <div class="ladder">
+        <div class="tier">
+          <span class="tier-num">Tier 1</span>
+          <span class="tier-name">Regression</span>
+          <span class="tier-models">Linear Regression &nbsp;·&nbsp; XGBoost</span>
+        </div>
+        <div class="tier">
+          <span class="tier-num">Tier 2</span>
+          <span class="tier-name">Sequence</span>
+          <span class="tier-models">GRU &nbsp;·&nbsp; LSTM &nbsp;·&nbsp; TFT</span>
+        </div>
+        <div class="tier">
+          <span class="tier-num">Tier 3</span>
+          <span class="tier-name">Reinforcement</span>
+          <span class="tier-models">PPO (raw features)</span>
+        </div>
+        <div class="tier">
+          <span class="tier-num">Tier 4</span>
+          <span class="tier-name">RL + Anomaly</span>
+          <span class="tier-models">PPO + autoencoder filter</span>
+        </div>
+      </div>
+      <div class="data-line"><strong>6,802</strong> train &nbsp;·&nbsp; <strong>1,673</strong> test rows &nbsp;·&nbsp; <strong>144</strong> matched pairs &nbsp;·&nbsp; <strong>59</strong> features <span style="color: var(--ink-faint)">(13 microstructure)</span></div>
+      <div class="pipeline">Sentence-transformer matching · 10-rule structural quality filter · Content-addressed pair IDs.</div>
+    </div>
+    <div class="bottom-bar">
+      <span>Ian presenting</span>
+      <div class="progress" data-progress></div>
+    </div>
+  </section>
+
+  <!-- ════════ SLIDE 4: CHALLENGE (HANDOFF) ════════ -->
+  <section class="slide slide-4" data-speaker="alvin" data-section="04">
+    <div class="top-bar">
+      <div class="left">
+        <span class="speaker-tag alvin">Alvin</span>
+        <span>Challenge · 0:30</span>
+      </div>
+      <span>04 / 06</span>
+    </div>
+    <div class="slide-content">
+      <div class="eyebrow muted">Challenge Overcome</div>
+      <h2 class="ch-title">Silent <em>Category</em><br>Starvation.</h2>
+      <div class="ch-flow">
+        <div class="ch-state before">
+          <div class="label">Pre-fix</div>
+          <div class="num">0</div>
+          <div class="caption">commodity positions</div>
+        </div>
+        <div class="ch-arrow">→</div>
+        <div class="ch-state after">
+          <div class="label">24h post-fix</div>
+          <div class="num">1,224</div>
+          <div class="caption">commodity positions</div>
+        </div>
+      </div>
+      <div class="ch-story">
+        Our live system claimed there were no oil markets to trade. Kalshi's app showed plenty of daily WTI. <strong>One tuple in our discovery code was missing the word "Commodities."</strong> The fix was a single line.
+      </div>
+      <div class="ch-lesson">"Discovery pipelines need 'what's NOT in my data' monitoring."</div>
+    </div>
+    <div class="bottom-bar">
+      <span>Alvin presenting</span>
+      <div class="progress" data-progress></div>
+    </div>
+  </section>
+
+  <!-- ════════ SLIDE 5: RESULTS ════════ -->
+  <section class="slide slide-5" data-speaker="alvin" data-section="05">
+    <div class="top-bar">
+      <div class="left">
+        <span class="speaker-tag alvin">Alvin</span>
+        <span>Results · 1:00</span>
+      </div>
+      <span>05 / 06</span>
+    </div>
+    <div class="slide-content">
+      <div class="eyebrow muted">Headline Results</div>
+      <h2 class="res-headline"><em>Simpler</em> dominates,<br>across every metric.</h2>
+      <div class="res-grid">
+        <div>
+          <table class="res-table">
+            <tr class="headline"><td class="model">Linear Regression</td><td class="pnl">+$201.69</td></tr>
+            <tr class="headline"><td class="model">XGBoost</td><td class="pnl">+$201.63</td></tr>
+            <tr><td class="model">LSTM</td><td class="pnl">+$182.72</td></tr>
+            <tr><td class="model">GRU</td><td class="pnl">+$174.11</td></tr>
+            <tr><td class="model">PPO (raw)</td><td class="pnl" style="color: var(--ink-muted)">−$413</td></tr>
+            <tr class="warn"><td class="model">PPO + autoencoder</td><td class="pnl">−$7,724</td></tr>
+          </table>
+        </div>
+        <div class="res-supporting">
+          <div class="panel">
+            <div class="label">Per-pair Sharpe</div>
+            <div class="value">≈ <em>3.2</em></div>
+            <p>Annualized, treating each of 144 matched pairs as one independent bet.</p>
+          </div>
+          <div class="panel">
+            <div class="label">Walk-forward</div>
+            <div class="value"><em>11/11</em></div>
+            <p>Every window profitable for every ML model.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <span>Alvin presenting</span>
+      <div class="progress" data-progress></div>
+    </div>
+  </section>
+
+  <!-- ════════ SLIDE 6: CONCLUSIONS ════════ -->
+  <section class="slide slide-6" data-speaker="alvin" data-section="06">
+    <div class="top-bar">
+      <div class="left">
+        <span class="speaker-tag alvin">Alvin</span>
+        <span>Conclusions · 0:30</span>
+      </div>
+      <span>06 / 06</span>
+    </div>
+    <div class="slide-content">
+      <div class="eyebrow muted">Conclusions</div>
+      <h2 class="con-header">What we learned.</h2>
+      <div class="con-list">
+        <div class="con-item">
+          <div class="num">01</div>
+          <p>At <strong>6,802 rows</strong>, complexity is a <strong>liability</strong>, not an edge.</p>
+        </div>
+        <div class="con-item">
+          <div class="num">02</div>
+          <p>The alpha is in the <strong>matching pipeline</strong> and asset class — not the models.</p>
+        </div>
+        <div class="con-item">
+          <div class="num">03</div>
+          <p>Engineering bugs <strong>masquerade</strong> as model failures.</p>
+        </div>
+      </div>
+      <div class="con-footer">
+        <span class="thanks">Thank you.</span> &nbsp;·&nbsp; Ian Sabia &nbsp;·&nbsp; Alvin Jang &nbsp;·&nbsp; DS340 · Spring 2026
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <span>Alvin presenting</span>
+      <div class="progress" data-progress></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ═════════════ HELP OVERLAY ═════════════ -->
+<div class="help-overlay" id="help-overlay">
+  <div class="help-card">
+    <h3>Keyboard Controls</h3>
+    <dl>
+      <dt>→  Space  Click</dt><dd>Next slide</dd>
+      <dt>←</dt><dd>Previous slide</dd>
+      <dt>1 – 6</dt><dd>Jump to slide</dd>
+      <dt>F</dt><dd>Toggle fullscreen</dd>
+      <dt>?</dt><dd>Toggle this overlay</dd>
+      <dt>Esc</dt><dd>Close / exit fullscreen</dd>
+    </dl>
+    <div class="hint">Cmd + P → Save as PDF for upload.</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let current = 0;
+
+  // Build progress dots in every slide's bottom bar
+  const progressContainers = document.querySelectorAll('[data-progress]');
+  progressContainers.forEach(c => {
+    for (let i = 0; i < totalSlides; i++) {
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      c.appendChild(dot);
+    }
+  });
+
+  function show(idx) {
+    if (idx < 0 || idx >= totalSlides) return;
+    slides[current].classList.remove('active');
+    current = idx;
+    slides[current].classList.add('active');
+
+    // Update progress dots
+    progressContainers.forEach(c => {
+      c.querySelectorAll('.dot').forEach((d, i) => {
+        d.classList.remove('active', 'passed');
+        if (i < current) d.classList.add('passed');
+        if (i === current) d.classList.add('active');
+      });
+    });
+  }
+
+  function next() { show(Math.min(current + 1, totalSlides - 1)); }
+  function prev() { show(Math.max(current - 1, 0)); }
+
+  show(0);
+
+  document.addEventListener('keydown', (e) => {
+    const helpOverlay = document.getElementById('help-overlay');
+
+    if (e.key === '?' || e.key === '/') {
+      helpOverlay.classList.toggle('visible');
+      e.preventDefault();
+      return;
+    }
+    if (e.key === 'Escape') {
+      helpOverlay.classList.remove('visible');
+      if (document.fullscreenElement) document.exitFullscreen();
+      return;
+    }
+    if (helpOverlay.classList.contains('visible')) return;
+
+    if (e.key === 'ArrowRight' || e.key === ' ') { next(); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft') { prev(); e.preventDefault(); }
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    else if (e.key >= '1' && e.key <= '9') {
+      const idx = parseInt(e.key) - 1;
+      if (idx < totalSlides) show(idx);
+    }
+  });
+
+  // Click anywhere to advance (except inside overlay or interactive elements)
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.help-overlay')) return;
+    if (e.target.closest('a, button, input, textarea')) return;
+    next();
+  });
+})();
+</script>
+
+</body>
+</html>
