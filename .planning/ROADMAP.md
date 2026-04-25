@@ -94,6 +94,9 @@
 - [x] **Phase 12: Feature Ablation** - LOGO over 5 feature groups on LR + XGBoost with pre-registered protocol (completed 2026-04-23)
 - [x] **Phase 13: Ensemble Formalization** - Evidence-based production ensemble with concordance filter audit (completed 2026-04-23)
 - [x] **Phase 14: Paper Finalization + Presentation** - IEEE-styled figures, trimmed abstract, final PDF, lightning talk slides (completed 2026-04-23)
+- [x] **Phase 15: Live Commodity-Matching Engineering Fixes** - Discovery category gap fix + Rule 10 asset-class hardening + 24h SCC validation (1,224 closed commodity positions) (completed 2026-04-24)
+- [x] **Phase 16: Paper Revision — Phase 15 Integration + Final Review** - Phase 15 numbers integrated (abstract / §5.9.1 / §6.4 item 9 / Finding 6 live companion / Finding 27 silent-category-starvation) + final review checklist (completed 2026-04-24)
+- [x] **Phase 17: Model Rerun + Paper Number Audit + Pitch-Standard Conversion** - Canonical results JSON (`experiments/results/canonical/headline.json`), paper numerics audit, dollar-to-bps headline conversion, slide + validator update (completed 2026-04-25)
 
 ## Phase Details
 
@@ -230,6 +233,8 @@ Phase 8 --+---> Phase 10 (250-bar wait, passive)
 | 13. Ensemble Formalization | 3/3 | Complete    | 2026-04-23 | - |
 | 14. Paper Finalization + Presentation | 3/3 | Complete    | 2026-04-23 | - |
 | 15. Live Commodity-Matching Engineering Fixes | 3/3 | Complete    | 2026-04-24 | - |
+| 16. Paper Revision — Phase 15 Integration + Final Review | 3/3 | Complete | 2026-04-24 | - |
+| 17. Model Rerun + Paper Number Audit + Pitch-Standard | 4/4 | Complete | 2026-04-25 | - |
 
 ### Phase 15: Live Commodity-Matching Engineering Fixes
 
@@ -284,16 +289,18 @@ Plans:
   5. `slides_deck.html` Results slide updated with canonical numbers AND adopts pitch-standard hierarchy: Sharpe is the headline number (≈ 3.2 per-pair), with dollar P&L as supplementary tooltip / footer. PPO row uses verified canonical figures.
   6. `bash scripts/check_paper.sh` extended with regression checks for the new pitch-standard numbers (e.g., per-trade Sharpe must be cited at least once; abstract must contain Sharpe). All checks pass after update.
   7. STATE.md and ROADMAP.md include a closing diagnostic note explaining the PPO discrepancy root cause and the new "canonical results JSON" pattern for future maintenance.
-**Plans**: 4 plans
+**Plans**: 4/4 complete
 
 Plans:
-- [ ] 17-01-PLAN.md — Canonical model rerun + PPO diagnostic (REPL-01, REPL-02)
-- [ ] 17-02-PLAN.md — Paper number audit + dollar-to-bps conversion (REPL-03, REPL-04)
-- [ ] 17-03-PLAN.md — Slide + validator update (REPL-05, REPL-06)
-- [ ] 17-04-PLAN.md — STATE/ROADMAP closure note (REPL-07)
+- [x] 17-01-PLAN.md — Canonical model rerun + PPO diagnostic (REPL-01, REPL-02) — 2026-04-25, commits db6fb4a (run_canonical.py) + 5212e14 (headline.json + archive + diagnostic) + 9fa60a0 (SUMMARY)
+- [x] 17-02-PLAN.md — Paper number audit + dollar-to-bps conversion (REPL-03, REPL-04) — 2026-04-25, commits 232b47b (auditor) + 62c3368 (paper edits) + 8c34f6d (SUMMARY)
+- [x] 17-03-PLAN.md — Slide + validator update (REPL-05, REPL-06) — 2026-04-25, commits af04c3c (slide pitch-standard) + 18e79ba (check_paper.sh REPL-06 checks) + c9567fe (SUMMARY)
+- [x] 17-04-PLAN.md — STATE/ROADMAP/REQUIREMENTS closure (REPL-07) — 2026-04-25
+
+**Resolution summary:** PPO 600× magnitude divergence root-caused to a units mismatch between two valid simulators (`profit_sim` returns raw probability-point spread P&L; `WalkForwardBacktester` returns dollar P&L for $100-notional fixed-size strategy with `num_contracts ≈ 200` per trade and 5pp round-trip fees), compounded by mid_price-driven contract-count inflation on low-priced commodity contracts. Canonical results JSON convention established at `experiments/results/canonical/headline.json` (single source of truth, 9 models under documented protocol — seed=42, position=$100, threshold=0.02, train=6802/test=1673). Pitch-standard format (per-trade Sharpe + alpha in bps) adopted as house style for all future result presentations. Paper, slide, and validator (`scripts/check_paper.sh` 19/19 OK) all reconcile to `canonical/headline.json`. v1.1 milestone fully shipped 100%.
 
 ---
 *Roadmap created: 2026-04-01*
 *v1.0 shipped: 2026-04-08*
 *v1.1 roadmap created: 2026-04-17*
-*Last updated: 2026-04-25 (Phase 17 plans created)*
+*Last updated: 2026-04-25 (Phase 17 closed — v1.1 milestone 100%, April 27 submission ready)*

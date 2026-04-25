@@ -263,7 +263,7 @@ Resolves data inconsistencies discovered during Phase 16 final review (PPO+autoe
 - [x] **REPL-04**: Paper converted to pitch-standard headline format. Abstract, §5.1 Headline Comparison, §5.8 Honest Sharpe Accounting, and §8 Conclusions updated to lead with per-trade Sharpe and per-trade alpha (in pp), with dollar P&L moved to tables only. Tables 2 and 8 add Sharpe and pp columns. Headline number in abstract is per-pair annualized Sharpe (≈3.2), not dollar P&L.
 - [x] **REPL-05**: `slides_deck.html` Results slide updated to canonical numbers AND adopts pitch-standard format: Sharpe as headline, alpha pp under model labels, dollar P&L as supplementary footer/tooltip only. PPO row uses verified canonical numbers.
 - [x] **REPL-06**: `scripts/check_paper.sh` extended with at least 3 new regression checks for pitch-standard hygiene: (a) abstract contains "per-trade Sharpe" or "Sharpe ratio"; (b) at least one Sharpe value cited as decimal (e.g., 0.43 or 3.2) in headline section; (c) every dollar P&L claim has a Sharpe / pp companion in the same paragraph or table.
-- [ ] **REPL-07**: STATE.md decision note + ROADMAP.md Phase 17 entry closure documenting (a) PPO root cause, (b) the new "canonical results" file convention, (c) pitch-standard adopted as house style for all future result presentations.
+- [x] **REPL-07**: STATE.md decision note + ROADMAP.md Phase 17 entry closure documenting (a) PPO root cause, (b) the new "canonical results" file convention, (c) pitch-standard adopted as house style for all future result presentations.
 
 ### v1.1 Non-Goals (Explicit Out of Scope)
 
@@ -356,7 +356,7 @@ Resolves data inconsistencies discovered during Phase 16 final review (PPO+autoe
 | REPL-04 | Phase 17 | Complete |
 | REPL-05 | Phase 17 | Complete |
 | REPL-06 | Phase 17 | Complete |
-| REPL-07 | Phase 17 | Pending |
+| REPL-07 | Phase 17 | Complete |
 
 **Coverage (v1.1):**
 - Requirements: 55 total (5 + 10 + 5 + 8 + 8 + 7 + 12)
@@ -370,4 +370,4 @@ Resolves data inconsistencies discovered during Phase 16 final review (PPO+autoe
 ---
 *v1.1 requirements defined: 2026-04-17*
 *v1.1 traceability expanded: 2026-04-17 (roadmap creation)*
-*Last updated: 2026-04-17*
+*Last updated: 2026-04-25 (Phase 17 closed: REPL-01 through REPL-07 all Complete; v1.1 milestone 100%)*
