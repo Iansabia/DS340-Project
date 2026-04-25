@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-current_plan: 3
+current_plan: 4
 status: completed
-stopped_at: Completed 17-02-PLAN.md - paper numerics audit + pitch-standard conversion (auditor + 17-03-NUMBER-AUDIT.md + PAPER_DRAFT.md edits, 0 mismatches, 16/16 check_paper.sh)
-last_updated: "2026-04-25T18:02:41.862Z"
+stopped_at: Completed 17-03-PLAN.md (Phase 17 substantively complete)
+last_updated: "2026-04-25T18:10:55.638Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 10
   completed_phases: 8
   total_plans: 25
-  completed_plans: 22
+  completed_plans: 23
   percent: 84
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 17 of 17 (Model Rerun + Paper Number Audit + Pitch-Standard Conversion)
-Current Plan: 3
+Current Plan: 4
 Total Plans in Phase: 4
 Plan: 1 of 4 complete (17-01 canonical results landed; 17-02 paper audit / 17-03 slides / 17-04 guardrail pending)
 Status: Plan 17-01 done. experiments/results/canonical/headline.json exists with all 9 models under canonical protocol (seed=42, position=$100, threshold=0.02, 51 features). 17-02-PPO-DIAGNOSTIC.md (200 lines) identifies 600× PPO divergence as units mismatch. Disputed legacy backtest PPO JSONs archived. Next: Plan 17-02 (paper-text audit against headline.json).
@@ -63,6 +63,7 @@ Progress: [████████░░] 84%
 | Phase 16-paper-revision-phase-15-integration-final-review P02 | ~8 min | 2 tasks | 1 files |
 | Phase 17 P01 | 5min | 2 tasks | 9 files |
 | Phase 17-model-rerun-paper-number-audit-pitch-standard-conversion P02 | 18min | 2 tasks | 3 files |
+| Phase 17-model-rerun-paper-number-audit-pitch-standard-conversion P03 | 10 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -146,6 +147,8 @@ Recent decisions affecting current work:
 - [Phase 17-02-paper-numerics-audit]: Per-number proximity model attribution (find_model_at_position): each numeric match resolves its model from the closest alias on the same line within 80 chars; falls back to paragraph context only when out of range. Fixes multi-model line attribution in §8 Conclusions list.
 - [Phase 17-02-paper-numerics-audit]: LR row #1, XGB row #2 retained in Table 2 (plan suggested swap). Canonical/headline.json shows LR wins 4 of 5 metrics (per-trade Sharpe 0.501 vs 0.499, alpha 15.02 vs 14.93 bps, dir-acc 56.9 vs 56.6, win-rate 57.8 vs 57.4); XGB only wins RMSE and total_pnl by hair. Documented in §5.1 narrative.
 - [Phase 17-02-paper-numerics-audit]: Pitch-standard headline format adopted everywhere: '{Model} achieves a per-trade Sharpe of {X.XXX} with +{Y.Y} bps per-trade alpha (positive cumulative dollars at 100 USD position size)'. Sharpe leads, bps second, dollars in parens. Abstract / Table 2 / section 5.1 narrative / 5.8 / 6.3 / 8 Conclusions all converted.
+- [Phase 17-model-rerun-paper-number-audit-pitch-standard-conversion]: Slide ordering: LR row first, XGB second (matches paper precedent — canonical wins 4 of 5 metrics) — Per-trade Sharpe 0.501 vs 0.499; per-trade alpha 15.02 vs 14.93 bps; dir-acc 56.9% vs 56.6%; win rate 57.8% vs 57.4%. XGB only wins RMSE and total_pnl by hair.
+- [Phase 17-model-rerun-paper-number-audit-pitch-standard-conversion]: REPL-06c orphan-dollar regex tightened to signed P&L of $50+ in 5 headline sections — Plan example regex flagged 18+ false positives (setup mentions, table narrative). Tighter regex catches every model headline P&L while filtering setup context. Sections: Abstract, sec5.1, sec5.8, sec6.3, sec8 Conclusions.
 
 ### Pending Todos
 
@@ -159,7 +162,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-25T18:02:15.799Z
-Stopped at: Completed 17-02-PLAN.md - paper numerics audit + pitch-standard conversion (auditor + 17-03-NUMBER-AUDIT.md + PAPER_DRAFT.md edits, 0 mismatches, 16/16 check_paper.sh)
+Last session: 2026-04-25T18:10:55.635Z
+Stopped at: Completed 17-03-PLAN.md (Phase 17 substantively complete)
 Resume file: None
 Next action: v1.1 milestone fully shipped. April 27 submission is ready. Optional future work: paper §6.4 revision citing the 1,224-position live cohort as empirical follow-up to the acknowledged limitation.
