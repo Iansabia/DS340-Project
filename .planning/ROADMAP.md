@@ -271,6 +271,24 @@ Plans:
 - [x] 16-02-PLAN.md — Findings update (REV-04 Finding 6 live companion + REV-05 new Finding 27 "Silent Category Starvation") -- 2026-04-24, commits c3b1181 (Finding 6 companion, REV-04) + 97fb616 (Finding 27, REV-05); FINDINGS.md only, file-ownership held against parallel 16-01
 - [ ] 16-03-PLAN.md — Final review: checklist artifact + human-verify checkpoint (REV-06 Alvin readability + REV-07 Ian cover-to-cover)
 
+### Phase 17: Model Rerun + Paper Number Audit + Pitch-Standard Conversion
+
+**Goal**: Resolve the PPO data inconsistency (paper claims `−$7,724` for PPO+autoencoder; latest JSONs show `+$4.61`, `−$29.41`, and `−$87,724` across different files), produce one canonical set of model results from a fresh single-seed rerun of all 8 models under one documented protocol, audit every numeric claim in PAPER_DRAFT.md against the canonical results, and convert the paper's headline metrics from dollar P&L to professional pitch standards (per-trade Sharpe, per-trade alpha in pp, max drawdown).
+**Depends on**: Phase 16 (paper revision baseline must be in place before re-numbering); blocks final Apr 27 submission.
+**Requirements**: REPL-01, REPL-02, REPL-03, REPL-04, REPL-05, REPL-06, REPL-07
+**Success Criteria** (what must be TRUE):
+  1. One canonical results JSON file (`experiments/results/canonical/headline.json`) contains all 8 models — Naive, Volume, LR, XGBoost, GRU, LSTM, TFT, PPO-Raw, PPO-Filtered — produced by a single rerun script with documented seed, position size, threshold, train/test split. No metric in the paper cites a number not in this file.
+  2. PPO discrepancy diagnosed: written explanation in `.planning/phases/17-*/17-02-PPO-DIAGNOSTIC.md` of why `experiments/results/backtest/ppo_*.json` shows numbers ~600× larger in magnitude than `experiments/results/tier3/ppo_*.json` at the same documented position size. Old non-canonical files moved to `experiments/results/archive/`.
+  3. PAPER_DRAFT.md numeric audit committed. Every dollar amount, percentage, Sharpe value, RMSE, win rate, and trade count cross-referenced against the canonical JSON. Stale numbers replaced. Paper's "PPO+autoencoder −$7,724" claim either confirmed by canonical rerun OR rewritten to match canonical results.
+  4. Paper headline metrics converted to pitch-standard format: lead with per-trade Sharpe + per-trade alpha (pp/bps), with dollar P&L moved to supplementary tables. Abstract, §5.1, §5.8, and §8 updated. Tables 2 and 8 add Sharpe and pp columns.
+  5. `slides_deck.html` Results slide updated with canonical numbers AND adopts pitch-standard hierarchy: Sharpe is the headline number (≈ 3.2 per-pair), with dollar P&L as supplementary tooltip / footer. PPO row uses verified canonical figures.
+  6. `bash scripts/check_paper.sh` extended with regression checks for the new pitch-standard numbers (e.g., per-trade Sharpe must be cited at least once; abstract must contain Sharpe). All checks pass after update.
+  7. STATE.md and ROADMAP.md include a closing diagnostic note explaining the PPO discrepancy root cause and the new "canonical results JSON" pattern for future maintenance.
+**Plans**: TBD
+
+Plans:
+- [ ] TBD (run `/gsd:plan-phase 17` to break down)
+
 ---
 *Roadmap created: 2026-04-01*
 *v1.0 shipped: 2026-04-08*
