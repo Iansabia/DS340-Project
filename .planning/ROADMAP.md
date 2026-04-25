@@ -309,13 +309,19 @@ Plans:
   3. Every numeric claim in PAPER_DRAFT.md traces to a row in `experiments/results/audit/paper_numbers.csv` (claim_text, paper_section, source_file, source_command); `scripts/check_paper.sh` is extended with at least 5 new regression checks that recompute paper numbers from canonical files
   4. If any audit row is CORRECTED, PAPER_DRAFT.md and slides_deck.html are updated in the same wave that produces the correction; if every row is PASS, the audit report itself is referenced from §6.4 Limitations as supplementary evidence of methodological care
 **Requirements**: AUDIT-01, AUDIT-02, AUDIT-03, AUDIT-04, AUDIT-05, AUDIT-06
-**Plans:** TBD (run /gsd:plan-phase 18 to break down)
+**Plans:** 7 plans across 4 waves (Wave 0 → Wave 1 → Wave 2 → Wave 3)
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 18 to break down)
+- [ ] 18-01-PLAN.md — Wave 0: scaffolding (experiments/audit/, tests/audit/conftest.py with 4 fixtures, test_fixtures.py)
+- [ ] 18-02-PLAN.md — Wave 1: Tier 1 Sharpe audit (recompute + bootstrap CI + correlation correction) [AUDIT-01]
+- [ ] 18-03-PLAN.md — Wave 1: Tier 2 leakage audit (feature classifier + walk-forward embargo + quality-filter rule audit) [AUDIT-02]
+- [ ] 18-04-PLAN.md — Wave 2: Tier 3 cost realism audit (fee handling + slippage sweep + Kalshi/Polymarket fee schedule) [AUDIT-03]
+- [ ] 18-05-PLAN.md — Wave 2: Tier 4 survivorship audit (candidate-vs-realized universe diff + 10-pair manual sample) [AUDIT-04]
+- [ ] 18-06-PLAN.md — Wave 2: Tier 5 paper number-by-number trace (paper_numbers.csv + ≥5 new check_paper.sh checks) [AUDIT-05]
+- [ ] 18-07-PLAN.md — Wave 3: Tier 6 live-vs-backtest z-test + AUDIT_REPORT.md + conditional paper/slide updates [AUDIT-06]
 
 ---
 *Roadmap created: 2026-04-01*
 *v1.0 shipped: 2026-04-08*
 *v1.1 roadmap created: 2026-04-17*
-*Last updated: 2026-04-25 (Phase 17 closed — v1.1 milestone 100%, April 27 submission ready)*
+*Last updated: 2026-04-25 (Phase 18 planned — 7 plans across 4 waves; April 27 audit deadline)*
