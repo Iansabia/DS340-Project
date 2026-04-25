@@ -784,7 +784,161 @@
       font-style: normal;
     }
 
-    /* ═════════════ SLIDE 6: CONCLUSIONS ═════════════ */
+    /* ═════════════ SLIDE 6: LIVE VS BACKTEST ═════════════ */
+
+    .slide-live .live-headline {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: 88px;
+      line-height: 1;
+      color: var(--ink);
+      margin-bottom: 44px;
+      letter-spacing: -0.02em;
+    }
+
+    .slide-live .live-headline em {
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 56px;
+      align-items: start;
+      margin-bottom: 44px;
+    }
+
+    .compare-col {
+      border-top: 2px solid var(--rule);
+      padding-top: 22px;
+    }
+
+    .compare-col.backtest { border-top-color: var(--amber); }
+    .compare-col.live { border-top-color: var(--terracotta); }
+
+    .compare-col .col-header {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+    }
+
+    .compare-col.backtest .col-header { color: var(--amber); }
+    .compare-col.live .col-header { color: var(--terracotta); }
+
+    .compare-col .col-header .col-meta {
+      color: var(--ink-faint);
+      letter-spacing: 0.12em;
+      font-size: 11px;
+      display: block;
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
+    .compare-col .big-num {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 132px;
+      line-height: 0.9;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      margin-bottom: 4px;
+    }
+
+    .compare-col.backtest .big-num { color: var(--amber-bright); }
+    .compare-col.live .big-num { color: var(--terracotta); }
+
+    .compare-col .big-num .suffix {
+      font-size: 72px;
+      color: var(--ink-muted);
+      font-weight: 400;
+      font-style: italic;
+    }
+
+    .compare-col .big-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 18px;
+    }
+
+    .compare-col .sub-stats {
+      font-family: 'EB Garamond', serif;
+      font-size: 22px;
+      color: var(--ink-muted);
+      line-height: 1.55;
+    }
+
+    .compare-col .sub-stats strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .compare-arrow {
+      font-family: 'EB Garamond', serif;
+      font-size: 72px;
+      color: var(--ink-faint);
+      font-weight: 300;
+      align-self: center;
+      padding-top: 44px;
+    }
+
+    .slide-live .gaps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    .slide-live .gap-item {
+      border-top: 1px solid var(--terracotta);
+      padding-top: 14px;
+    }
+
+    .slide-live .gap-item .gap-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.25em;
+      color: var(--terracotta);
+      margin-bottom: 8px;
+    }
+
+    .slide-live .gap-item p {
+      font-family: 'EB Garamond', serif;
+      font-size: 19px;
+      line-height: 1.45;
+      color: var(--ink-muted);
+    }
+
+    .slide-live .gap-item p strong {
+      color: var(--ink);
+      font-weight: 500;
+      font-style: italic;
+    }
+
+    .slide-live .punchline {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 28px;
+      color: var(--ink);
+      text-align: center;
+      padding: 22px 0;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      letter-spacing: -0.005em;
+    }
+
+    .slide-live .punchline em {
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    /* ═════════════ SLIDE 7: CONCLUSIONS ═════════════ */
 
     .slide-6 .con-header {
       font-family: 'EB Garamond', serif;
@@ -987,7 +1141,7 @@
         <span class="speaker-tag">Ian</span>
         <span>Problem · What we wanted to know &amp; why · 0:45</span>
       </div>
-      <span>02 / 06</span>
+      <span>02 / 07</span>
     </div>
     <div class="slide-content">
       <div class="left-col">
@@ -1059,7 +1213,7 @@
         <span class="speaker-tag">Ian</span>
         <span>Methods · Models &amp; data sources · 1:00</span>
       </div>
-      <span>03 / 06</span>
+      <span>03 / 07</span>
     </div>
     <div class="slide-content">
       <div class="eyebrow muted">Methodology</div>
@@ -1125,7 +1279,7 @@
         <span class="speaker-tag alvin">Alvin</span>
         <span>Challenge · One bug, one fix · 0:30</span>
       </div>
-      <span>04 / 06</span>
+      <span>04 / 07</span>
     </div>
     <div class="slide-content">
       <div class="eyebrow muted">Challenge Overcome</div>
@@ -1167,7 +1321,7 @@
         <span class="speaker-tag alvin">Alvin</span>
         <span>Results · Most interesting findings · 1:00</span>
       </div>
-      <span>05 / 06</span>
+      <span>05 / 07</span>
     </div>
     <div class="slide-content">
       <div class="eyebrow muted">Headline Results · Per-trade alpha &amp; Sharpe</div>
@@ -1252,14 +1406,80 @@
     </div>
   </section>
 
-  <!-- ════════ SLIDE 6: CONCLUSIONS ════════ -->
-  <section class="slide slide-6" data-section="06">
+  <!-- ════════ SLIDE 6: LIVE VS BACKTEST ════════ -->
+  <section class="slide slide-live" data-section="06">
+    <div class="top-bar">
+      <div class="left">
+        <span class="speaker-tag alvin">Alvin</span>
+        <span>Live vs Backtest · Reality check · 0:30</span>
+      </div>
+      <span>06 / 07</span>
+    </div>
+    <div class="slide-content">
+      <div class="eyebrow muted">Live Validation · 15 Trading Days · 20,113 Closed Positions</div>
+      <h2 class="live-headline"><em>Backtests</em> only get so far.</h2>
+
+      <div class="compare-grid">
+        <div class="compare-col backtest">
+          <div class="col-header">
+            Backtest
+            <span class="col-meta">Frozen Apr&nbsp;9 dataset · 1,673 test rows · $100 position</span>
+          </div>
+          <div class="big-num">57<span class="suffix">%</span></div>
+          <div class="big-label">Win rate · Linear Regression</div>
+          <div class="sub-stats">
+            <strong>+15.0 bps</strong> per-trade alpha<br>
+            <strong>0.501</strong> per-trade Sharpe<br>
+            <strong>+$232.67</strong> total P&amp;L
+          </div>
+        </div>
+        <div class="compare-arrow">→</div>
+        <div class="compare-col live">
+          <div class="col-header">
+            Live
+            <span class="col-meta">SCC paper-trader · Apr 11–25 · 20,113 trades · ~$1 effective notional</span>
+          </div>
+          <div class="big-num">32<span class="suffix">%</span></div>
+          <div class="big-label">Win rate · LR + XGB ensemble</div>
+          <div class="sub-stats">
+            <strong>+0.17 bps</strong> per-trade alpha<br>
+            <strong>~4.7</strong> annualized Sharpe (15-day)<br>
+            <strong>+$34.23</strong> total P&amp;L
+          </div>
+        </div>
+      </div>
+
+      <div class="gaps">
+        <div class="gap-item">
+          <div class="gap-num">Gap 01</div>
+          <p>Win rate <strong>halved</strong> (57% → 32%). Time-stop exits and a wider live universe drag the rate down.</p>
+        </div>
+        <div class="gap-item">
+          <div class="gap-num">Gap 02</div>
+          <p>Live and backtest sim are <strong>anti-correlated</strong>: same model predictions, opposite trade direction (paper §5.9).</p>
+        </div>
+        <div class="gap-item">
+          <div class="gap-num">Gap 03</div>
+          <p>Crypto <strong>bleeds</strong> live (−$13 / 19.6% win on 2,438 trades); oil edge not yet validated post Phase 15 fix.</p>
+        </div>
+      </div>
+
+      <div class="punchline">Backtests validate <em>ranking</em> — they don't validate <em>real-world execution</em>.</div>
+    </div>
+    <div class="bottom-bar">
+      <span>Alvin presenting</span>
+      <div class="progress" data-progress></div>
+    </div>
+  </section>
+
+  <!-- ════════ SLIDE 7: CONCLUSIONS ════════ -->
+  <section class="slide slide-6" data-section="07">
     <div class="top-bar">
       <div class="left">
         <span class="speaker-tag alvin">Alvin</span>
         <span>Conclusions · What we learned · 0:30</span>
       </div>
-      <span>06 / 06</span>
+      <span>07 / 07</span>
     </div>
     <div class="slide-content">
       <div class="eyebrow muted">Conclusions</div>
