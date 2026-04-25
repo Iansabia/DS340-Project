@@ -44,18 +44,18 @@
     .stage {
       position: fixed;
       inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       overflow: hidden;
     }
 
     .deck {
-      position: relative;
+      position: absolute;
+      top: 50%;
+      left: 50%;
       width: 1920px;
       height: 1080px;
       background: var(--bg);
       transform-origin: center center;
+      transform: translate(-50%, -50%) scale(var(--deck-scale, 1));
       box-shadow: 0 0 80px rgba(0,0,0,0.6);
     }
 
@@ -1328,7 +1328,7 @@
     const w = window.innerWidth;
     const h = window.innerHeight;
     const scale = Math.min(w / VIRTUAL_W, h / VIRTUAL_H);
-    deck.style.transform = `scale(${scale})`;
+    document.documentElement.style.setProperty('--deck-scale', scale);
   }
   fit();
   window.addEventListener('resize', fit);
