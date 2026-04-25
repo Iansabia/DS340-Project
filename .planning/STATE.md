@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-current_plan: 4
+current_plan: 5
 status: completed
-stopped_at: Completed 18-02-PLAN.md (Wave 1 Tier 1 Sharpe audit) — verdict=PASS, per_trade_drift=0.00016, BLdP corrected per_pair_sharpe=0.296 (-62% from naive 0.781); both Wave 1 plans (18-02 + 18-03) now complete; Wave 2 (Plans 18-04/05/06) ready
-last_updated: "2026-04-25T19:52:16.864Z"
+stopped_at: Completed 18-04-PLAN.md (Wave 2 Tier 3 cost-realism audit) — verdict=CORRECTED, simulate_profit zero-fee mismatch with PAPER_DRAFT.md §5.1 confirmed; slippage sweep 0/5/10/20/50bps shows cost-robustness survives (Sharpe 8.95→8.81, P&L K→K)
+last_updated: "2026-04-25T19:57:58.213Z"
 last_activity: 2026-04-25
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 32
-  completed_plans: 28
+  completed_plans: 29
   percent: 81
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 18 of 18 (System Audit — Adversarial Verification — IN PROGRESS)
-Current Plan: 4
+Current Plan: 5
 Total Plans in Phase: 7
 Plan: 1 of 7 complete (18-01 Wave 0 scaffolding: experiments/audit/ + tests/audit/conftest.py + test_fixtures.py 4/4 passing)
 Status: Phase 18 Plan 01 (Wave 0 scaffolding) complete — experiments/audit/, experiments/results/audit/, tests/audit/conftest.py with 4 audit-target fixtures, and tests/audit/test_fixtures.py (4 passed in 0.02s). Zero new dependencies. Wave 1 (Plans 18-02, 18-03) ready to start.
@@ -67,6 +67,7 @@ Progress: [████████░░] 81%
 | Phase 18-system-audit-adversarial-verification P01 | 2 min | 3 tasks | 5 files |
 | Phase 18-system-audit-adversarial-verification P03 | 3min | 2 tasks | 3 files |
 | Phase 18-system-audit-adversarial-verification P02 | 4min | 2 tasks | 4 files |
+| Phase 18-system-audit-adversarial-verification P04 | 6min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -169,6 +170,7 @@ Recent decisions affecting current work:
 - [Phase 18-system-audit-adversarial-verification]: Audit-script JSON output schema standardized: {audit, tier, verdict, ran_at, ...findings, assumptions[]} with verdict ∈ {PASS, CORRECTED, FAILED} where FAILED triggers if any single check fails. Suspicious findings do NOT trigger FAILED — only Leaking, embargo violations, and retroactive QF rules do. This is the Pattern 2 contract every Tier 2-7 audit script will follow so Plan 18-07 can mechanically aggregate them.
 - [Phase 18-system-audit-adversarial-verification]: Plan 18-02 Tier 1 Sharpe audit verdict=PASS: per_trade_drift=0.00016 (canonical 0.5009, recomputed 0.5007); per_pair_naive=0.781, corr_corrected=0.296 (-62% under avg_pair_corr=0.042 BLdP correction); bootstrap CI [0.685, 0.904]; annualization factor 23.8 from test_span_days=92.67 — does NOT match paper's implicit ≈3.2 factor (Plan 18-06 follow-up to reconcile)
 - [Phase 18-system-audit-adversarial-verification]: Plan 18-02 Rule 1 auto-fix: RESEARCH.md skeleton assumed timestamp was datetime64[ns]; canonical processed parquet stores it as int64 epoch seconds — added dtype-aware normalization with heuristic (>10**12 -> nanoseconds) to recover real entry_day axis (was collapsing to test_span_days=0)
+- [Phase 18-system-audit-adversarial-verification]: Plan 18-04 Tier 3 cost-realism audit verdict=CORRECTED: simulate_profit charges zero fees confirmed (PAPER_DRAFT.md §5.1 line 213/215 prose says '2pp transaction costs' but the 0.02 is a SIGNAL gate, not a fee — the load-bearing paper bug). WalkForwardBacktester charges 3pp+2pp = 5pp = 500bps round-trip, OVER-conservative vs realistic Kalshi+Polymarket (~250-355bps). Slippage sweep at 0/5/10/20/50 bps additional haircut: annualized Sharpe 8.95 -> 8.81 (-1.6%), P&L ,728 -> ,964 (-3.8%) — cost-robustness claim survives. paper_corrections_required has 2 items: §5.1 prose fix + §6.4 fee schedule documentation (Plan 06 + Plan 07 consume).
 
 ### Pending Todos
 
@@ -184,7 +186,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-25T19:52:16.861Z
-Stopped at: Completed 18-02-PLAN.md (Wave 1 Tier 1 Sharpe audit) — verdict=PASS, per_trade_drift=0.00016, BLdP corrected per_pair_sharpe=0.296 (-62% from naive 0.781); both Wave 1 plans (18-02 + 18-03) now complete; Wave 2 (Plans 18-04/05/06) ready
+Last session: 2026-04-25T19:57:49.426Z
+Stopped at: Completed 18-04-PLAN.md (Wave 2 Tier 3 cost-realism audit) — verdict=CORRECTED, simulate_profit zero-fee mismatch with PAPER_DRAFT.md §5.1 confirmed; slippage sweep 0/5/10/20/50bps shows cost-robustness survives (Sharpe 8.95→8.81, P&L K→K)
 Resume file: None
 Next action: Begin Phase 18 Wave 1 — Plans 18-02 (Tier 1 Sharpe audit) and 18-03 (Tier 2 leakage audit) can run in parallel. Both have their fixtures pre-loaded in tests/audit/conftest.py.
