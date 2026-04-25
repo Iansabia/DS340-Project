@@ -259,8 +259,8 @@ Resolves data inconsistencies discovered during Phase 16 final review (PPO+autoe
 
 - [x] **REPL-01**: New `experiments/run_canonical.py` script reruns all 8 models (Naive, Volume, LR, XGBoost, GRU, LSTM, TFT, PPO-Raw, PPO-Filtered) under one documented protocol — seed=42, position_size=$100, threshold=0.02, train=6,802 / test=1,673 — and writes a single `experiments/results/canonical/headline.json` containing every metric the paper cites. All other paper metrics derive from this file or are explicitly cross-referenced.
 - [x] **REPL-02**: Written PPO root-cause diagnostic at `.planning/phases/17-*/17-02-PPO-DIAGNOSTIC.md` explaining why `backtest/ppo_*.json` (−$87K / +$96K) differs ~600× in magnitude from `tier3/ppo_*.json` (+$4.61 / +$158) at the same documented position size. Identifies whether it is protocol drift, position-size scaling bug, leverage in env, or stale code. Old non-canonical files moved to `experiments/results/archive/` so they cannot accidentally be cited again.
-- [ ] **REPL-03**: PAPER_DRAFT.md numeric audit. Every dollar amount, percentage, Sharpe, RMSE, win rate, and trade count grep-extracted, cross-referenced against `canonical/headline.json`, and corrected if it does not match. Audit log committed at `.planning/phases/17-*/17-03-NUMBER-AUDIT.md` documenting every change.
-- [ ] **REPL-04**: Paper converted to pitch-standard headline format. Abstract, §5.1 Headline Comparison, §5.8 Honest Sharpe Accounting, and §8 Conclusions updated to lead with per-trade Sharpe and per-trade alpha (in pp), with dollar P&L moved to tables only. Tables 2 and 8 add Sharpe and pp columns. Headline number in abstract is per-pair annualized Sharpe (≈3.2), not dollar P&L.
+- [x] **REPL-03**: PAPER_DRAFT.md numeric audit. Every dollar amount, percentage, Sharpe, RMSE, win rate, and trade count grep-extracted, cross-referenced against `canonical/headline.json`, and corrected if it does not match. Audit log committed at `.planning/phases/17-*/17-03-NUMBER-AUDIT.md` documenting every change.
+- [x] **REPL-04**: Paper converted to pitch-standard headline format. Abstract, §5.1 Headline Comparison, §5.8 Honest Sharpe Accounting, and §8 Conclusions updated to lead with per-trade Sharpe and per-trade alpha (in pp), with dollar P&L moved to tables only. Tables 2 and 8 add Sharpe and pp columns. Headline number in abstract is per-pair annualized Sharpe (≈3.2), not dollar P&L.
 - [ ] **REPL-05**: `slides_deck.html` Results slide updated to canonical numbers AND adopts pitch-standard format: Sharpe as headline, alpha pp under model labels, dollar P&L as supplementary footer/tooltip only. PPO row uses verified canonical numbers.
 - [ ] **REPL-06**: `scripts/check_paper.sh` extended with at least 3 new regression checks for pitch-standard hygiene: (a) abstract contains "per-trade Sharpe" or "Sharpe ratio"; (b) at least one Sharpe value cited as decimal (e.g., 0.43 or 3.2) in headline section; (c) every dollar P&L claim has a Sharpe / pp companion in the same paragraph or table.
 - [ ] **REPL-07**: STATE.md decision note + ROADMAP.md Phase 17 entry closure documenting (a) PPO root cause, (b) the new "canonical results" file convention, (c) pitch-standard adopted as house style for all future result presentations.
@@ -352,8 +352,8 @@ Resolves data inconsistencies discovered during Phase 16 final review (PPO+autoe
 | REV-07 | Phase 16 | Pending |
 | REPL-01 | Phase 17 | Complete |
 | REPL-02 | Phase 17 | Complete |
-| REPL-03 | Phase 17 | Pending |
-| REPL-04 | Phase 17 | Pending |
+| REPL-03 | Phase 17 | Complete |
+| REPL-04 | Phase 17 | Complete |
 | REPL-05 | Phase 17 | Pending |
 | REPL-06 | Phase 17 | Pending |
 | REPL-07 | Phase 17 | Pending |
