@@ -12,7 +12,7 @@ An empirical study asking whether increasing model complexity improves arbitrage
 
 - **`PAPER_DRAFT.md`** — full paper: methodology, results, discussion, limitations
 - **`AUDIT_REPORT.md`** — adversarial audit report (Phase 18). Six-tier verification of every quantitative claim, including a leakage-free recompute on a pair-stratified split. Read this if you want to trust the numbers.
-- **`slides_deck.html`** — 7-slide lightning talk (open in Chrome; arrow keys to navigate, ? for help). A `.pptx` export is also generated locally.
+- **`slides_deck.pptx`** — 7-slide lightning talk (4-minute, two-presenter format; open in PowerPoint or Keynote).
 
 ## Quick start
 
