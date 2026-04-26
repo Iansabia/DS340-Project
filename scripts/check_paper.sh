@@ -137,14 +137,14 @@ PPO_BPS_ROUNDED=$(printf "%.1f" "$PPO_BPS")
 PPO_BPS_FOUND=$(grep -c "$PPO_BPS_ROUNDED bps" "$PAPER")
 check_ge "audit_ppo_filtered_alpha_bps_in_paper" 1 "$PPO_BPS_FOUND"
 
-# audit_per_pair_sharpe_3_2_in_abstract: per-pair Sharpe ≈ 3.2 in abstract
-# NOTE: Wave 1 (Plan 18-02) reproduced naive=18.6 / corrected=7.04 from the
-# canonical trade ledger. The paper claim 3.2 is currently flagged MISMATCH in
-# experiments/results/audit/paper_numbers.csv. This check just enforces that
-# whatever value the paper claims for per-pair Sharpe in the abstract section
-# stays consistent across the document; Plan 18-07 will resolve the value.
-PP_SHARPE_FOUND=$(awk '/^## Abstract/,/^## 1\./' "$PAPER" | grep -cE "≈ ?3\.2|approximately 3\.2|3\.2 ?\(")
-check_ge "audit_per_pair_sharpe_3_2_in_abstract" 1 "$PP_SHARPE_FOUND"
+# audit_per_trade_sharpe_in_abstract: per-trade Sharpe (leakage-free) in abstract.
+# Plan 18-07 replaced the un-derivable per-pair Sharpe ≈ 3.2 claim with the
+# leakage-free per-trade Sharpe headline (0.516, drift +2.99% from canonical
+# 0.501). This check enforces that the abstract leads with a per-trade Sharpe
+# claim of the form "per-trade Sharpe ... 0.5XX" so future drafts cannot
+# silently revert to the un-validated annualized framing.
+PT_SHARPE_FOUND=$(awk '/^## Abstract/,/^## 1\./' "$PAPER" | grep -cE "per-trade Sharpe[^0-9]{1,30}0\.5[0-9]+|0\.51[56]|0\.50[0-9]")
+check_ge "audit_per_trade_sharpe_in_abstract" 1 "$PT_SHARPE_FOUND"
 
 # audit_walk_forward_11_windows_in_paper: 11-window walk-forward cited
 WF_COUNT=$(grep -cE "11[ -]window|11 walk-forward|across 11" "$PAPER")

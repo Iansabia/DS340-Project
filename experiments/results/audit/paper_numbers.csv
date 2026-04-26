@@ -1,6 +1,6 @@
 claim_text,claim_value,kind,paper_section,line_number,source_file,source_command,match_status
 Sharpe of 0.501,0.501,sharpe,## Abstract,12,experiments/results/canonical/headline.json,python3 experiments/run_canonical.py,PENDING
-"Sharpe, treating each of 144 pairs as one independent bet, is ≈ 3.2",3.2,sharpe,## Abstract,12,experiments/results/audit/sharpe_audit.json,PYTHONPATH=. python3 experiments/audit/audit_sharpe.py,MISMATCH: Wave 1 (Plan 18-02) reproduced annualized per-pair Sharpe=18.60 (naive) / 7.04 (BLdP corrected); paper claims 3.2. Plan 18-07 must reconcile in PAPER_DRAFT.md (likely revise headline) or document the annualization formula derivation.
+"per-trade Sharpe rises to 0.516 with +15.7 bps per-trade alpha (leakage-free purged split)",0.516,sharpe,## Abstract,12,experiments/results/audit/sharpe_audit_purged.json,PYTHONPATH=. python3 experiments/audit/audit_sharpe_purged.py,PASS: Plan 18-07 replaced the un-derivable ≈ 3.2 per-pair annualized claim with the leakage-free per-trade Sharpe headline (purged 0.516, drift +2.99% from canonical 0.501). Reproducible from sharpe_audit_purged.json.
 15.0 bps,15.0,bps,## Abstract,12,experiments/results/canonical/headline.json,python3 experiments/run_canonical.py,PENDING
 14.9 bps,14.9,bps,## Abstract,12,experiments/results/canonical/headline.json,python3 experiments/run_canonical.py,PENDING
 14.3 bps,14.3,bps,## Abstract,12,experiments/results/canonical/headline.json,python3 experiments/run_canonical.py,PENDING
@@ -84,4 +84,4 @@ Sharpe 0.459,0.459,sharpe,## 8. Conclusions,702,experiments/results/canonical/he
 10%,10,pct,## 8. Conclusions,702,experiments/results/canonical/headline.json,python3 experiments/run_canonical.py,PENDING
 +\$10.73,10.73,dollar,## 8. Conclusions,706,experiments/results/canonical/headline.json,python3 experiments/run_canonical.py,PENDING
 76.5%,76.5,pct,## 8. Conclusions,706,experiments/results/canonical/headline.json,python3 experiments/run_canonical.py,PENDING
-Sharpe is ≈ 3.2,3.2,sharpe,## 8. Conclusions,710,experiments/results/audit/sharpe_audit.json,PYTHONPATH=. python3 experiments/audit/audit_sharpe.py,MISMATCH: Wave 1 (Plan 18-02) reproduced annualized per-pair Sharpe=18.60 (naive) / 7.04 (BLdP corrected); paper claims 3.2. Plan 18-07 must reconcile in PAPER_DRAFT.md (likely revise headline) or document the annualization formula derivation.
+"per-trade Sharpe of 0.501 (leaky) → 0.516 (leakage-free purged split)",0.516,sharpe,## 8. Conclusions,710,experiments/results/audit/sharpe_audit_purged.json,PYTHONPATH=. python3 experiments/audit/audit_sharpe_purged.py,PASS: Plan 18-07 replaced the un-derivable ≈ 3.2 per-pair annualized claim in §8 item 5 with the leakage-free per-trade Sharpe headline matching the new abstract.
