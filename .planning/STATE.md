@@ -5,7 +5,7 @@ milestone_name: Extended Evidence & Submission
 current_plan: 7
 status: completed
 stopped_at: Completed 18-07-PLAN.md (AUDIT_REPORT.md generation + PAPER_DRAFT.md / slides_deck.html / check_paper.sh updates) — Phase 18 closed; v1.1 milestone audit-verified; April 27 submission integrity confirmed; per-trade Sharpe 0.516 leads abstract; ≈ 3.2 removed; 26/26 paper checks green; 0 MISMATCH rows
-last_updated: "2026-04-26T15:29:21.425Z"
+last_updated: "2026-04-26T15:34:52.816Z"
 last_activity: 2026-04-26
 progress:
   total_phases: 11
