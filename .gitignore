@@ -31,3 +31,26 @@ lightning_logs/
 checkpoints/
 graphify-out/
 .claude/
+
+# Internal working docs — kept locally for development reference but not
+# included in the public repo (graders see paper, slides, code, AUDIT_REPORT.md).
+CLAUDE.md
+AGENTS.md
+SLIDES_GUIDE.md
+STUDY_GUIDE.html
+FINDINGS.md
+TRADING_REPORT.md
+ROADMAP.md
+.planning/
+
+# Source assignment / proposal PDFs (shouldn't be in the deliverable repo)
+DS340*.pdf
+"DS340 Project Proposal*.pdf"
+
+# Old slide format superseded by slides_deck.html / slides_deck.pptx
+slides.md
+slides.pdf
+
+# Debug logs
+rebuild_*.log
+*.log
