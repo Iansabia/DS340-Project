@@ -4,14 +4,14 @@ milestone: v1.1
 milestone_name: Extended Evidence & Submission
 current_plan: 7
 status: completed
-stopped_at: "Completed 18-08-PLAN.md (purged pair-stratified leakage-free retraining + Tier 1 Sharpe audit redo) — verdict CORRECTED: purged corrected per-pair Sharpe +0.81 [CI 0.70, 1.07], +175% drift from leaky 0.30 (driven by negative purged avg_corr short-circuiting BLdP correction); per-trade Sharpe stable at +0.5159 (drift +2.99%); total P&L .63 (drift -14% on smaller test set 1398 vs 1673 rows); 0 embargo violations on purged split (115 train pairs / 29 test pairs); Plan 18-07 ready to resume at Task 3 with new headline numbers"
-last_updated: "2026-04-26T15:16:01.927Z"
+stopped_at: Completed 18-07-PLAN.md (AUDIT_REPORT.md generation + PAPER_DRAFT.md / slides_deck.html / check_paper.sh updates) — Phase 18 closed; v1.1 milestone audit-verified; April 27 submission integrity confirmed; per-trade Sharpe 0.516 leads abstract; ≈ 3.2 removed; 26/26 paper checks green; 0 MISMATCH rows
+last_updated: "2026-04-26T15:29:21.425Z"
 last_activity: 2026-04-26
 progress:
   total_phases: 11
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 33
-  completed_plans: 32
+  completed_plans: 33
   percent: 81
 ---
 
@@ -71,6 +71,7 @@ Progress: [████████░░] 81%
 | Phase 18-system-audit-adversarial-verification P06 | 4min | 2 tasks | 3 files |
 | Phase 18-system-audit-adversarial-verification P05 | 5min | 2 tasks | 4 files |
 | Phase 18-system-audit-adversarial-verification P08 | 7min | 4 tasks | 9 files |
+| Phase 18-system-audit-adversarial-verification P07 | 8min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -181,6 +182,7 @@ Recent decisions affecting current work:
 - [Phase 18-08-leakage-free-recompute]: Verdict CORRECTED on purged Tier 1 Sharpe audit (Plan 18-08): leakage-free per-pair corrected Sharpe is +0.81 [CI +0.70, +1.07], a +175% INCREASE over leaky-canonical +0.30. Mechanism: leaky avg pairwise correlation +0.0418 compressed leaky naive 0.78 to corrected 0.30 via the BLdP effective-sample-size correction; purged avg pairwise correlation is -0.1986 on the smaller N=29 test pairs, which short-circuits the BLdP correction (avg_corr <= 0 returns naive Sharpe unchanged) so purged corrected = purged naive = 0.81. The +175% drift fails the PASS gate's |drift_pct| < 50% requirement, but the direction is favorable (purged HIGHER than leaky) and the CI is entirely positive. Per-trade Sharpe is invariant to leakage correction: +0.5007 -> +0.5159 (drift +2.99%). Per-pair NAIVE Sharpe drift is also small (+4.20%); only the BLdP-corrected number moves dramatically because the correction's applicability flips between the two regimes. Honest paper framing: per-trade edge is robust to leakage correction; per-pair Sharpe headline depends on cross-pair correlation regime which is sample-size-sensitive at N=29 test pairs. The 3.2 number that motivated this plan continues to have no derivation path; the leakage-free replacement is +0.81 corrected per-pair (or +0.5159 per-trade depending on which framing the abstract adopts).
 - [Phase 18-08-leakage-free-recompute]: Pair-stratified split mechanics (data/processed/purged_split/): concatenate canonical train+test (8763 rows / 144 pairs), shuffle unique pair_id list with np.random.default_rng(seed=42).shuffle on a numpy object array (avoids ArrowStringArray UserWarning), atomic 80/20 by pair count -> 115 train pairs / 29 test pairs. After canonical _build_split (drops trailing-bar NaN targets) the row counts are 7221 train / 1398 test. Zero pair_id intersection between halves by construction. data/processed/ is gitignored so the parquets are regenerated on demand; split_metadata.json records the pair_id assignments for traceability.
 - [Phase 18-08-leakage-free-recompute]: Sister-script reuse pattern: experiments/run_canonical_purged.py imports evaluate_predictions + canonical constants from run_canonical, and _build_split + _feature_columns + prepare_xy from run_baselines — swaps ONLY the data source. experiments/audit/audit_sharpe_purged.py imports per_pair_returns + per_pair_sharpe_naive + avg_pairwise_correlation + correlation_corrected_sharpe + bootstrap_sharpe_ci + annualization_factor + per_trade_sharpe from audit_sharpe — swaps ONLY the ledger source. The reuse rule (DO NOT duplicate audit metric code) is enforced by a test (test_audit_sharpe_purged.py::test_purged_audit_reuses_canonical_helpers) that asserts the imported functions are the SAME OBJECT as in audit_sharpe.py. This pattern is the canonical way to add a parametric variant of an existing audit/training script in this codebase going forward.
+- [Phase 18-07]: Plan 18-07 resumption — Tier 1 verdict CORRECTED, Tier 2 RESOLVED, Tier 3 CORRECTED, Tiers 4/5/6 PASS. AUDIT_REPORT.md generated at project root with all 6 Tier evidence + assumption stacks. PAPER_DRAFT.md abstract / §1.4 / §5.1 / §5.8 + Table 8 / §6.4 (3 new items 10/11/12) / §8 item 5 updated to lead with leakage-free per-trade Sharpe 0.516 (drift +2.99% from canonical 0.501); per-pair ≈ 3.2 removed and demoted to regime-dependent secondary statistic in §5.8 with full caveats. Slide deck stat card converted to per-trade Sharpe ≈ 0.52. scripts/check_paper.sh regex updated (audit_per_trade_sharpe_in_abstract replaces audit_per_pair_sharpe_3_2_in_abstract). paper_numbers.csv 2 MISMATCH rows flipped to PASS. 26/26 checks green; 0 MISMATCH rows; abstract 248/250 words. v1.1 milestone audit-verified; April 27 submission integrity confirmed.
 
 ### Pending Todos
 
@@ -196,7 +198,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-26T15:15:37.118Z
-Stopped at: Completed 18-08-PLAN.md (purged pair-stratified leakage-free retraining + Tier 1 Sharpe audit redo) — verdict CORRECTED: purged corrected per-pair Sharpe +0.81 [CI 0.70, 1.07], +175% drift from leaky 0.30 (driven by negative purged avg_corr short-circuiting BLdP correction); per-trade Sharpe stable at +0.5159 (drift +2.99%); total P&L .63 (drift -14% on smaller test set 1398 vs 1673 rows); 0 embargo violations on purged split (115 train pairs / 29 test pairs); Plan 18-07 ready to resume at Task 3 with new headline numbers
+Last session: 2026-04-26T15:29:11.460Z
+Stopped at: Completed 18-07-PLAN.md (AUDIT_REPORT.md generation + PAPER_DRAFT.md / slides_deck.html / check_paper.sh updates) — Phase 18 closed; v1.1 milestone audit-verified; April 27 submission integrity confirmed; per-trade Sharpe 0.516 leads abstract; ≈ 3.2 removed; 26/26 paper checks green; 0 MISMATCH rows
 Resume file: None
 Next action: Begin Phase 18 Wave 1 — Plans 18-02 (Tier 1 Sharpe audit) and 18-03 (Tier 2 leakage audit) can run in parallel. Both have their fixtures pre-loaded in tests/audit/conftest.py.
