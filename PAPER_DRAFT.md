@@ -760,16 +760,26 @@ We thank Professor Kevin Gold for the course instruction and for the pivotal fee
 
 Full source code and reproduction commands are available at `https://github.com/iansabia/DS340-Project`. See `README.md` at the repository root for exact command-line invocations mapped to every paper table and figure.
 
-## Appendix B: Figures Referenced
+## Appendix B: Figures
 
-- **Fig. 1** — `experiments/figures/walk_forward_pnl.png` — Out-of-sample P&L across 11 walk-forward windows (§5.2)
-- **Fig. 2** — `experiments/results/data_scaling/pnl_at_2pp_vs_data.png` — P&L vs training-set size; plateau at N=6,802 (fixed pair universe) — referenced in §5.4
-- **Fig. 3** — `experiments/figures/walk_forward_sharpe.png` — Walk-forward per-trade Sharpe trajectory (§5.2 supplemental)
-- **Fig. 4** — `experiments/figures/transaction_cost_sensitivity.png` — P&L vs round-trip fee (§5.6)
-- **Fig. 5** — `experiments/figures/shap_bar_plot.png` — Mean |SHAP| by feature (§5.7)
-- **Fig. 6** — `experiments/figures/backtest_equity_curves.png` — Cumulative P&L by model (§5.1)
-- **Fig. 7** — `experiments/figures/bootstrap_ci_rmse.png` — Bootstrap 95% CI on RMSE by model (§5.1)
-- **Fig. 8** — `experiments/figures/experiment2_lookback_pnl.png` — P&L vs lookback window (§5.12 / Proposal Experiment 2)
-- **Fig. 9** — `experiments/figures/experiment3_threshold_heatmap.png` — P&L heatmap by model × minimum-spread threshold (§5.13 / Proposal Experiment 3)
-- **Fig. 10** — `experiments/figures/tft_variable_importance.png` — TFT VSN variable-selection weights (§6.2.3)
-- **Fig. 11** — `experiments/figures/ensemble_weight_sweep.png` — Ensemble LR-weight sweep (§5.11)
+![**Figure 1.** Out-of-sample P&L across 11 walk-forward windows (§5.2). Every ML model is profitable in every window; per-trade Sharpe rises from 0.31 in early windows to 0.53 in late windows, indicating the edge strengthens rather than decays as more data accumulates.](experiments/figures/walk_forward_pnl.png)
+
+![**Figure 2.** P&L vs. training-set size at 2 pp signal threshold (§5.4). The curve plateaus at N=6,802 because the underlying pair universe is fixed at 144 pairs with at most 141 bars each; slices at 250+ bars/pair are identical to the 100-bar slice. The plateau is a property of the fixed pair universe, not a universal scaling claim.](experiments/results/data_scaling/pnl_at_2pp_vs_data.png)
+
+![**Figure 3.** Walk-forward per-trade Sharpe trajectory across the 11 windows (§5.2 supplemental). The trend confirms the rising-edge pattern visible in Fig. 1.](experiments/figures/walk_forward_sharpe.png)
+
+![**Figure 4.** P&L vs. round-trip fee for the four ML models (§5.6). The rank-ordering of models is invariant to fee assumptions in the 0–10 pp range; LR and XGBoost remain the top tier across the entire fee spectrum.](experiments/figures/transaction_cost_sensitivity.png)
+
+![**Figure 5.** Mean |SHAP| feature importance for XGBoost (§5.7). `polymarket_vwap` dominates with mean |SHAP| ≈ 0.14, twice the next feature, suggesting Polymarket is the slower-reacting price discovery side.](experiments/figures/shap_bar_plot.png)
+
+![**Figure 6.** Cumulative test-set P&L by model (§5.1). The Tier-1 vs. Tier-2 separation opens gradually rather than in a single jump — consistent with a stable per-trade edge.](experiments/figures/backtest_equity_curves.png)
+
+![**Figure 7.** Bootstrap 95% CI on RMSE by model (1,000 resamples, §5.1). The LR / XGBoost / GRU / LSTM intervals overlap heavily even though P&L separates cleanly — confirming the P&L gap is driven by directional accuracy and trade selection, not raw regression error.](experiments/figures/bootstrap_ci_rmse.png)
+
+![**Figure 8.** P&L vs. lookback window for GRU and LSTM (§5.12 / Proposal Experiment 2). Performance is essentially flat across {2, 6, 12, 18}-bar lookbacks, indicating the sequence models cannot exploit longer history at this dataset scale.](experiments/figures/experiment2_lookback_pnl.png)
+
+![**Figure 9.** P&L heatmap by model × minimum-spread threshold (§5.13 / Proposal Experiment 3). Threshold = 2 pp dominates for all ML models; lower thresholds are dominated by noise, higher thresholds by missed trades.](experiments/figures/experiment3_threshold_heatmap.png)
+
+![**Figure 10.** TFT VSN variable-selection weights (§6.2.3). The attention is healthy (entropy = 2.656 vs. degenerate baseline of ≈ 0) — TFT's underperformance vs. GRU is a data-volume bottleneck at N=6,802, not an architectural failure.](experiments/figures/tft_variable_importance.png)
+
+![**Figure 11.** Walk-forward P&L at 2 pp fees across the 11-point LR-weight sweep (§5.11). The spread across weights is $4.68; the curve is essentially flat, confirming the production ensemble's weight choice is not cherry-picked.](experiments/figures/ensemble_weight_sweep.png)
