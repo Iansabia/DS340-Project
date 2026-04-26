@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-current_plan: 8
-status: in_progress
-stopped_at: Plan 18-07 PAUSED at human-verify checkpoint — Ian rejected Option A (replace 3.2 with 7.04) and chose Option B (pair-stratified leakage-free recompute). Plan 18-08 to be added for purged retraining of LR+XGBoost on a no-bridge train/test split. 18-07 Task 3 (paper updates + AUDIT_REPORT.md) deferred until 18-08 completes. 10-pair survivorship sample classified by Ian implicitly (10/10 structural → Tier 4 = PASS).
-last_updated: "2026-04-26T00:00:00.000Z"
+current_plan: 7
+status: completed
+stopped_at: "Completed 18-08-PLAN.md (purged pair-stratified leakage-free retraining + Tier 1 Sharpe audit redo) — verdict CORRECTED: purged corrected per-pair Sharpe +0.81 [CI 0.70, 1.07], +175% drift from leaky 0.30 (driven by negative purged avg_corr short-circuiting BLdP correction); per-trade Sharpe stable at +0.5159 (drift +2.99%); total P&L .63 (drift -14% on smaller test set 1398 vs 1673 rows); 0 embargo violations on purged split (115 train pairs / 29 test pairs); Plan 18-07 ready to resume at Task 3 with new headline numbers"
+last_updated: "2026-04-26T15:16:01.927Z"
 last_activity: 2026-04-26
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 33
-  completed_plans: 31
-  percent: 78
+  completed_plans: 32
+  percent: 81
 ---
 
 # Project State
@@ -31,7 +31,7 @@ Current Plan: 7
 Total Plans in Phase: 7
 Plan: 1 of 7 complete (18-01 Wave 0 scaffolding: experiments/audit/ + tests/audit/conftest.py + test_fixtures.py 4/4 passing)
 Status: Phase 18 Plan 01 (Wave 0 scaffolding) complete — experiments/audit/, experiments/results/audit/, tests/audit/conftest.py with 4 audit-target fixtures, and tests/audit/test_fixtures.py (4 passed in 0.02s). Zero new dependencies. Wave 1 (Plans 18-02, 18-03) ready to start.
-Last activity: 2026-04-25
+Last activity: 2026-04-26
 
 Progress: [████████░░] 81%
 
@@ -70,6 +70,7 @@ Progress: [████████░░] 81%
 | Phase 18-system-audit-adversarial-verification P04 | 6min | 2 tasks | 3 files |
 | Phase 18-system-audit-adversarial-verification P06 | 4min | 2 tasks | 3 files |
 | Phase 18-system-audit-adversarial-verification P05 | 5min | 2 tasks | 4 files |
+| Phase 18-system-audit-adversarial-verification P08 | 7min | 4 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -177,6 +178,9 @@ Recent decisions affecting current work:
 - [Phase 18-06]: SHARPE_LONG_RE addition (200-char window) needed to capture abstract's per-pair Sharpe ≈ 3.2 long-form claim that the verbatim RESEARCH.md SHARPE_RE 30-char window missed; deduplicated against SHARPE_RE via end-position keys
 - [Phase 18-06]: Two MISMATCH rows pre-flagged for Plan 18-07: per-pair annualized Sharpe ≈ 3.2 (Abstract line 12 + §8 Conclusions line 710) traces to sharpe_audit.json which reproduced 18.60 naive / 7.04 BLdP-corrected — 3.2 does NOT appear in any audit JSON; likely outdated copy from prior backtest
 - [Phase 18-system-audit-adversarial-verification]: [Phase 18-05-survivorship-audit]: Tier 4 verdict=PASS — heuristic drop_rate=0.999 (n_dropped=148094/n_candidates=148238) with all 10 random-sample entries classified low_overlap_n_bars=0 (live-discovery candidates from late April 2026 that postdate the test.parquet 2026-04-09 snapshot, never entered offline pipeline). Final verdict pending Ian's manual review per Plan 18-07 checkpoint. RESEARCH.md skeleton extended with make_pair_id synthesis from active_matches.json (kalshi_ticker+poly_id) because schema lacks top-level pair_id key — without synthesis n_dropped would be 0 (vacuous audit).
+- [Phase 18-08-leakage-free-recompute]: Verdict CORRECTED on purged Tier 1 Sharpe audit (Plan 18-08): leakage-free per-pair corrected Sharpe is +0.81 [CI +0.70, +1.07], a +175% INCREASE over leaky-canonical +0.30. Mechanism: leaky avg pairwise correlation +0.0418 compressed leaky naive 0.78 to corrected 0.30 via the BLdP effective-sample-size correction; purged avg pairwise correlation is -0.1986 on the smaller N=29 test pairs, which short-circuits the BLdP correction (avg_corr <= 0 returns naive Sharpe unchanged) so purged corrected = purged naive = 0.81. The +175% drift fails the PASS gate's |drift_pct| < 50% requirement, but the direction is favorable (purged HIGHER than leaky) and the CI is entirely positive. Per-trade Sharpe is invariant to leakage correction: +0.5007 -> +0.5159 (drift +2.99%). Per-pair NAIVE Sharpe drift is also small (+4.20%); only the BLdP-corrected number moves dramatically because the correction's applicability flips between the two regimes. Honest paper framing: per-trade edge is robust to leakage correction; per-pair Sharpe headline depends on cross-pair correlation regime which is sample-size-sensitive at N=29 test pairs. The 3.2 number that motivated this plan continues to have no derivation path; the leakage-free replacement is +0.81 corrected per-pair (or +0.5159 per-trade depending on which framing the abstract adopts).
+- [Phase 18-08-leakage-free-recompute]: Pair-stratified split mechanics (data/processed/purged_split/): concatenate canonical train+test (8763 rows / 144 pairs), shuffle unique pair_id list with np.random.default_rng(seed=42).shuffle on a numpy object array (avoids ArrowStringArray UserWarning), atomic 80/20 by pair count -> 115 train pairs / 29 test pairs. After canonical _build_split (drops trailing-bar NaN targets) the row counts are 7221 train / 1398 test. Zero pair_id intersection between halves by construction. data/processed/ is gitignored so the parquets are regenerated on demand; split_metadata.json records the pair_id assignments for traceability.
+- [Phase 18-08-leakage-free-recompute]: Sister-script reuse pattern: experiments/run_canonical_purged.py imports evaluate_predictions + canonical constants from run_canonical, and _build_split + _feature_columns + prepare_xy from run_baselines — swaps ONLY the data source. experiments/audit/audit_sharpe_purged.py imports per_pair_returns + per_pair_sharpe_naive + avg_pairwise_correlation + correlation_corrected_sharpe + bootstrap_sharpe_ci + annualization_factor + per_trade_sharpe from audit_sharpe — swaps ONLY the ledger source. The reuse rule (DO NOT duplicate audit metric code) is enforced by a test (test_audit_sharpe_purged.py::test_purged_audit_reuses_canonical_helpers) that asserts the imported functions are the SAME OBJECT as in audit_sharpe.py. This pattern is the canonical way to add a parametric variant of an existing audit/training script in this codebase going forward.
 
 ### Pending Todos
 
@@ -192,7 +196,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-25T19:59:30.572Z
-Stopped at: Completed 18-05-PLAN.md (Wave 2 Tier 4 survivorship audit) — verdict=PASS, drop_rate=0.999 (148094/148238), 10-pair random sample marked pending_human_review for Plan 18-07 Wave 3 checkpoint; Wave 2 fully complete (18-04+05+06); Wave 3 (Plan 18-07) ready
+Last session: 2026-04-26T15:15:37.118Z
+Stopped at: Completed 18-08-PLAN.md (purged pair-stratified leakage-free retraining + Tier 1 Sharpe audit redo) — verdict CORRECTED: purged corrected per-pair Sharpe +0.81 [CI 0.70, 1.07], +175% drift from leaky 0.30 (driven by negative purged avg_corr short-circuiting BLdP correction); per-trade Sharpe stable at +0.5159 (drift +2.99%); total P&L .63 (drift -14% on smaller test set 1398 vs 1673 rows); 0 embargo violations on purged split (115 train pairs / 29 test pairs); Plan 18-07 ready to resume at Task 3 with new headline numbers
 Resume file: None
 Next action: Begin Phase 18 Wave 1 — Plans 18-02 (Tier 1 Sharpe audit) and 18-03 (Tier 2 leakage audit) can run in parallel. Both have their fixtures pre-loaded in tests/audit/conftest.py.
