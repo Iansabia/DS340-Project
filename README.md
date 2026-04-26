@@ -6,7 +6,13 @@ Cross-platform prediction-market arbitrage on Kalshi and Polymarket, DS340 final
 
 ## What is this?
 
-An empirical study asking whether increasing model complexity improves arbitrage detection across Kalshi and Polymarket. We train four tiers of models (Linear Regression, XGBoost → GRU, LSTM, TFT → PPO → PPO + autoencoder) on a common evaluation protocol and find that **the simplest models consistently dominate**. The paper (`PAPER_DRAFT.md`) contains the full methodology, results, and discussion.
+An empirical study asking whether increasing model complexity improves arbitrage detection across Kalshi and Polymarket. We train four tiers of models (Linear Regression, XGBoost → GRU, LSTM, TFT → PPO → PPO + autoencoder) on a common evaluation protocol and find that **the simplest models consistently dominate**. Linear Regression achieves a per-trade Sharpe of 0.501 with +15.0 bps per-trade alpha, tied with XGBoost; PPO + autoencoder collapses to +0.5 bps — 30× less edge for substantially more compute.
+
+## Where to look
+
+- **`PAPER_DRAFT.md`** — full paper: methodology, results, discussion, limitations
+- **`AUDIT_REPORT.md`** — adversarial audit report (Phase 18). Six-tier verification of every quantitative claim, including a leakage-free recompute on a pair-stratified split. Read this if you want to trust the numbers.
+- **`slides_deck.html`** — 7-slide lightning talk (open in Chrome; arrow keys to navigate, ? for help). A `.pptx` export is also generated locally.
 
 ## Quick start
 
@@ -58,13 +64,21 @@ The autonomous system deployed on BU SCC is documented separately; see `docs/SCC
 ## Project structure
 
 ```
-src/              # Model code, feature pipeline, matching, live system
-experiments/      # Runner scripts for each paper table/figure
-scripts/          # Ops scripts (data scaling, figure regeneration, paper checks)
-tests/            # pytest suite
-data/raw/         # Raw API dumps (Kalshi + Polymarket)
-data/processed/   # Aligned feature dataframes
-experiments/results/  # JSON and CSV outputs from experiment runs
-experiments/figures/  # PNG figures (IEEE style, 300 DPI)
-.planning/        # GSD phase plans and research documents
+src/                          # Model code, feature pipeline, matching, live system
+experiments/                  # Runner scripts for each paper table/figure
+experiments/audit/            # Phase 18 audit scripts (Sharpe, leakage, costs, etc.)
+experiments/results/          # JSON outputs from experiment runs
+experiments/results/canonical/         # Canonical headline.json (single source of truth for paper numbers)
+experiments/results/canonical_purged/  # Leakage-free re-run on pair-stratified split (Phase 18)
+experiments/results/audit/             # Per-tier audit JSON outputs + paper_numbers.csv trace
+experiments/figures/          # PNG figures (IEEE style, 300 DPI)
+scripts/                      # Ops scripts (data scaling, figure regeneration, paper checks)
+tests/                        # pytest suite (incl. tests/audit/ for Phase 18 audit fixtures)
+data/raw/                     # Raw API dumps (Kalshi + Polymarket)
+data/processed/               # Aligned feature dataframes
+data/processed/purged_split/  # Pair-stratified train/test split (Phase 18, leakage-free)
 ```
+
+## Audit + reproducibility
+
+Every numeric claim in `PAPER_DRAFT.md` is traced to a canonical file in `experiments/results/audit/paper_numbers.csv`. Re-running `bash scripts/check_paper.sh` validates 26 regression checks against the paper text. The leakage-free recompute that produced the final headline numbers is in `experiments/audit/audit_sharpe_purged.py`; see `AUDIT_REPORT.md` for the full methodology.
