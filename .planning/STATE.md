@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Extended Evidence & Submission
-current_plan: 7
-status: completed
-stopped_at: Completed 18-05-PLAN.md (Wave 2 Tier 4 survivorship audit) — verdict=PASS, drop_rate=0.999 (148094/148238), 10-pair random sample marked pending_human_review for Plan 18-07 Wave 3 checkpoint; Wave 2 fully complete (18-04+05+06); Wave 3 (Plan 18-07) ready
-last_updated: "2026-04-25T19:59:36.870Z"
-last_activity: 2026-04-25
+current_plan: 8
+status: in_progress
+stopped_at: Plan 18-07 PAUSED at human-verify checkpoint — Ian rejected Option A (replace 3.2 with 7.04) and chose Option B (pair-stratified leakage-free recompute). Plan 18-08 to be added for purged retraining of LR+XGBoost on a no-bridge train/test split. 18-07 Task 3 (paper updates + AUDIT_REPORT.md) deferred until 18-08 completes. 10-pair survivorship sample classified by Ian implicitly (10/10 structural → Tier 4 = PASS).
+last_updated: "2026-04-26T00:00:00.000Z"
+last_activity: 2026-04-26
 progress:
   total_phases: 11
   completed_phases: 9
-  total_plans: 32
+  total_plans: 33
   completed_plans: 31
-  percent: 81
+  percent: 78
 ---
 
 # Project State

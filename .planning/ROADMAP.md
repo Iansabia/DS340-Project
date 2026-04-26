@@ -318,7 +318,8 @@ Plans:
 - [ ] 18-04-PLAN.md — Wave 2: Tier 3 cost realism audit (fee handling + slippage sweep + Kalshi/Polymarket fee schedule) [AUDIT-03]
 - [ ] 18-05-PLAN.md — Wave 2: Tier 4 survivorship audit (candidate-vs-realized universe diff + 10-pair manual sample) [AUDIT-04]
 - [ ] 18-06-PLAN.md — Wave 2: Tier 5 paper number-by-number trace (paper_numbers.csv + ≥5 new check_paper.sh checks) [AUDIT-05]
-- [ ] 18-07-PLAN.md — Wave 3: Tier 6 live-vs-backtest z-test + AUDIT_REPORT.md + conditional paper/slide updates [AUDIT-06]
+- [ ] 18-07-PLAN.md — Wave 3: Tier 6 live-vs-backtest z-test + AUDIT_REPORT.md + conditional paper/slide updates [AUDIT-06] (PAUSED at checkpoint — Ian chose Option B; Task 1 complete, Tasks 2+3 awaiting 18-08 outputs)
+- [ ] 18-08-PLAN.md — Wave 3.5: Pair-stratified leakage-free recompute (LR + XGBoost retraining on purged 80/20 split, seed=42, no pair bridges; produces canonical_purged/headline.json + sharpe_audit_purged.json) [AUDIT-07]
 
 ---
 *Roadmap created: 2026-04-01*
