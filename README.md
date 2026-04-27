@@ -13,7 +13,6 @@ An empirical study asking whether increasing model complexity improves arbitrage
 - **`paper.pdf`** — final research paper (29 pages, 11 figures, 10 tables; rendered from `PAPER_DRAFT.md`). **Start here.**
 - **`PAPER_DRAFT.md`** — markdown source of the paper (canonical text)
 - **`AUDIT_REPORT.md`** — adversarial audit report (Phase 18). Six-tier verification of every quantitative claim, including a leakage-free recompute on a pair-stratified split.
-- **`AI_ATTRIBUTION.md`** — code authorship disclosure: what was human-led vs. AI-assisted (Claude Code), with a per-component breakdown.
 - **`slides_deck.pptx`** — 7-slide lightning talk (4-minute, two-presenter format; open in PowerPoint or Keynote).
 
 ## Quick start
@@ -80,6 +79,10 @@ data/raw/                     # Raw API dumps (Kalshi + Polymarket)
 data/processed/               # Aligned feature dataframes
 data/processed/purged_split/  # Pair-stratified train/test split (Phase 18, leakage-free)
 ```
+
+## Code authorship & AI attribution
+
+The model implementations in `src/models/` (LR, XGBoost, GRU, LSTM, TFT, PPO, PPO+autoencoder, baselines, ensemble) are human-authored — the architecture choices, hyperparameter decisions, and reward function design represent our research contribution. The supporting infrastructure (data ingestion, market matching, feature engineering, evaluation utilities, live trading system, audit pipeline, tests, and operational scripts) was built with AI pair-programming assistance (Anthropic Claude via Claude Code), with the human authors specifying requirements, reviewing every change, and testing behavior. Each package's `__init__.py` carries a short docstring identifying its authorship category. No code was copied from online sources; all third-party libraries are used per their published licenses.
 
 ## Audit + reproducibility
 

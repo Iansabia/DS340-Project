@@ -1,3 +1,11 @@
+"""
+This package contains the model implementations (LR, XGBoost, GRU, LSTM,
+TFT, PPO, autoencoder, ensemble, baselines). Architecture choices,
+hyperparameter decisions, and reward function design are by the human
+authors (Ian Sabia, Alvin Jang). See README.md for the full authorship
+disclosure.
+"""
+
 """Prediction models for spread forecasting.
 
 Core models (no PyTorch dependency) are imported eagerly.
