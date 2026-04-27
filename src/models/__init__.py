@@ -1,13 +1,14 @@
 """
 Model implementations (LR, XGBoost, GRU, LSTM, TFT, PPO, PPO+autoencoder,
-ensemble, baselines). The research decisions encoded here — which model
-tiers to compare, which hyperparameters to sweep, which reward function
-PPO optimizes, how to wrap pretrained components into a unified interface
-— are by the human authors (Ian Sabia, Alvin Jang). The Python
-implementation code was developed with AI pair-programming assistance
-(Anthropic Claude via Claude Code) under human direction and review, the
-same as the rest of this repository. See README.md for the full
-authorship disclosure.
+ensemble, baselines). This code is mostly written by the human authors
+(Ian Sabia, Alvin Jang) — research decisions, model architecture choices,
+hyperparameter selection, reward function design, and the substantive
+logic of each model wrapper are ours. AI (Anthropic Claude via Claude
+Code) assisted alongside us as a coding helper for syntax, refactoring,
+and debugging, but did not drive the implementation. This package
+authorship is closer to "human-led with AI assistance" than to the rest
+of the repository, which is "AI-generated under human direction." See
+README.md for the full authorship disclosure.
 """
 
 """Prediction models for spread forecasting.
