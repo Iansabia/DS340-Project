@@ -13,6 +13,7 @@ An empirical study asking whether increasing model complexity improves arbitrage
 - **`paper.pdf`** — final research paper (29 pages, 11 figures, 10 tables; rendered from `PAPER_DRAFT.md`). **Start here.**
 - **`PAPER_DRAFT.md`** — markdown source of the paper (canonical text)
 - **`AUDIT_REPORT.md`** — adversarial audit report (Phase 18). Six-tier verification of every quantitative claim, including a leakage-free recompute on a pair-stratified split.
+- **`AI_ATTRIBUTION.md`** — code authorship disclosure: what was human-led vs. AI-assisted (Claude Code), with a per-component breakdown.
 - **`slides_deck.pptx`** — 7-slide lightning talk (4-minute, two-presenter format; open in PowerPoint or Keynote).
 
 ## Quick start
