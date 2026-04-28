@@ -33,7 +33,8 @@ graphify-out/
 .claude/
 
 # Internal working docs — kept locally for development reference but not
-# included in the public repo (graders see paper, slides, code, AUDIT_REPORT.md).
+# included in the public repo. Paper, slides, and audit report are
+# submitted separately; only code lives in this repo.
 CLAUDE.md
 AGENTS.md
 SLIDES_GUIDE.md
@@ -42,6 +43,19 @@ FINDINGS.md
 TRADING_REPORT.md
 ROADMAP.md
 .planning/
+
+# Paper and slide deliverables (submitted separately, not in the code repo)
+PAPER_DRAFT.md
+AUDIT_REPORT.md
+paper.pdf
+paper.docx
+paper.pptx
+slides_deck.html
+slides_deck.pptx
+DS340_Final_Paper_*.pdf
+DS340_Final_Paper_*.docx
+DS340_Final_Paper_*.pptx
+scripts/build_paper_pdf.sh
 
 # Source assignment / proposal PDFs (shouldn't be in the deliverable repo)
 DS340*.pdf
