@@ -45,8 +45,8 @@ ROADMAP.md
 .planning/
 
 # Paper and slide deliverables (submitted separately, not in the code repo)
+# AUDIT_REPORT.md stays tracked — paper §3.5 references it by filename.
 PAPER_DRAFT.md
-AUDIT_REPORT.md
 paper.pdf
 paper.docx
 paper.pptx
