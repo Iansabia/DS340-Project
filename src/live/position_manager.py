@@ -89,7 +89,12 @@ class PositionManager:
         Path(self.history_jsonl_path).parent.mkdir(parents=True, exist_ok=True)
 
         self._conn = sqlite3.connect(self.db_path)
-        self._conn.execute("PRAGMA journal_mode=WAL")
+        # Use TRUNCATE journaling instead of WAL: WAL requires shared memory
+        # primitives that aren't available on networked filesystems (NFS),
+        # and BU SCC's /usr4 is NFS-mounted. TRUNCATE is the fastest
+        # NFS-compatible journal mode and is equivalent for our
+        # single-writer cron workload.
+        self._conn.execute("PRAGMA journal_mode=TRUNCATE")
         self._conn.row_factory = sqlite3.Row
         self._create_tables()
 
