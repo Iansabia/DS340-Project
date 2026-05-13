@@ -389,22 +389,22 @@ def _open_with_state(pm, pair_id, direction="short_spread", entry_spread=0.50,
 # ---------------------------------------------------------------------------
 
 def test_exit_rule_take_profit(pm):
-    """Take profit fires: entry=0.50, current=0.24 (< 0.25 = 50%) -> TAKE_PROFIT."""
-    _open_with_state(pm, "tp_yes", current_spread=0.24)
+    """Take profit fires: entry=0.50, current=0.34 (< 0.35 = 70%) -> TAKE_PROFIT."""
+    _open_with_state(pm, "tp_yes", current_spread=0.34)
     now = datetime(2026, 4, 9, 12, 0, tzinfo=timezone.utc)
     assert pm.check_exits("tp_yes", now) == ExitReason.TAKE_PROFIT
 
 
 def test_exit_rule_take_profit_not_triggered(pm):
-    """Take profit does not fire: entry=0.50, current=0.30 (> 0.25) -> None."""
-    _open_with_state(pm, "tp_no", current_spread=0.30)
+    """Take profit does not fire: entry=0.50, current=0.40 (> 0.35) -> None."""
+    _open_with_state(pm, "tp_no", current_spread=0.40)
     now = datetime(2026, 4, 9, 12, 0, tzinfo=timezone.utc)
     assert pm.check_exits("tp_no", now) is None
 
 
 def test_exit_rule_take_profit_boundary(pm):
-    """Take profit fires at boundary: entry=0.50, current=0.25 (exactly 50%) -> TAKE_PROFIT."""
-    _open_with_state(pm, "tp_boundary", current_spread=0.25)
+    """Take profit fires at boundary: entry=0.50, current=0.35 (exactly 70%) -> TAKE_PROFIT."""
+    _open_with_state(pm, "tp_boundary", current_spread=0.35)
     now = datetime(2026, 4, 9, 12, 0, tzinfo=timezone.utc)
     assert pm.check_exits("tp_boundary", now) == ExitReason.TAKE_PROFIT
 

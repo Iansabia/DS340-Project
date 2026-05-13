@@ -400,11 +400,15 @@ class TradingStrategy:
             # entries through at the normal threshold but require a
             # higher bar for low-edge categories. This focuses capital
             # on the categories that actually make money.
+            #
+            # Universe tightened 2026-05-12 after live audit of 5000
+            # exits: KXDOGED (crypto) ran n=1820 at 34% WR and net
+            # flat — empirically not edge. Inflation similar. Restrict
+            # the "commodity" universe to oil + non-oil commodities,
+            # which are the only categories the paper actually validated.
             from src.features.category import derive_category_from_ticker
             category = derive_category_from_ticker(k_ticker)
-            is_commodity = category in (
-                "oil", "crypto", "inflation",  # historically positive edge
-            )
+            is_commodity = category in ("oil", "commodities")
 
             # Build features and predict
             features = self._build_feature_vector(k_price, p_price, pair_id, ts)
@@ -429,13 +433,18 @@ class TradingStrategy:
                 continue
 
             # Prediction threshold: commodity pairs use the normal bar,
-            # non-commodity pairs need 3x the prediction confidence.
+            # non-commodity pairs need 5x the prediction confidence.
             # This doesn't block non-commodity entirely — a strong
             # enough signal still triggers — but filters out marginal
             # entries that historically lost money.
+            #
+            # Multiplier raised 3x → 5x on 2026-05-12 after live audit:
+            # KXPAYROLLS (n=489) and KXVOTESAVEAMERICA (n=132) were
+            # still passing the 3x filter and bleeding capital. 5x
+            # forces a stronger conviction for any non-edge category.
             effective_threshold = self.prediction_threshold
             if not is_commodity:
-                effective_threshold = self.prediction_threshold * 3.0
+                effective_threshold = self.prediction_threshold * 5.0
             if abs(avg_pred) < effective_threshold:
                 continue
 
