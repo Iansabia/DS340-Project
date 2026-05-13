@@ -68,3 +68,8 @@ slides.pdf
 # Debug logs
 rebuild_*.log
 *.log
+
+# Live trading credentials — NEVER commit
+.env.live
+.env.live.local
+~/.kalshi/

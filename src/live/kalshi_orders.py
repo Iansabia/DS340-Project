@@ -32,7 +32,24 @@ from src.live.risk_manager import is_live_trading_armed
 
 logger = logging.getLogger(__name__)
 
-KALSHI_API_BASE = "https://api.elections.kalshi.com/trade-api/v2"
+KALSHI_API_BASE_PROD = "https://api.elections.kalshi.com/trade-api/v2"
+KALSHI_API_BASE_DEMO = "https://demo-api.kalshi.co/trade-api/v2"
+
+# Allow env-var override so users can practice on demo before committing
+# real USD. KALSHI_ENVIRONMENT=demo points at the sandbox; anything else
+# (including unset) points at prod.
+def _resolve_kalshi_base() -> str:
+    env = os.environ.get("KALSHI_ENVIRONMENT", "").strip().lower()
+    if env == "demo":
+        return KALSHI_API_BASE_DEMO
+    # Explicit URL override wins over both presets.
+    custom = os.environ.get("KALSHI_API_BASE", "").strip()
+    if custom:
+        return custom
+    return KALSHI_API_BASE_PROD
+
+
+KALSHI_API_BASE = KALSHI_API_BASE_PROD  # legacy alias; prefer _resolve_kalshi_base()
 
 
 def _load_private_key(pem_path: Path):
@@ -78,7 +95,7 @@ def _sign_request(private_key, timestamp_ms: int, method: str, path: str) -> str
 class KalshiOrderClient:
     api_key_id: str = field(default_factory=lambda: os.environ.get("KALSHI_API_KEY_ID", ""))
     private_key_path: str = field(default_factory=lambda: os.environ.get("KALSHI_PRIVATE_KEY_PATH", ""))
-    api_base: str = KALSHI_API_BASE
+    api_base: str = field(default_factory=_resolve_kalshi_base)
     request_timeout_seconds: float = 10.0
 
     def __post_init__(self) -> None:
