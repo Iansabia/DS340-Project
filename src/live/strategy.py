@@ -37,7 +37,9 @@ import pandas as pd
 from src.features.engineering import compute_derived_features
 from src.live.collector import LiveCollector
 from src.live.contract_classifier import ContractClassifier
+from src.live.order_executor import execute_arb
 from src.live.position_manager import ExitReason, PositionManager
+from src.live.risk_manager import is_live_trading_armed
 from src.models.base import BasePredictor
 
 logger = logging.getLogger(__name__)
@@ -145,6 +147,27 @@ class TradingStrategy:
         self._collector = LiveCollector(
             live_dir=self.live_dir, use_live_pairs=True
         )
+
+        # Real-money order clients. ONLY constructed when LIVE_TRADING
+        # is armed — paper-mode runs should never instantiate live API
+        # clients (avoids accidental config / credential loading).
+        # Each client lazily defers heavy imports + network until used.
+        self._kalshi_client = None
+        self._poly_client = None
+        if is_live_trading_armed():
+            try:
+                from src.live.kalshi_orders import KalshiOrderClient
+                from src.live.polymarket_orders import PolymarketOrderClient
+                self._kalshi_client = KalshiOrderClient()
+                self._poly_client = PolymarketOrderClient()
+                logger.warning(
+                    "LIVE_TRADING ARMED — real-money order placement is ENABLED."
+                )
+            except Exception as e:
+                logger.exception(
+                    "LIVE_TRADING armed but failed to construct order clients: %s. "
+                    "Falling back to paper-only.", e,
+                )
 
     # ------------------------------------------------------------------
     # Helpers
@@ -453,6 +476,54 @@ class TradingStrategy:
                 direction = "short_spread"  # bet spread narrows
             else:
                 direction = "long_spread"
+
+            # Real-money execution layer.
+            # When LIVE_TRADING env var is NOT 'true', execute_arb returns
+            # a paper-mode no-op so the existing position_manager-only
+            # codepath continues unchanged. When LIVE_TRADING IS 'true',
+            # it places real orders on both Kalshi + Polymarket and runs
+            # the risk gate, returning a permit/reject decision.
+            exec_result = None
+            if not dry_run:
+                # Polymarket token IDs come from pair_mapping; the live
+                # entries don't include them today so we attempt a best-
+                # effort lookup. If the YES/NO tokens aren't known we
+                # cannot place a real order — fall back to paper-only.
+                poly_yes_token = info.get("polymarket_yes_token_id", "")
+                poly_no_token = info.get("polymarket_no_token_id", "")
+                if is_live_trading_armed() and (not poly_yes_token or not poly_no_token):
+                    logger.warning(
+                        "LIVE_TRADING armed but poly token ids missing for %s; "
+                        "skipping entry (would be one-sided exposure).",
+                        pair_id,
+                    )
+                    continue
+
+                exec_result = execute_arb(
+                    pair_id=pair_id,
+                    kalshi_ticker=k_ticker,
+                    poly_yes_token_id=poly_yes_token,
+                    poly_no_token_id=poly_no_token,
+                    kalshi_yes_price=k_price,
+                    poly_yes_price=p_price,
+                    spread=spread,
+                    kalshi_client=getattr(self, "_kalshi_client", None),
+                    poly_client=getattr(self, "_poly_client", None),
+                )
+                if not exec_result.permitted:
+                    logger.info(
+                        "ENTRY rejected by risk gate: %s — %s",
+                        pair_id, exec_result.reject_reason,
+                    )
+                    continue
+                # Skip writing to position_manager if a real-money entry
+                # was attempted but only one leg filled. The order_executor
+                # already cancelled the open leg; logging it as a position
+                # would falsely mark capital as deployed.
+                if is_live_trading_armed() and not (
+                    exec_result.placed_kalshi and exec_result.placed_polymarket
+                ):
+                    continue
 
             # Open position.
             # Store entry_spread SIGNED (not abs) so it matches the
