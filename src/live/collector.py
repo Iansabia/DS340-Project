@@ -180,6 +180,13 @@ class LiveCollector:
                 "kalshi_title": m.get("kalshi_title", ""),
                 "poly_title": m.get("poly_title", ""),
                 "similarity": m.get("similarity", 0),
+                # YES/NO outcome token IDs are required for placing real
+                # orders on Polymarket CLOB. discover_pairs() captures
+                # them from the Gamma API; pre-2026-05-12 entries don't
+                # have them and need a one-shot enrichment via
+                # scripts/enrich_pair_mapping_with_tokens.py.
+                "polymarket_yes_token_id": m.get("polymarket_yes_token_id", ""),
+                "polymarket_no_token_id": m.get("polymarket_no_token_id", ""),
             }
         # Cap to top N by similarity to stay within Kalshi rate limits.
         # With 13k+ pairs, pricing all of them takes ~13 min and triggers

@@ -604,6 +604,41 @@ def _poly_volume(m: dict) -> float:
     return best
 
 
+def _extract_outcome_tokens(m: dict) -> tuple[str, str]:
+    """Return (yes_token_id, no_token_id) decimal strings from a Gamma record.
+
+    Polymarket's CLOB requires per-outcome ERC-1155 token IDs (not just
+    the market-level conditionId) for order placement. They live in
+    ``clobTokenIds`` as a JSON-encoded length-2 array, with index order
+    matching the ``outcomes`` array (typically ["Yes","No"], but we
+    don't trust that — we read ``outcomes`` and pick the actual YES side).
+
+    Returns ("", "") if the market isn't binary or the field is malformed.
+    """
+    tokens_raw = m.get("clobTokenIds")
+    outcomes_raw = m.get("outcomes")
+    if not tokens_raw or not outcomes_raw:
+        return ("", "")
+    try:
+        tokens = (json.loads(tokens_raw)
+                  if isinstance(tokens_raw, str) else tokens_raw)
+        outcomes = (json.loads(outcomes_raw)
+                    if isinstance(outcomes_raw, str) else outcomes_raw)
+    except (json.JSONDecodeError, TypeError):
+        return ("", "")
+    if not isinstance(tokens, list) or not isinstance(outcomes, list):
+        return ("", "")
+    if len(tokens) != 2 or len(outcomes) != 2:
+        return ("", "")
+    yes_idx = next(
+        (i for i, o in enumerate(outcomes)
+         if str(o).strip().lower() in ("yes", "true", "y")),
+        0,
+    )
+    no_idx = 1 - yes_idx
+    return (str(tokens[yes_idx]), str(tokens[no_idx]))
+
+
 def _filter_poly_by_volume(
     poly_markets: list[dict], min_volume: float = MIN_POLY_VOLUME
 ) -> list[dict]:
@@ -718,6 +753,11 @@ def match_markets(
         pm = poly_markets[int(best_idx[i])]
         k_mid = _kalshi_mid(km)
         p_price = _poly_yes_price(pm)
+        # Capture YES/NO outcome ERC-1155 token IDs from clobTokenIds.
+        # Required for placing real orders on Polymarket CLOB. Format is
+        # a JSON-string array [yes_token, no_token] of decimal strings.
+        # Index ordering is determined by `outcomes`: ["Yes","No"].
+        yes_token, no_token = _extract_outcome_tokens(pm)
         match = {
             "kalshi_ticker": kt,
             "kalshi_title": km.get("title", ""),
@@ -728,6 +768,8 @@ def match_markets(
             "poly_title": pm.get("question", ""),
             "poly_price": p_price,
             "poly_vol": _poly_volume(pm),
+            "polymarket_yes_token_id": yes_token,
+            "polymarket_no_token_id": no_token,
             "similarity": sim_val,
             "spread": round(k_mid - p_price, 6),
         }
