@@ -352,11 +352,13 @@ class GRUPredictor(BasePredictor):
         all_windows: list[np.ndarray] = []
 
         # Process by group to respect pair boundaries
-        # Preserve row order: iterate over unique gids in order of first appearance
+        # Preserve row order: iterate over unique gids in order of first appearance.
+        # group_ids are accepted as-is (int OR str): content-addressed pair_ids
+        # like "kxwti26apr27t9099-0x2c50e53f" are now used as group_ids in the
+        # live pipeline, so we cannot assume integer keys.
         seen_gids: list = []
-        gid_test_indices: dict[int, list[int]] = {}
+        gid_test_indices: dict = {}
         for i, gid in enumerate(group_ids_test):
-            gid = int(gid)
             if gid not in gid_test_indices:
                 seen_gids.append(gid)
                 gid_test_indices[gid] = []
@@ -364,7 +366,7 @@ class GRUPredictor(BasePredictor):
 
         # Pre-build output array to fill in order
         predictions = np.zeros(n_test, dtype=float)
-        windows_by_row: dict[int, np.ndarray] = {}
+        windows_by_row: dict = {}
 
         for gid in seen_gids:
             test_indices = gid_test_indices[gid]

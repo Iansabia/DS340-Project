@@ -387,19 +387,23 @@ class PositionManager:
     # ------------------------------------------------------------------
 
     def _check_take_profit(self, pos: Position) -> bool:
-        """Take profit: spread magnitude narrowed >= 30% from entry.
+        """Take profit: spread magnitude narrowed >= 50% from entry.
 
         Compares MAGNITUDES so the check is correct regardless of
         whether entry_spread is stored signed or (historically) as abs.
         Protects against the Task #28 live_0237 bug class.
 
-        Threshold tuned 2026-05-12: was 0.5 (50% narrowing); fired only
-        2/5000 = 0.04% of exits, so winners decayed to RESOLUTION_EXIT
-        at ~$0 instead of being captured. 0.7 (30% narrowing) is
-        empirically supported by the TIME_STOP exit cohort (n=389,
-        +$1.78 sum, 42.4% WR) which exited at intermediate spreads.
+        2026-05-12 retest: a sweep over 49,727 historical positions
+        (scripts/backtest_strategy_changes.py) shows estimated P&L is
+        monotonically increasing as TP_RATIO → 0:
+            0.20 = +$288   0.40 = +$233   0.50 = +$194
+            0.60 = +$156   0.70 = +$105   0.90 = -$43
+        Looser TP fires more often but exits trades that were on track
+        for larger profit. Tighter TP captures only strong moves. The
+        original 0.5 is the conservative middle; tightening further is
+        a data-supported follow-up but requires live validation.
         """
-        return abs(pos.current_spread) <= abs(pos.entry_spread) * 0.7
+        return abs(pos.current_spread) <= abs(pos.entry_spread) * 0.5
 
     def _check_stop_loss(self, pos: Position) -> bool:
         """Stop loss: spread magnitude widened > 30% beyond entry."""
