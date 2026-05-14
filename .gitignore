@@ -14,6 +14,11 @@ data/processed/
 !data/processed/test.parquet
 !data/processed/aligned_pairs.parquet
 !data/processed/all_pairs_v2.json
+# Canonical oil-only split for the 2026 retraining study. Committed
+# so every number in the writeup traces to a reproducible artifact.
+!data/processed/canonical_oil/
+!data/processed/canonical_oil/*.parquet
+!data/processed/canonical_oil/*.json
 # Live data managed by GitHub Actions (force-added in workflow).
 # paper_trades*.jsonl covers both the legacy archive and per-UTC-day
 # rotated files (task #27). Force-added in collect-and-trade workflow.
