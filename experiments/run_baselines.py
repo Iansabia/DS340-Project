@@ -75,6 +75,12 @@ NON_FEATURE_COLUMNS = {
     "kalshi_buy_volume",            # all-zero in train (upstream data issue)
     "kalshi_sell_volume",           # all-zero in train (upstream data issue)
     "kalshi_realized_spread",       # all-zero in train (upstream data issue)
+    "kalshi_kyle_lambda",           # all-zero in train (Kyle's lambda requires
+                                    # trade-level buy/sell volume which Kalshi
+                                    # doesn't expose; falls back to 0 for the
+                                    # whole column → zero variance → sequence
+                                    # model feature scaler emits NaN. Found
+                                    # via GHA Collect & Paper Trade 2026-05-13.
 }
 
 TARGET_COLUMN = "spread_change_target"

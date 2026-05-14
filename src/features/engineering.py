@@ -246,5 +246,10 @@ def compute_derived_features(df: pd.DataFrame) -> pd.DataFrame:
         _roll = 2 * np.sqrt((-_cov).clip(lower=0))
         result.loc[_sorted.index, f"{_plat}_roll_spread"] = _roll.values
 
-    # Ensure column order matches schema
-    return result[OUTPUT_COLUMNS]
+    # Ensure column order matches schema, but preserve harness-only
+    # columns (group_id, time_idx) when the caller passed them. Phase 3
+    # train.parquet carries both; Tier 2 sequence models need group_id
+    # for pair-boundary-respecting windowing, and run_baselines's
+    # prepare_xy_for_seq breaks if it's silently dropped here.
+    _passthrough = [c for c in ("group_id", "time_idx") if c in result.columns]
+    return result[OUTPUT_COLUMNS + _passthrough]
