@@ -254,21 +254,89 @@ Phases 2-4 can follow at operator pace over a week.
 
 ---
 
-**Open questions for discussion:**
+## Decisions (operator-authorized 2026-05-23)
 
-1. **A vs B vs E (storage backend):** /projectnb is the lowest-friction
-   path but ties bars to SCC. Is that acceptable for the foreseeable
-   future, or should we plan for portability now via S3/R2?
+1. **Storage backend: /projectnb/ds340/projects/iansabia.** Lowest
+   friction; portability is YAGNI for the immediate horizon. Can
+   migrate to S3/R2 later by running a one-shot `aws s3 sync` if the
+   project ever needs to leave SCC.
 
-2. **Continue committing daily snapshots?** Even after the every-15-min
-   cron commit stops, would a once-daily commit of bars.parquet
-   (~365 commits/year vs 35,000/year today) be useful as a paper-trail
-   for the live system, or should we go fully off-git?
+2. **Stop committing bars.parquet entirely.** No daily snapshots, no
+   weekly snapshots. Operational backups (which is what snapshot
+   commits would be) belong in a proper backup mechanism (cron rsync
+   to a second /projectnb path, GHA artifact storage for the most
+   recent N days). Phase 2 will add a weekly backup-rsync as part of
+   the deployment.
 
-3. **What to do with the existing 8.2 GB of .git history?** Three sub-
-   options: (a) leave it forever (simplest, audit chain safest);
-   (b) re-clone SCC's working tree from a shallow clone in 6 months
-   (preserves origin's history, drops SCC's local copy bloat);
-   (c) coordinate with operator + audit reviewers to do a one-time
-   amend/squash much later when the audit chain is no longer load-
-   bearing.
+3. **Leave origin .git history alone.** No force-push, no amend, no
+   squash. Audit chain in AUDIT_REPORT_OIL.md depends on hash
+   references (`04625b8`, `6b8f3c5`, `c7ec169`, `fb3fdec`) that must
+   continue to resolve. Origin's 8.2 GB stays at 8.2 GB and stops
+   growing once Phase 2 lands.
+
+## SCC-side quota insurance pattern (Q3 sub-plan)
+
+Even with bars.parquet out of the commit loop, SCC's local working
+copy has the existing 8.2 GB of .git history. GPFS maintenance will
+eventually reclaim unreachable packfiles after we stop adding new
+blobs (slow — weeks), but the existing packed blobs stay forever
+unless we intervene locally. **Origin stays full-history regardless.**
+
+The SCC-side insurance pattern: whenever the SCC clone's .git becomes
+a quota constraint again, re-clone SCC's working copy as a shallow
+clone, keeping only the most recent N commits. Origin is untouched.
+
+```bash
+# One-shot shallow re-clone of SCC's working copy.
+# Origin/master is untouched; full history remains on GitHub.
+# Operator runs from Mac terminal.
+
+# 1. Pick depth. 30 commits ≈ 7.5 hours of cron at */15. 100 ≈ 1 day.
+#    Default to 30 for the smallest possible footprint; increase only
+#    if a cron operation needs a longer history window.
+DEPTH=30
+
+# 2. Backup current SCC working copy (data files only — code is on origin).
+ssh scc 'cd /usr4/ds340/iansabia && tar czf DS340-Project.local-data.$(date +%Y-%m-%d).tar.gz DS340-Project/data/live DS340-Project/models/deployed DS340-Project/.venv'
+# (.venv is now a symlink to /projectnb; the tar captures the symlink,
+# not the contents — intentional. Same for any other /projectnb symlinks.)
+
+# 3. On SCC, move old clone aside, do a shallow clone in its place.
+ssh scc "cd /usr4/ds340/iansabia && \
+    mv DS340-Project DS340-Project.old.$(date +%Y-%m-%d) && \
+    git clone --depth=$DEPTH git@github.com:Iansabia/DS340-Project.git DS340-Project"
+
+# 4. Restore symlinks (.venv) and runtime data (positions.db etc) into the new clone.
+ssh scc "cd /usr4/ds340/iansabia/DS340-Project && \
+    ln -s /projectnb/ds340/projects/iansabia/venv .venv && \
+    cp -p ../DS340-Project.old.$(date +%Y-%m-%d)/data/live/positions.db data/live/ 2>/dev/null && \
+    cp -p ../DS340-Project.old.$(date +%Y-%m-%d)/data/live/paper_trades_*.jsonl data/live/ 2>/dev/null && \
+    cp -p ../DS340-Project.old.$(date +%Y-%m-%d)/data/live/bars.parquet data/live/ 2>/dev/null || true"
+# (After Phase 2, bars.parquet is at /projectnb/.../bars.parquet via
+# BARS_PARQUET_PATH; the cp above is harmless in that future state.)
+
+# 5. Verify cron scripts present + executable.
+ssh scc 'ls -la /usr4/ds340/iansabia/DS340-Project/scripts/scc_trading_cycle.sh /usr4/ds340/iansabia/DS340-Project/scripts/scc_discover_markets.sh'
+# If empty/missing, re-deploy from scripts/scc_hardened/ per deploy.md.
+
+# 6. Wait for two clean cron cycles. If both succeed, delete the old clone:
+ssh scc "rm -rf /usr4/ds340/iansabia/DS340-Project.old.$(date +%Y-%m-%d)"
+# Reclaims the bulk of the 8.2 GB. Origin untouched throughout.
+```
+
+**Expected savings:** Shallow clone at depth=30 typically reduces
+`.git` to <100 MB. Net SCC quota recovery: roughly 8 GB. The trade-
+off is that historical git operations on SCC (`git log -- some-old-file`,
+`git checkout <old-sha> -- ...`) only see the most recent 30 commits.
+Anything older has to be fetched on-demand via `git fetch --unshallow`
+or done from a separate full clone on the Mac.
+
+**When to apply:** Only when SCC quota becomes a constraint again
+after the Phase 2 .venv + bars-out-of-git changes. Likely 3-12 months
+out depending on how fast `paper_trades_*.jsonl` and other tracked
+files grow.
+
+**Why this is safer than amend/squash on origin:** Origin remains
+the canonical, full-history copy. AUDIT_REPORT_OIL.md hash references
+continue to resolve via origin. SCC's local copy is treated as
+disposable working state, which is what it actually is.
