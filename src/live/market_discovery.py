@@ -99,10 +99,14 @@ def upsert_active_matches(
         now_ts: Unix timestamp for discovered_at/last_seen. Defaults to
             current time when omitted.
         eviction_ttl_seconds: Pairs not seen in this many seconds get
-            tombstoned in place. Tombstones preserve array index so
-            pair_ids (live_NNNN derived from index) stay stable, but
-            are rejected by the collector's quality filter because
-            their kalshi_ticker is cleared.
+            tombstoned in place. Tombstones preserve the underlying
+            (kalshi_ticker, poly_id) identity via prev_kalshi_ticker /
+            prev_poly_id so a later rediscovery revives the SAME
+            content-addressed pair_id (see src/live/pair_ids.py).
+            bars.parquet and positions.db references survive eviction
+            and revival unchanged. The tombstone itself is rejected by
+            the collector's quality filter because kalshi_ticker is
+            cleared.
         protected_indices: Set of array indices that must never be
             tombstoned, even if stale. Used by ``run_discovery`` to
             pass in indices referenced by open positions so the
@@ -432,8 +436,8 @@ def fetch_active_kalshi_markets(
 
 
 def fetch_active_poly_markets(
-    max_pages: int = 60,
-    page_size: int = 500,
+    max_pages: int = 300,
+    page_size: int = 100,
 ) -> list[dict]:
     """Fetch currently-tradeable Polymarket markets via Gamma API.
 
@@ -452,6 +456,18 @@ def fetch_active_poly_markets(
     ``max_pages=10`` cap. Bumped to 60 (30k markets) to reach them.
     The volume filter still drops junk, so the candidate universe we
     actually hand to the matcher stays manageable.
+
+    Page-size cap (2026-05-14 regression):
+        Polymarket silently capped their /markets endpoint to a max
+        100 results per page. Confirmed by direct probe: limit=10
+        returns 10, limit=500 returns 100. With page_size>100 the
+        pagination loop's `len(page) < page_size` termination clause
+        fires after the first page, capping the entire universe at
+        100 markets. We now use page_size=100 (matching the cap) and
+        bumped max_pages from 60 to 300 to keep the effective depth
+        at the same ~30k markets where commodity contracts live.
+        Adds ~60s of per-page sleep to discovery runtime (300 pages
+        x 0.2s), still well under the 30-min qsub h_rt.
     """
     import requests  # lazy
 
