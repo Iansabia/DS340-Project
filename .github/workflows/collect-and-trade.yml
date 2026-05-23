@@ -6,8 +6,15 @@ name: Collect & Paper Trade
 # does work if SCC has been silent for more than 45 minutes (i.e. SCC is
 # down or stuck). That way we never race with SCC during normal operation.
 on:
-  schedule:
-    - cron: '37 * * * *'   # :37 past every hour, offset from SCC's :00/:15/:30/:45
+  # SCHEDULE DISABLED 2026-05-23 post-Q1/Q2 architecture migration.
+  # bars.parquet is now off-tree (symlink to /projectnb/ds340/.../live_state/)
+  # and gitignored, so GHA checkouts have no bars.parquet to operate on.
+  # The Guard step would either error or warn, and the trading cycle would
+  # then fail downstream regardless. Re-enable only after Phase 3 of the
+  # bars-sync mechanism in scripts/scc_hardened/bars_parquet_architecture.md
+  # gives GHA a way to materialize bars.parquet at the start of each run.
+  # schedule:
+  #   - cron: '37 * * * *'   # :37 past every hour, offset from SCC's :00/:15/:30/:45
   workflow_dispatch:  # Manual trigger from GitHub UI always runs
 
 permissions:

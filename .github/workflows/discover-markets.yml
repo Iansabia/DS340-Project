@@ -5,8 +5,16 @@ name: Discover New Markets
 # is plenty to catch fresh daily/weekly oil, Fed, and sports contracts
 # before they matter.
 on:
-  schedule:
-    - cron: '17 */3 * * *'   # :17 past every 3rd hour (avoid :00 queue spike)
+  # SCHEDULE DISABLED 2026-05-23 post-Q1/Q2 architecture migration.
+  # active_matches.json is now off-tree (symlink to /projectnb/ds340/.../
+  # live_state/) and gitignored, so GHA checkouts have no file to write to
+  # in the expected location. Discovery would run, but its commit step
+  # would no-op (or stage a regular file diverging from the SCC symlink
+  # state). Re-enable only after Phase 3 of the bars-sync mechanism in
+  # scripts/scc_hardened/bars_parquet_architecture.md gives GHA a way to
+  # materialize the off-tree live state at the start of each run.
+  # schedule:
+  #   - cron: '17 */3 * * *'   # :17 past every 3rd hour (avoid :00 queue spike)
   workflow_dispatch:
 
 permissions:
