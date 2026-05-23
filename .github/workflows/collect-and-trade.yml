@@ -71,6 +71,23 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements-ci.txt
 
+      - name: Guard bars.parquet integrity
+        if: steps.scc_check.outputs.should_run == 'true'
+        run: |
+          set -e
+          PARQUET="data/live/bars.parquet"
+          if [ ! -f "$PARQUET" ]; then
+            echo "::error::bars.parquet missing at $PARQUET. Aborting cycle to prevent silent breakage."
+            exit 1
+          fi
+          SIZE=$(stat -c%s "$PARQUET" 2>/dev/null || stat -f%z "$PARQUET")
+          if [ "$SIZE" -eq 0 ]; then
+            echo "::error::bars.parquet is 0 bytes (corruption). Last known good was commit 04625b8 on 2026-05-20 04:20 UTC. Recover via: git checkout <good-sha> -- data/live/bars.parquet"
+            exit 1
+          fi
+          python -c "import pyarrow.parquet as pq; m = pq.read_metadata('$PARQUET'); print(f'bars.parquet OK: {m.num_rows} rows, {m.num_columns} cols, size=$SIZE bytes')" \
+            || { echo "::error::bars.parquet is non-zero but unreadable by pyarrow. Likely truncated mid-write."; exit 1; }
+
       - name: Run adaptive trading cycle (new position-based system)
         if: steps.scc_check.outputs.should_run == 'true'
         run: |
