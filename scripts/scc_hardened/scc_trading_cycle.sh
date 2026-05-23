@@ -156,8 +156,32 @@ _stage_if_valid_sqlite() {
     return 0
 }
 
-log "staging data/live files (with Layer 1 integrity checks)"
-_stage_if_valid_parquet data/live/bars.parquet || true
+# Layer 4 — refuse to stage files that are symlinks to off-tree paths
+# (e.g. /projectnb, /scratch). These are Q1/Q2 off-tree live-state files;
+# gitignore covers the day-to-day case but git add -f bypasses gitignore,
+# so this guard is the belt-and-suspenders against accidents.
+_is_offsite_symlink() {
+    local path="$1"
+    [ -L "$path" ] || return 1
+    local target
+    target=$(readlink "$path")
+    case "$target" in
+        /projectnb/*|/scratch/*|/share/*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+log "staging tracked data/live files (Layer 1 integrity + Layer 4 off-tree guards)"
+# bars.parquet is off-tree (Q1/Q2) — refuse to stage; writes happen at /projectnb.
+if _is_offsite_symlink data/live/bars.parquet; then
+    log "LAYER 4: data/live/bars.parquet is off-tree symlink — not staging"
+else
+    _stage_if_valid_parquet data/live/bars.parquet || true
+fi
+# active_matches.json is also off-tree but is staged by discover, not trading_cycle.
+if _is_offsite_symlink data/live/active_matches.json; then
+    log "LAYER 4: data/live/active_matches.json is off-tree symlink — not staging"
+fi
 git add -f data/live/paper_trades*.jsonl 2>/dev/null || true
 _stage_if_valid_sqlite data/live/positions.db || true
 git add data/live/position_history.jsonl 2>/dev/null || true

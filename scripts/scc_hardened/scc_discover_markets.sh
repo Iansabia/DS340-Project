@@ -104,7 +104,22 @@ else
         log "GUARD: unstaged $UNEXPECTED_COUNT unexpected file(s); discover commit will include only active_matches.json"
     fi
 
-    git add data/live/active_matches.json 2>/dev/null || true
+    # Layer 4: active_matches.json is off-tree (Q1/Q2) at /projectnb via symlink.
+    # Writes happen at /projectnb directly; gitignore + this guard prevent staging.
+    if [ -L "data/live/active_matches.json" ]; then
+        TARGET=$(readlink "data/live/active_matches.json")
+        case "$TARGET" in
+            /projectnb/*|/scratch/*|/share/*)
+                log "LAYER 4: data/live/active_matches.json is off-tree symlink ($TARGET) — not staging"
+                ;;
+            *)
+                log "WARN: data/live/active_matches.json symlinks to unexpected target ($TARGET) — staging"
+                git add data/live/active_matches.json 2>/dev/null || true
+                ;;
+        esac
+    else
+        git add data/live/active_matches.json 2>/dev/null || true
+    fi
 
     if git diff --cached --quiet; then
         log "no new pairs to commit"
