@@ -172,15 +172,25 @@ _is_offsite_symlink() {
 }
 
 log "staging tracked data/live files (Layer 1 integrity + Layer 4 off-tree guards)"
-# bars.parquet is off-tree (Q1/Q2) — refuse to stage; writes happen at /projectnb.
-if _is_offsite_symlink data/live/bars.parquet; then
-    log "LAYER 4: data/live/bars.parquet is off-tree symlink — not staging"
-else
-    _stage_if_valid_parquet data/live/bars.parquet || true
+# bars.parquet and active_matches.json are PERMANENTLY off-tree (Q1/Q2).
+# Never stage them regardless of whether they're a symlink or a regular file
+# on disk. Both states can occur: symlink = intended state, regular file =
+# transient post-pull artifact where git removed the symlink during checkout
+# and the collector recreated a local file before the operator could
+# re-symlink. In either case, do not stage.
+if [ -e data/live/bars.parquet ] || [ -L data/live/bars.parquet ]; then
+    if _is_offsite_symlink data/live/bars.parquet; then
+        log "LAYER 4: data/live/bars.parquet is off-tree symlink — not staging"
+    else
+        log "LAYER 4: data/live/bars.parquet is a regular file (transient post-pull artifact?) — not staging; bars live off-tree per Q1/Q2, re-symlink with: ln -sfn /projectnb/ds340/projects/iansabia/live_state/bars.parquet data/live/bars.parquet"
+    fi
 fi
-# active_matches.json is also off-tree but is staged by discover, not trading_cycle.
-if _is_offsite_symlink data/live/active_matches.json; then
-    log "LAYER 4: data/live/active_matches.json is off-tree symlink — not staging"
+if [ -e data/live/active_matches.json ] || [ -L data/live/active_matches.json ]; then
+    if _is_offsite_symlink data/live/active_matches.json; then
+        log "LAYER 4: data/live/active_matches.json is off-tree symlink — not staging"
+    else
+        log "LAYER 4: data/live/active_matches.json is a regular file (transient post-pull artifact?) — not staging; active_matches lives off-tree per Q1/Q2"
+    fi
 fi
 git add -f data/live/paper_trades*.jsonl 2>/dev/null || true
 _stage_if_valid_sqlite data/live/positions.db || true
