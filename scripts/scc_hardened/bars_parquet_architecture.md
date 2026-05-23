@@ -1,3 +1,17 @@
+# Architecture proposal: stop committing live-state files to git
+
+**Status:** Implemented 2026-05-23 in commits `1ef9df7`, `86a7fce`,
+`42c97c1`, `3df2a3c`. Scope expanded from `bars.parquet` only to
+**`bars.parquet` + `active_matches.json`** because the same root cause
+(quota-truncated writes on /usr4 home, .git bloat from binary commits)
+applied to both files, and the size of `active_matches.json` (~82 MB
+and growing per discovery cycle) was itself approaching GitHub's 100 MB
+per-file hard limit. Both files now live at
+`/projectnb/ds340/projects/iansabia/live_state/` and are gitignored
+in the repo with a Layer 4 belt-and-suspenders guard in the SCC
+hardened scripts to refuse staging if the gitignore is somehow
+bypassed (e.g., `git add -f`).
+
 # Architecture proposal: stop committing `data/live/bars.parquet` to git
 
 **Status:** Proposal. Not yet implemented. Reviewed and approved by
@@ -20,6 +34,27 @@ reproduction depends on specific commit hashes
 (`04625b8`, `6b8f3c5`, `c7ec169`, `fb3fdec` and others), and force-
 pushing would invalidate the audit chain that backs the Gold
 conversation.
+
+## Inventory of consumers (both files)
+
+`data/live/active_matches.json` consumers (from `grep -rln`):
+
+- **Reads** (operational): `src/matching/quality_filter.py`,
+  `src/live/strategy.py`, `src/live/dashboard.py`,
+  `src/live/contract_classifier.py`, `src/live/pair_ids.py`,
+  `src/live/collector.py`, `src/features/category.py`,
+  `experiments/audit/audit_survivorship.py`,
+  `scripts/preflight_check.py`
+- **Writes**: `scripts/discover_markets.py` (via the discover cron)
+- **Tests**: `tests/matching/test_quality_filter.py`,
+  `tests/features/test_category.py`,
+  `tests/live/test_market_discovery.py`
+
+All consumers use the hardcoded path `data/live/active_matches.json`
+so a symlink to `/projectnb/.../active_matches.json` is transparent.
+**Zero references in AUDIT_REPORT_OIL.md or
+RESULTS_OIL_RETRAIN_DRAFT.md** (the audit/writeup reference
+`canonical_oil` snapshots only). Verified by grep.
 
 ## Inventory of current `data/live/bars.parquet` consumers
 
