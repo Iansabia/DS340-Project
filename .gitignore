@@ -23,6 +23,7 @@ data/processed/
 # paper_trades*.jsonl covers both the legacy archive and per-UTC-day
 # rotated files (task #27). Force-added in collect-and-trade workflow.
 data/live/bars.parquet
+data/live/active_matches.json
 data/live/paper_trades*.jsonl
 data/live/retrain_log.json
 # Phase 15 backup snapshots (pre-fix state; archived locally but
