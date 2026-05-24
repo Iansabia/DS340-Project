@@ -447,6 +447,31 @@ class TradingStrategy:
 
             avg_pred = (lr_pred + xgb_pred) / 2.0
 
+            # Phase A canonical-oil shadow hook. Additive only — never
+            # affects legacy trading decisions in shadow mode. If the
+            # canonical bundle isn't installed or scoring fails, log a
+            # warning and continue. See scripts/scc_hardened/phase_a_v3.md
+            # and src/live/canonical_inference.py.
+            from src.live import canonical_inference
+            if (canonical_inference.is_shadow() or canonical_inference.is_enabled()) \
+                    and canonical_inference.use_canonical(k_ticker):
+                try:
+                    canon_pred = canonical_inference.predict(features)
+                    canonical_inference.log_shadow(
+                        ts=ts,
+                        pair_id=pair_id,
+                        kalshi_ticker=k_ticker,
+                        canonical_pred=canon_pred,
+                        spread=spread,
+                        legacy_avg_pred=avg_pred,
+                        legacy_lr_pred=lr_pred,
+                        legacy_xgb_pred=xgb_pred,
+                    )
+                except FileNotFoundError:
+                    pass  # bundle not deployed yet; silent skip
+                except Exception as e:
+                    logger.warning("canonical shadow failed for %s: %s", pair_id, e)
+
             # Concordance check: only enter when both models agree on
             # direction. If LR says spread will widen and XGBoost says
             # it will narrow, the average might still cross threshold

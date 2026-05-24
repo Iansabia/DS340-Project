@@ -32,6 +32,14 @@ PROJECT_DIR="/usr4/ds340/iansabia/DS340-Project"
 LOG_FILE="$HOME/trading.log"
 PY="$PROJECT_DIR/.venv/bin/python"
 
+# Phase A canonical-oil deployment gates. Default state: shadow on,
+# enabled off. To flip to A2 narrow-replacement, set CANONICAL_OIL_ENABLED=true
+# in $HOME/.scc_env or override at the crontab line. See
+# scripts/scc_hardened/phase_a_v3.md section (f) for the truth table.
+export CANONICAL_OIL_ENABLED="${CANONICAL_OIL_ENABLED:-false}"
+export CANONICAL_OIL_SHADOW="${CANONICAL_OIL_SHADOW:-true}"
+[ -f "$HOME/.scc_env" ] && . "$HOME/.scc_env"
+
 # Redirect all further output (stdout + stderr) to the log file.
 exec >> "$LOG_FILE" 2>&1
 

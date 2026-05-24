@@ -97,6 +97,13 @@ jobs:
 
       - name: Run adaptive trading cycle (new position-based system)
         if: steps.scc_check.outputs.should_run == 'true'
+        env:
+          # Phase A canonical-oil deployment gates.
+          # Defaults below match SCC defaults: shadow on, enabled off.
+          # GHA is degraded-fallback only post-Q1/Q2; manual override
+          # available via workflow_dispatch.
+          CANONICAL_OIL_ENABLED: "false"
+          CANONICAL_OIL_SHADOW: "true"
         run: |
           echo "=== Adaptive trading cycle (GHA fallback — SCC silent) ==="
           python -m src.live.trading_cycle --cycle
