@@ -29,6 +29,9 @@ data/live/retrain_log.json
 # Phase A shadow-mode predictions log (canonical-oil XGBoost). Grows
 # per-cycle per-oil-pair (MBs/day expected). Off-tree by design.
 data/live/canonical_predictions.jsonl
+# Phase A.E1 realized P&L log — predictions enriched with next-bar
+# outcomes. Same gitignore treatment as the shadow log.
+data/live/canonical_realized.jsonl
 # Phase 15 backup snapshots (pre-fix state; archived locally but
 # not tracked — too large and the pre-fix state is already pinned
 # in 15-01-DIAGNOSTIC.md probe evidence).

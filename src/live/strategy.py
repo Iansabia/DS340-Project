@@ -610,6 +610,17 @@ class TradingStrategy:
                 self._collector.append_to_parquet(df)
                 logger.info("Appended %d bars", len(bars))
 
+        # Phase A.E1 — resolve any shadow predictions whose next-bar
+        # spread is now visible in bars.parquet. Runs AFTER bar-append
+        # so a prediction from cycle N-1 can resolve against the bar
+        # just appended (1-cycle resolution lag, ~15 min). Fail-safe.
+        try:
+            from src.live import canonical_inference as _ci
+            if _ci.is_shadow() or _ci.is_enabled():
+                _ci.resolve_pending_shadow()
+        except Exception as e:
+            logger.warning("resolve_pending_shadow hook failed: %s", e)
+
         # Step 8: Summary
         final_positions = self._pm.get_open_positions()
         summary = {

@@ -46,6 +46,13 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 MODEL_DIR = REPO_ROOT / "models" / "canonical_oil"
 LIVE_BARS_PATH = REPO_ROOT / "data" / "live" / "bars.parquet"
 SHADOW_LOG_PATH = REPO_ROOT / "data" / "live" / "canonical_predictions.jsonl"
+REALIZED_LOG_PATH = REPO_ROOT / "data" / "live" / "canonical_realized.jsonl"
+
+# Position size used to translate raw spread changes into per-trade
+# dollar P&L. Matches the canonical training script's $100 convention
+# (scripts/train_oil_canonical.py per_trade_outcomes() and the original
+# paper's Table 1 reporting).
+POSITION_SIZE_USD = 100.0
 
 OIL_FAMILY_PREFIXES = (
     "KXWTI",
@@ -202,3 +209,148 @@ def log_shadow(
             f.write(json.dumps(rec, separators=(",", ":")) + "\n")
     except Exception as e:
         logger.warning("canonical shadow log failed: %s", e)
+
+
+def _load_resolved_keys() -> set[tuple[str, int]]:
+    """Return the set of (pair_id, ts) pairs already present in the
+    realized log so we never double-write a resolved prediction."""
+    out: set[tuple[str, int]] = set()
+    if not REALIZED_LOG_PATH.exists():
+        return out
+    try:
+        with open(REALIZED_LOG_PATH) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    r = json.loads(line)
+                    out.add((r["pair_id"], int(r["ts"])))
+                except Exception:
+                    continue
+    except Exception as e:
+        logger.warning("could not read %s: %s", REALIZED_LOG_PATH, e)
+    return out
+
+
+def _load_pending_shadow() -> list[dict]:
+    """Read the shadow log and return records not yet in the realized log."""
+    if not SHADOW_LOG_PATH.exists():
+        return []
+    resolved = _load_resolved_keys()
+    pending: list[dict] = []
+    try:
+        with open(SHADOW_LOG_PATH) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    p = json.loads(line)
+                    key = (p["pair_id"], int(p["ts"]))
+                    if key not in resolved:
+                        pending.append(p)
+                except Exception:
+                    continue
+    except Exception as e:
+        logger.warning("could not read %s: %s", SHADOW_LOG_PATH, e)
+    return pending
+
+
+def resolve_pending_shadow() -> int:
+    """Resolve every shadow prediction whose next-bar spread is now
+    visible in bars.parquet.
+
+    For each unresolved prediction we:
+      - find the first bar for that pair_id with timestamp > prediction.ts
+      - compute realized_spread_change = next_bar.spread - prediction.spread
+        (matches the canonical training target ``spread_change_target``)
+      - if would_trade==True, compute trade P&L =
+          sign(canonical_pred) * realized_spread_change * POSITION_SIZE_USD
+        (matches scripts/train_oil_canonical.py per_trade_outcomes())
+      - append an enriched record to canonical_realized.jsonl
+
+    Returns the number of newly-resolved records (0 if none ready,
+    or if bars.parquet / shadow log missing). Fail-safe — never raises.
+    """
+    try:
+        pending = _load_pending_shadow()
+        if not pending:
+            return 0
+        if not LIVE_BARS_PATH.exists():
+            return 0
+
+        import numpy as np
+        import pyarrow.parquet as pq
+
+        # Read only what we need from bars.parquet (pair_id / ts / spread).
+        # We can't easily filter to just the pending pair_ids without a
+        # full pass, but the file is small enough (~half-million rows)
+        # that a single read is fine.
+        tbl = pq.read_table(
+            LIVE_BARS_PATH, columns=["pair_id", "timestamp", "spread"]
+        )
+        bars = tbl.to_pandas()
+        if bars.empty:
+            return 0
+
+        # Group bars by pair_id for fast lookup.
+        bars_by_pair: dict[str, pd.DataFrame] = {}
+        for pid, g in bars.groupby("pair_id"):
+            bars_by_pair[pid] = g.sort_values("timestamp").reset_index(drop=True)
+
+        REALIZED_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        n_new = 0
+        with open(REALIZED_LOG_PATH, "a") as out:
+            for p in pending:
+                pid = p["pair_id"]
+                pred_ts = int(p["ts"])
+                pair_bars = bars_by_pair.get(pid)
+                if pair_bars is None or pair_bars.empty:
+                    continue
+                next_bars = pair_bars[pair_bars["timestamp"] > pred_ts]
+                if next_bars.empty:
+                    continue
+                next_row = next_bars.iloc[0]
+                next_spread = float(next_row["spread"]) if pd.notna(next_row["spread"]) else None
+                if next_spread is None:
+                    continue
+                pred_spread = float(p["spread"])
+                realized_change = next_spread - pred_spread
+
+                canonical_pred = float(p["canonical_pred"])
+                would_trade = bool(p.get("canonical_would_trade", False))
+                if would_trade and canonical_pred != 0.0:
+                    direction = 1.0 if canonical_pred > 0 else -1.0
+                    pnl_per_dollar = direction * realized_change
+                    pnl_usd = pnl_per_dollar * POSITION_SIZE_USD
+                    sign_match = (canonical_pred > 0) == (realized_change > 0)
+                else:
+                    pnl_per_dollar = 0.0
+                    pnl_usd = 0.0
+                    sign_match = None
+
+                enriched = dict(p)
+                enriched["realized_next_ts"] = int(next_row["timestamp"])
+                enriched["realized_next_ts_iso"] = datetime.fromtimestamp(
+                    int(next_row["timestamp"]), tz=timezone.utc
+                ).isoformat()
+                enriched["realized_next_spread"] = next_spread
+                enriched["realized_spread_change"] = float(realized_change)
+                enriched["realized_pnl_per_dollar"] = float(pnl_per_dollar)
+                enriched["realized_pnl_usd"] = float(pnl_usd)
+                enriched["realized_sign_match"] = sign_match
+                enriched["realized_position_size_usd"] = POSITION_SIZE_USD
+                enriched["realized_resolved_at_iso"] = datetime.now(
+                    timezone.utc
+                ).isoformat()
+
+                out.write(json.dumps(enriched, separators=(",", ":")) + "\n")
+                n_new += 1
+
+        if n_new > 0:
+            logger.info("canonical shadow: resolved %d predictions", n_new)
+        return n_new
+    except Exception as e:
+        logger.warning("resolve_pending_shadow failed: %s", e)
+        return 0
